@@ -130,4 +130,5 @@ intern_deliverables:
   - CSV, plots, log, metrics, validation report, and optional solution snapshots.
   - Automatic validation script covering convergence, flame speed, thermal structure, species bounds, and artifact completeness.
   - Short explanation of how transport model and Soret diffusion affect the computed flame speed.
-status: benchmark_validated
+card_status: accepted
+benchmark_status: benchmark_validated

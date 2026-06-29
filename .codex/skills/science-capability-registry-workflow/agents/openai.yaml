@@ -1,0 +1,4 @@
+interface:
+  display_name: "Science Capability Registry Workflow"
+  short_description: "Build verifiable scientific capability assets"
+  default_prompt: "Use $science-capability-registry-workflow to turn a scientific software example into a validated capability asset."

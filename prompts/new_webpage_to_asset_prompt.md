@@ -35,7 +35,8 @@ benchmark:
 validation_criteria:
 integration_targets:
 intern_deliverables:
-status: draft
+card_status: draft
+benchmark_status: benchmark_candidate
 ```
 
 ## 必须回答的问题

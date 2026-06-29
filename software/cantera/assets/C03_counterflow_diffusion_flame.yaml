@@ -97,4 +97,5 @@ intern_deliverables:
   - CSV, plot, log, and validation report outputs.
   - Automatic validation script covering convergence, outputs, reference ranges, and physical trends.
   - Short explanation of parameter perturbation trends and remaining limitations.
-status: benchmark_validated
+card_status: accepted
+benchmark_status: benchmark_validated

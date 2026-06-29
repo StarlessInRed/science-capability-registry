@@ -19,7 +19,8 @@
     "validation_criteria",
     "integration_targets",
     "intern_deliverables",
-    "status"
+    "card_status",
+    "benchmark_status"
   ],
   "properties": {
     "asset_id": {
@@ -96,12 +97,23 @@
         "minLength": 1
       }
     },
-    "status": {
+    "card_status": {
       "type": "string",
       "enum": [
         "draft",
         "review",
         "accepted",
+        "retired"
+      ]
+    },
+    "benchmark_status": {
+      "type": "string",
+      "enum": [
+        "not_applicable",
+        "benchmark_candidate",
+        "package_skeleton_created",
+        "benchmark_validated",
+        "validation_failed",
         "retired"
       ]
     }

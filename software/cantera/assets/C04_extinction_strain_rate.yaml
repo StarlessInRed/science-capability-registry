@@ -91,4 +91,5 @@ intern_deliverables:
   - CSV, plot, log, metrics, validation report, and optional solution snapshots.
   - Automatic validation script covering convergence, extinction detection, strain-rate metrics, and artifact completeness.
   - Short explanation of how strain-rate continuation identifies the last burning solution.
-status: benchmark_validated
+card_status: accepted
+benchmark_status: benchmark_validated
