@@ -1,0 +1,50 @@
+capability_id: combustion.cantera.extinction_strain_rate
+case_id: baseline
+description: Official Cantera hydrogen-oxygen counterflow diffusion flame extinction benchmark.
+source_asset: software/cantera/assets/C04_extinction_strain_rate.yaml
+mechanism: h2o2.yaml
+pressure_pa: 100000.0
+width_m: 0.018
+loglevel: 0
+stoichiometric_fuel_species: H2
+fuel_inlet:
+  temperature_k: 300.0
+  mass_flux_kg_m2_s: 0.5
+  composition: H2:1
+oxidizer_inlet:
+  temperature_k: 500.0
+  mass_flux_kg_m2_s: 3.0
+  composition: O2:1
+refine_criteria:
+  ratio: 3.0
+  slope: 0.1
+  curve: 0.2
+  prune: 0.03
+scaling_exponents:
+  grid: -0.5
+  velocity: 0.5
+  spread_rate: 1.0
+  radial_pressure_gradient: 2.0
+  mass_flux: 0.5
+extinction_search:
+  initial_delta_alpha: 1.0
+  delta_alpha_factor: 50.0
+  delta_alpha_min: 0.001
+  delta_temperature_min_k: 1.0
+  max_iterations: 600
+outputs:
+  output_dir: _results/cantera/c04_extinction_strain_rate/baseline
+  save_solution_snapshots: true
+  save_csv: true
+  save_plots: true
+  save_log: true
+  save_metrics: true
+  save_validation_report: true
+validation:
+  extinction_peak_temperature_k:
+    min: 1200.0
+    max: 3000.0
+  max_strain_rate_1_s:
+    min: 1000.0
+    max: 800000.0
+  min_burning_solution_count: 2

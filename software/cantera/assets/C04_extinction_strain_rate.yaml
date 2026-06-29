@@ -1,0 +1,94 @@
+asset_id: C04_extinction_strain_rate
+software: Cantera
+source_url: https://cantera.org/stable/examples/python/onedim/diffusion_flame_extinction.html
+domain: combustion
+capability_name: extinction strain rate
+problem_type:
+  category: 1D reacting flow parameter continuation
+  description: Compute the extinction point of a hydrogen-oxygen counterflow diffusion flame by increasing strain rate until the flame extinguishes.
+physics:
+  flow_model: steady one-dimensional opposed-flow diffusion flame
+  chemistry_model: finite-rate gas-phase combustion using h2o2.yaml
+  transport_model: mixture-averaged transport through Cantera one-dimensional flame solver
+  energy_equation: enabled
+  fuel: H2:1
+  oxidizer: O2:1
+  continuation_method: strain-rate continuation using Fiala and Sattelmayer scaling rules
+inputs:
+  mechanism: h2o2.yaml
+  pressure_pa: 100000.0
+  width_m: 0.018
+  fuel_inlet:
+    temperature_k: 300.0
+    mass_flux_kg_m2_s: 0.5
+    composition: H2:1
+  oxidizer_inlet:
+    temperature_k: 500.0
+    mass_flux_kg_m2_s: 3.0
+    composition: O2:1
+  refine_criteria:
+    ratio: 3.0
+    slope: 0.1
+    curve: 0.2
+    prune: 0.03
+  extinction_search:
+    initial_delta_alpha: 1.0
+    delta_alpha_factor: 50.0
+    delta_alpha_min: 0.001
+    delta_temperature_min_k: 1.0
+outputs:
+  required_fields:
+    - alpha_history
+    - peak_temperature_history_k
+    - max_strain_rate_history_1_s
+    - extinction_alpha
+    - extinction_peak_temperature_k
+    - extinction_strain_rates
+    - solve_iteration_count
+  required_artifacts:
+    - extinction_summary.csv
+    - figure_T_max_a_max.png
+    - diffusion_flame_extinction_run.log
+    - metrics.json
+    - validation_report.md
+benchmark:
+  source_name: Cantera official Python example, Diffusion flame extinction strain rate
+  reference_case:
+    mechanism: h2o2.yaml
+    pressure_pa: 100000.0
+    fuel_inlet_mdot_kg_m2_s: 0.5
+    oxidizer_inlet_mdot_kg_m2_s: 3.0
+    width_m: 0.018
+  reference_observations:
+    extinction_alpha: 281.6995683199991
+    extinction_peak_temperature_k: 1552.4450611784455
+    mean_strain_rate_1_s: 157814.42185795316
+    max_strain_rate_1_s: 653702.2192339892
+    fuel_potential_flow_strain_rate_1_s: 311749.44260477315
+    oxidizer_potential_flow_strain_rate_1_s: 101021.52199161937
+    stoichiometric_strain_rate_1_s: 270655.8426449048
+    continuation_iteration_count: 416
+  benchmark_role: Default benchmark for extinction strain rate of a counterflow diffusion flame.
+validation_criteria:
+  - Initial hydrogen-oxygen counterflow diffusion flame must converge.
+  - Strain-rate continuation must identify a last burning solution and an extinguished solution.
+  - Extinction peak temperature and strain-rate metrics must be finite and positive.
+  - Peak-temperature history must show an extinction drop to the inlet-temperature limit.
+  - Output CSV, plot, log, metrics, validation report, and optional solver snapshots must be generated.
+  - Final strain-rate metrics must include mean, maximum, fuel-side potential-flow, oxidizer-side potential-flow, and stoichiometric strain rate.
+integration_targets:
+  package_entrypoint: science_capability_registry.cantera.c04_extinction_strain_rate:run
+  input_schema: schemas/cantera_C04_extinction_strain_rate.schema.json
+  output_contract: reports/validation_report_template.md
+  workflow_stage: combustion.cantera.extinction_strain_rate
+  integration_notes:
+    - Accept structured continuation parameters instead of hardcoded official example values.
+    - Return machine-readable extinction metrics for automatic benchmark validation.
+    - Preserve iteration history so the capability owner can audit the continuation path.
+intern_deliverables:
+  - Python package implementation with a stable callable entrypoint.
+  - Input schema for the default extinction search.
+  - CSV, plot, log, metrics, validation report, and optional solution snapshots.
+  - Automatic validation script covering convergence, extinction detection, strain-rate metrics, and artifact completeness.
+  - Short explanation of how strain-rate continuation identifies the last burning solution.
+status: benchmark_validated
