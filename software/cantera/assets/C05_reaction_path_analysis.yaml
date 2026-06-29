@@ -1,0 +1,133 @@
+asset_id: C05_reaction_path_analysis
+software: Cantera
+source_url: https://cantera.org/stable/examples/python/kinetics/reaction_path.html
+domain: combustion
+capability_name: reaction path analysis
+problem_type:
+  category: kinetic mechanism reaction-path analysis
+  description: Generate a reacting gas state and compute a Cantera ReactionPathDiagram for a configured element.
+physics:
+  reactor_model: IdealGasReactor
+  chemistry_model: finite-rate gas-phase methane oxidation using gri30.yaml
+  state_generation: constant-volume homogeneous reactor integrated until a configured target temperature is reached
+  path_model: element-wise reaction path diagram computed from net species production fluxes
+  visualization_model: Graphviz DOT graph plus machine-readable edge flux table
+inputs:
+  mechanism: gri30.yaml
+  reactor_model: ideal_gas_constant_volume
+  initial_temperature_k: 1300.0
+  pressure_pa: 101325.0
+  composition: CH4:0.4,O2:1,N2:3.76
+  target_temperature_k: 1900.0
+  element: N
+  diagram:
+    label_threshold: 0.01
+outputs:
+  required_fields:
+    - final_temperature_k
+    - final_pressure_pa
+    - final_time_s
+    - step_count
+    - element
+    - node_names
+    - node_count
+    - edge_count
+    - significant_edge_count
+    - max_abs_net_flux
+    - top_edges
+  required_artifacts:
+    - reaction_path.dot
+    - reaction_path_data.txt
+    - reaction_path_edges.csv
+    - reaction_path_top_fluxes.png
+    - reaction_path_run.log
+    - metrics.json
+    - validation_report.md
+  optional_artifacts:
+    - reaction_path_graph.png
+benchmark:
+  source_name: Cantera official Python example, Viewing a reaction path diagram
+  reference_case:
+    mechanism: gri30.yaml
+    reactor_model: IdealGasReactor
+    initial_temperature_k: 1300.0
+    pressure_pa: 101325.0
+    composition: CH4:0.4,O2:1,N2:3.76
+    target_temperature_k: 1900.0
+    element: N
+    label_threshold: 0.01
+  reference_observations:
+    cantera_version: 3.2.0
+    config: configs/cantera/c05_reaction_path_analysis/baseline.yaml
+    validation: passed
+    final_temperature_k: 1900.71
+    final_time_s: 0.00990516
+    step_count: 1009
+    node_count: 18
+    edge_count: 54
+    significant_edge_count: 27
+    max_abs_net_flux: 0.000513737
+    expected_nodes:
+      - N2
+      - "NO"
+      - NNH
+      - HCN
+      - NH
+      - NCO
+  perturbation_observations:
+    element_carbon:
+      config: configs/cantera/c05_reaction_path_analysis/perturbation_element_carbon.yaml
+      change: element N to C at the same reactor state
+      validation: passed
+      node_count: 34
+      edge_count: 141
+      significant_edge_count: 122
+      max_abs_net_flux: 27.538
+      trend: Carbon path analysis produces a denser graph and much larger flux scale because methane oxidation routes carbon through hydrocarbon fragments, CO, and CO2.
+    element_oxygen:
+      config: configs/cantera/c05_reaction_path_analysis/perturbation_element_oxygen.yaml
+      change: element N to O at the same reactor state
+      validation: passed
+      node_count: 26
+      edge_count: 108
+      significant_edge_count: 87
+      max_abs_net_flux: 44.2648
+      trend: Oxygen path analysis highlights oxidation and radical exchange pathways, with larger flux scale than nitrogen chemistry.
+    target_temperature_high:
+      config: configs/cantera/c05_reaction_path_analysis/perturbation_target_temperature_high.yaml
+      change: target_temperature_k 1900.0 K to 2000.0 K for element N
+      validation: passed
+      final_temperature_k: 2001.44
+      final_time_s: 0.00990696
+      step_count: 1043
+      node_count: 18
+      edge_count: 54
+      significant_edge_count: 39
+      max_abs_net_flux: 0.0027519
+      trend: Later high-temperature nitrogen analysis keeps the same node family but increases significant edges and maximum net flux.
+  benchmark_role: Default benchmark for converting a Cantera kinetics state into a machine-readable reaction path capability.
+validation_criteria:
+  - Reactor integration must reach the configured target temperature before max time and max step limits.
+  - Reaction path data parsing must treat optional title line, node header, and edge rows separately.
+  - Parsed nodes must include configured expected species anchors for the selected element.
+  - Parsed edges must have finite forward, reverse, net, and absolute net flux values.
+  - Node count, nonzero edge count, significant edge count, and maximum absolute net flux must exceed configured thresholds.
+  - DOT, raw path data, CSV edge table, flux summary plot, log, metrics, and validation report must be generated.
+  - Optional Graphviz PNG is validated only when save_graph_png is explicitly enabled and Graphviz dot is available.
+integration_targets:
+  package_entrypoint: science_capability_registry.cantera.c05_reaction_path_analysis:run
+  input_schema: schemas/cantera_C05_reaction_path_analysis.schema.json
+  output_contract: reports/validation_report_template.md
+  workflow_stage: combustion.cantera.reaction_path_analysis
+  integration_notes:
+    - Accept structured reactor state and element selection instead of hardcoded official example values.
+    - Return machine-readable reaction path nodes, edges, fluxes, DOT, CSV, and report artifacts.
+    - Treat C05 as a kinetics-state analysis capability; if connected to C01, consume an explicit serialized state rather than reinterpreting C01.
+intern_deliverables:
+  - Python package implementation with a stable callable entrypoint.
+  - Input schema for reaction path benchmark and perturbation cases.
+  - DOT, raw data, CSV edge table, flux plot, log, metrics, and validation report outputs.
+  - Automatic validation script covering target state, graph parsing, expected nodes, flux bounds, and artifact completeness.
+  - Short explanation of how element choice and target temperature alter reaction path topology and flux scale.
+card_status: accepted
+benchmark_status: benchmark_validated

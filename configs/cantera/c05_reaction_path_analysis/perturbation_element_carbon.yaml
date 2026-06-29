@@ -1,0 +1,43 @@
+capability_id: combustion.cantera.reaction_path_analysis
+case_id: element_carbon
+description: C05 perturbation case tracing carbon reaction pathways at the same ignition state.
+source_asset: software/cantera/assets/C05_reaction_path_analysis.yaml
+mechanism: gri30.yaml
+reactor_model: ideal_gas_constant_volume
+initial_temperature_k: 1300.0
+pressure_pa: 101325.0
+composition: CH4:0.4,O2:1,N2:3.76
+target_temperature_k: 1900.0
+max_time_s: 0.05
+max_steps: 200000
+element: C
+diagram:
+  label_threshold: 0.01
+  title: Reaction path diagram following C
+outputs:
+  output_dir: _results/cantera/c05_reaction_path_analysis/element_carbon
+  save_dot: true
+  save_graph_png: false
+  save_data_txt: true
+  save_csv: true
+  save_flux_plot: true
+  save_log: true
+  save_metrics: true
+  save_validation_report: true
+validation:
+  final_temperature_k:
+    min: 1900.0
+    max: 1950.0
+  max_final_time_s: 0.05
+  min_step_count: 1
+  min_node_count: 5
+  min_edge_count: 5
+  min_significant_edge_count: 1
+  significant_flux_threshold: 1.0e-6
+  min_max_abs_net_flux: 1.0e-6
+  expected_nodes:
+    - CH4
+    - CH3
+    - CO
+    - CO2
+    - HCN

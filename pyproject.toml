@@ -28,6 +28,7 @@ science-cantera-c01 = "science_capability_registry.cantera.c01_constant_pressure
 science-cantera-c02 = "science_capability_registry.cantera.c02_freely_propagating_premixed_flame.cli:main"
 science-cantera-c03 = "science_capability_registry.cantera.c03_counterflow_diffusion_flame.cli:main"
 science-cantera-c04 = "science_capability_registry.cantera.c04_extinction_strain_rate.cli:main"
+science-cantera-c05 = "science_capability_registry.cantera.c05_reaction_path_analysis.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
