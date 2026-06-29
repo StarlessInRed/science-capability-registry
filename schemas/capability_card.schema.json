@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/capability_card.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: capability card asset payload; producer: asset authors and interns; consumer: personal workflow builders, MatOS capability builders, and reviewers; validation point: JSON Schema validation after YAML/JSON parsing; failure behavior: reject missing required fields and unknown top-level fields.",
+  "title": "Science Capability Card",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "asset_id",
+    "software",
+    "source_url",
+    "domain",
+    "capability_name",
+    "problem_type",
+    "physics",
+    "inputs",
+    "outputs",
+    "benchmark",
+    "validation_criteria",
+    "integration_targets",
+    "intern_deliverables",
+    "status"
+  ],
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "software": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capability_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "problem_type": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        }
+      ]
+    },
+    "physics": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "inputs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "outputs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "benchmark": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "validation_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "integration_targets": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "intern_deliverables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "review",
+        "accepted",
+        "retired"
+      ]
+    }
+  }
+}

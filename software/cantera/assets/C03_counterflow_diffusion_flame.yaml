@@ -1,0 +1,100 @@
+asset_id: C03_counterflow_diffusion_flame
+software: Cantera
+source_url: https://cantera.org/stable/examples/python/onedim/diffusion_flame.html
+domain: combustion
+capability_name: counterflow diffusion flame
+problem_type:
+  category: 1D reacting flow
+  description: Opposed-flow ethane/air diffusion flame between fuel and oxidizer inlets.
+physics:
+  flow_model: steady one-dimensional opposed-flow diffusion flame
+  chemistry_model: finite-rate gas-phase combustion using gri30.yaml
+  transport_model: mixture-averaged transport
+  energy_equation: enabled
+  fuel: C2H6:1
+  oxidizer: O2:0.21, N2:0.78, AR:0.01
+  radiation_modes:
+    - no_radiation
+    - radiation
+inputs:
+  mechanism: gri30.yaml
+  pressure_pa: 101325.0
+  width_m: 0.02
+  fuel_inlet:
+    temperature_k: 300.0
+    mass_flux_kg_m2_s: 0.24
+    composition: C2H6:1
+  oxidizer_inlet:
+    temperature_k: 300.0
+    mass_flux_kg_m2_s: 0.72
+    composition: O2:0.21, N2:0.78, AR:0.01
+  refine_criteria:
+    ratio: 4
+    slope: 0.2
+    curve: 0.3
+    prune: 0.04
+  radiation:
+    no_radiation:
+      enabled: false
+      boundary_emissivities:
+        - 0.0
+        - 0.0
+    radiation:
+      enabled: true
+      boundary_emissivities:
+        - 0.0
+        - 0.0
+outputs:
+  required_fields:
+    - grid_m
+    - velocity_m_s
+    - spread_rate_1_s
+    - temperature_k
+    - major_species_mole_fractions
+    - peak_temperature_k
+    - flame_position_m
+    - solve_statistics
+  required_artifacts:
+    - diffusion_flame_no_radiation.csv
+    - diffusion_flame_radiation.csv
+    - diffusion_flame_temperature.png
+    - diffusion_flame_run.log
+    - validation_report.md
+benchmark:
+  source_name: Cantera official Python example, Counterflow diffusion flame
+  reference_case:
+    mechanism: gri30.yaml
+    pressure_pa: 101325.0
+    fuel_inlet_mdot_kg_m2_s: 0.24
+    oxidizer_inlet_mdot_kg_m2_s: 0.72
+    width_m: 0.02
+  reference_observations:
+    no_radiation_peak_temperature_k_approx: 1981
+    radiation_peak_temperature_k_approx: 1967
+    peak_location_m_approx: 0.0064
+    grid_points_after_refinement_approx: 96
+  benchmark_role: Default benchmark for a one-dimensional diffusion flame capability.
+validation_criteria:
+  - Both no-radiation and radiation modes must converge without uncaught solver errors.
+  - Default no-radiation peak temperature must remain within 1900 K to 2050 K unless the mechanism or transport model is intentionally changed.
+  - Radiation mode peak temperature must be lower than or equal to the no-radiation peak temperature for the default benchmark.
+  - Peak flame position must remain inside the domain and within 0.0055 m to 0.0070 m for the default benchmark.
+  - Temperature, velocity, major species, peak temperature, flame position, solve statistics, CSV files, plots, logs, and validation report must be generated.
+  - Species mole fractions must remain finite and physically bounded within numerical tolerance.
+  - At least three parameter perturbation cases must be compared with trend explanations.
+integration_targets:
+  package_entrypoint: science_capability_registry.cantera.c03_counterflow_diffusion_flame:run
+  input_schema: schemas/cantera_C03_counterflow_diffusion_flame.schema.json
+  output_contract: reports/validation_report_template.md
+  workflow_stage: combustion.cantera.counterflow_diffusion_flame
+  integration_notes:
+    - Accept structured input parameters instead of hardcoded official example values.
+    - Return machine-readable metrics for automatic benchmark validation.
+    - Preserve solver logs and plotted fields as reusable capability artifacts.
+intern_deliverables:
+  - Python package implementation with a stable callable entrypoint.
+  - Input schema for the default and perturbed cases.
+  - CSV, plot, log, and validation report outputs.
+  - Automatic validation script covering convergence, outputs, reference ranges, and physical trends.
+  - Short explanation of parameter perturbation trends and remaining limitations.
+status: benchmark_validated

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "science-capability-registry"
+version = "0.1.0"
+description = "Scientific capability registry assets and runnable benchmark packages."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "jsonschema>=4.18",
+  "matplotlib>=3.7",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+solver = [
+  "cantera>=3.0",
+]
+test = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+science-cantera-c03 = "science_capability_registry.cantera.c03_counterflow_diffusion_flame.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+

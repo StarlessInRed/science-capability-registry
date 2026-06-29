@@ -1,0 +1,49 @@
+capability_id: combustion.cantera.counterflow_diffusion_flame
+case_id: perturbation_width_wide
+description: The inlet spacing is increased to test domain-size sensitivity.
+source_asset: software/cantera/assets/C03_counterflow_diffusion_flame.yaml
+mechanism: gri30.yaml
+pressure_pa: 101325.0
+width_m: 0.024
+loglevel: 1
+fuel_inlet:
+  temperature_k: 300.0
+  mass_flux_kg_m2_s: 0.24
+  composition: C2H6:1
+oxidizer_inlet:
+  temperature_k: 300.0
+  mass_flux_kg_m2_s: 0.72
+  composition: O2:0.21, N2:0.78, AR:0.01
+radiation_modes:
+  - mode: no_radiation
+    enabled: false
+    boundary_emissivities: [0.0, 0.0]
+  - mode: radiation
+    enabled: true
+    boundary_emissivities: [0.0, 0.0]
+refine_criteria:
+  ratio: 4
+  slope: 0.2
+  curve: 0.3
+  prune: 0.04
+outputs:
+  output_dir: _results/cantera/c03_counterflow_diffusion_flame/perturbation_width_wide
+  save_csv: true
+  save_plots: true
+  save_log: true
+  save_metrics: true
+  save_validation_report: true
+  major_species: [C2H6, O2, N2, CO2, H2O, CO]
+validation:
+  no_radiation_peak_temperature_k:
+    min: 1800.0
+    max: 2150.0
+  flame_position_m:
+    min: 0.0050
+    max: 0.0095
+  radiation_peak_temperature_relation: lower_or_equal_no_radiation
+  species_mole_fraction_tolerance: 1.0e-9
+trend_expectations:
+  - parameter: width_m
+    expected_trend: A wider domain should keep the flame inside the domain while changing the absolute peak-temperature position and refined grid count.
+

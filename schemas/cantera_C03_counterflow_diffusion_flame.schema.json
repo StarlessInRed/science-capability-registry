@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/cantera_C03_counterflow_diffusion_flame.schema.json",
+  "title": "Cantera C03 Counterflow Diffusion Flame Run Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "mechanism",
+    "pressure_pa",
+    "width_m",
+    "fuel_inlet",
+    "oxidizer_inlet",
+    "radiation_modes",
+    "refine_criteria",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {
+      "const": "combustion.cantera.counterflow_diffusion_flame"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source_asset": {
+      "type": "string"
+    },
+    "mechanism": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pressure_pa": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "width_m": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "loglevel": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "fuel_inlet": {
+      "$ref": "#/$defs/inlet"
+    },
+    "oxidizer_inlet": {
+      "$ref": "#/$defs/inlet"
+    },
+    "radiation_modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/radiation_mode"
+      }
+    },
+    "refine_criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ratio", "slope", "curve", "prune"],
+      "properties": {
+        "ratio": {
+          "type": "number",
+          "exclusiveMinimum": 1
+        },
+        "slope": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "curve": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "prune": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_dir",
+        "save_csv",
+        "save_plots",
+        "save_log",
+        "save_metrics",
+        "save_validation_report",
+        "major_species"
+      ],
+      "properties": {
+        "output_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "save_csv": {
+          "type": "boolean"
+        },
+        "save_plots": {
+          "type": "boolean"
+        },
+        "save_log": {
+          "type": "boolean"
+        },
+        "save_metrics": {
+          "type": "boolean"
+        },
+        "save_validation_report": {
+          "type": "boolean"
+        },
+        "major_species": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_radiation_peak_temperature_k",
+        "flame_position_m",
+        "radiation_peak_temperature_relation",
+        "species_mole_fraction_tolerance"
+      ],
+      "properties": {
+        "no_radiation_peak_temperature_k": {
+          "$ref": "#/$defs/range"
+        },
+        "flame_position_m": {
+          "$ref": "#/$defs/range"
+        },
+        "radiation_peak_temperature_relation": {
+          "enum": ["lower_or_equal_no_radiation"]
+        },
+        "species_mole_fraction_tolerance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.001
+        }
+      }
+    },
+    "trend_expectations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["parameter", "expected_trend"],
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "expected_trend": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "inlet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["temperature_k", "mass_flux_kg_m2_s", "composition"],
+      "properties": {
+        "temperature_k": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "mass_flux_kg_m2_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "composition": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "radiation_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "enabled", "boundary_emissivities"],
+      "properties": {
+        "mode": {
+          "enum": ["no_radiation", "radiation"]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "boundary_emissivities": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
+

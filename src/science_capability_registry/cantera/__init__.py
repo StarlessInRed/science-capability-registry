@@ -1,0 +1,2 @@
+"""Cantera-backed scientific capabilities."""
+
