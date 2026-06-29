@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/cantera_C02_freely_propagating_premixed_flame.schema.json",
+  "title": "Cantera C02 Freely Propagating Premixed Flame Run Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "mechanism",
+    "pressure_pa",
+    "unburned_temperature_k",
+    "reactants",
+    "width_m",
+    "refine_criteria",
+    "transport_modes",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {
+      "const": "combustion.cantera.freely_propagating_premixed_flame"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source_asset": {
+      "type": "string"
+    },
+    "mechanism": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pressure_pa": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "unburned_temperature_k": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "reactants": {
+      "type": "string",
+      "minLength": 1
+    },
+    "width_m": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "loglevel": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 8
+    },
+    "refine_criteria": {
+      "$ref": "#/$defs/refine_criteria"
+    },
+    "transport_modes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/transport_mode"
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_dir",
+        "save_solution_snapshots",
+        "save_csv",
+        "save_plots",
+        "save_log",
+        "save_metrics",
+        "save_validation_report",
+        "major_species",
+        "minor_species"
+      ],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "save_solution_snapshots": {"type": "boolean"},
+        "save_csv": {"type": "boolean"},
+        "save_plots": {"type": "boolean"},
+        "save_log": {"type": "boolean"},
+        "save_metrics": {"type": "boolean"},
+        "save_validation_report": {"type": "boolean"},
+        "major_species": {"$ref": "#/$defs/species_list"},
+        "minor_species": {"$ref": "#/$defs/species_list"}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_modes",
+        "flame_speed_m_s",
+        "peak_temperature_k",
+        "burned_temperature_rise_k",
+        "max_heat_release_rate_w_m3",
+        "min_grid_points",
+        "species_bounds_tolerance"
+      ],
+      "properties": {
+        "required_modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/mode_name"}
+        },
+        "flame_speed_m_s": {"$ref": "#/$defs/range"},
+        "peak_temperature_k": {"$ref": "#/$defs/range"},
+        "burned_temperature_rise_k": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min"],
+          "properties": {
+            "min": {"type": "number"}
+          }
+        },
+        "max_heat_release_rate_w_m3": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min"],
+          "properties": {
+            "min": {"type": "number"}
+          }
+        },
+        "min_grid_points": {"type": "integer", "minimum": 2},
+        "species_bounds_tolerance": {"type": "number", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "mode_name": {
+      "type": "string",
+      "enum": [
+        "mixture_averaged",
+        "mixture_averaged_soret",
+        "multicomponent",
+        "multicomponent_soret"
+      ]
+    },
+    "transport_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "transport_model", "soret_enabled", "auto_solve"],
+      "properties": {
+        "mode": {"$ref": "#/$defs/mode_name"},
+        "transport_model": {
+          "type": "string",
+          "enum": ["mixture-averaged", "multicomponent"]
+        },
+        "soret_enabled": {"type": "boolean"},
+        "flux_gradient_basis": {
+          "type": "string",
+          "enum": ["mass", "mole"]
+        },
+        "auto_solve": {"type": "boolean"}
+      }
+    },
+    "refine_criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ratio", "slope", "curve"],
+      "properties": {
+        "ratio": {"type": "number", "exclusiveMinimum": 1},
+        "slope": {"type": "number", "minimum": 0, "maximum": 1},
+        "curve": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "number"},
+        "max": {"type": "number"}
+      }
+    },
+    "species_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+asset_id: C02_freely_propagating_premixed_flame
+software: Cantera
+source_url: https://cantera.org/stable/examples/python/onedim/adiabatic_flame.html
+domain: combustion
+capability_name: freely propagating premixed flame
+problem_type:
+  category: 1D freely propagating premixed flame
+  description: Compute laminar flame speed and flame structure for an adiabatic premixed hydrogen-oxygen-argon flat flame.
+physics:
+  flow_model: steady one-dimensional freely propagating premixed flame
+  chemistry_model: finite-rate gas-phase combustion using h2o2.yaml
+  transport_model: mixture-averaged and multicomponent transport, with optional Soret diffusion
+  energy_equation: enabled
+  reactants: H2:1.1, O2:1, AR:5
+  boundary_conditions:
+    upstream: unburned premixed gas at fixed temperature, pressure, and composition
+    downstream: freely propagating burned gas outlet determined by the flame solution
+inputs:
+  mechanism: h2o2.yaml
+  pressure_pa: 101325.0
+  unburned_temperature_k: 300.0
+  reactants: H2:1.1, O2:1, AR:5
+  width_m: 0.03
+  refine_criteria:
+    ratio: 3.0
+    slope: 0.06
+    curve: 0.12
+  transport_modes:
+    - mixture_averaged
+    - mixture_averaged_soret
+    - multicomponent
+    - multicomponent_soret
+outputs:
+  required_fields:
+    - flame_speed_m_s
+    - grid_m
+    - velocity_m_s
+    - temperature_k
+    - density_kg_m3
+    - heat_release_rate_w_m3
+    - major_species_mole_fractions
+    - peak_temperature_k
+    - flame_position_m
+    - grid_point_count
+  required_artifacts:
+    - premixed_flame_<mode>.csv
+    - premixed_flame_temperature_heat_release.png
+    - premixed_flame_major_species.png
+    - premixed_flame_run.log
+    - metrics.json
+    - validation_report.md
+benchmark:
+  source_name: Cantera official Python example, Laminar flame speed calculation
+  reference_case:
+    mechanism: h2o2.yaml
+    pressure_pa: 101325.0
+    unburned_temperature_k: 300.0
+    reactants: H2:1.1, O2:1, AR:5
+    width_m: 0.03
+    refine_criteria:
+      ratio: 3.0
+      slope: 0.06
+      curve: 0.12
+  reference_observations:
+    mixture_averaged:
+      flame_speed_m_s: 0.7187425088779462
+      peak_temperature_k: 1857.2046351004196
+      flame_position_m: 0.021111328124999995
+      grid_point_count: 137
+      max_heat_release_rate_w_m3: 2507137368.430666
+    mixture_averaged_soret:
+      flame_speed_m_s: 0.6382291131982496
+      peak_temperature_k: 1853.616357090476
+      flame_position_m: 0.021117187499999995
+      grid_point_count: 143
+      max_heat_release_rate_w_m3: 2192612831.120387
+    multicomponent:
+      flame_speed_m_s: 0.7407122243874777
+      peak_temperature_k: 1867.6594984562525
+      flame_position_m: 0.021105468749999995
+      grid_point_count: 143
+      max_heat_release_rate_w_m3: 2606722938.023134
+    multicomponent_soret:
+      flame_speed_m_s: 0.6530703202267301
+      peak_temperature_k: 1854.7226272117396
+      flame_position_m: 0.021117187499999995
+      grid_point_count: 143
+      max_heat_release_rate_w_m3: 2238204470.8564863
+  benchmark_role: Default benchmark for laminar flame speed and freely propagating premixed flame structure.
+validation_criteria:
+  - Every configured transport mode must converge and report a positive flame speed.
+  - Flame speed, peak temperature, burned-gas temperature rise, and heat-release rate must fall within configured reference ranges.
+  - Output profiles must have sufficient grid resolution and physically bounded species mole fractions.
+  - CSV, plots, log, metrics, validation report, and optional solver snapshots must be generated.
+  - Soret and multicomponent mode changes must be recorded separately so the capability owner can compare transport-model sensitivity.
+integration_targets:
+  package_entrypoint: science_capability_registry.cantera.c02_freely_propagating_premixed_flame:run
+  input_schema: schemas/cantera_C02_freely_propagating_premixed_flame.schema.json
+  output_contract: reports/validation_report_template.md
+  workflow_stage: combustion.cantera.freely_propagating_premixed_flame
+  integration_notes:
+    - Accept structured flame setup and transport-mode parameters instead of hardcoded official example values.
+    - Return machine-readable flame speed and profile metrics for automatic benchmark validation.
+    - Preserve per-mode artifacts so users can audit transport and Soret effects.
+intern_deliverables:
+  - Python package implementation with a stable callable entrypoint.
+  - Input schema for premixed flame benchmark cases.
+  - CSV, plots, log, metrics, validation report, and optional solution snapshots.
+  - Automatic validation script covering convergence, flame speed, thermal structure, species bounds, and artifact completeness.
+  - Short explanation of how transport model and Soret diffusion affect the computed flame speed.
+status: benchmark_validated
