@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenFOAM Case Contract"
+  short_description: "Design OpenFOAM run schemas and case contracts"
+  default_prompt: "Use $openfoam-case-contract to design an OpenFOAM capability run contract."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenFOAM Capability Intake"
+  short_description: "Turn OpenFOAM sources into capability assets"
+  default_prompt: "Use $openfoam-capability-intake to convert an OpenFOAM source into a capability asset."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenFOAM Runner Postprocess"
+  short_description: "Build OpenFOAM runners and result extraction"
+  default_prompt: "Use $openfoam-runner-postprocess to implement an OpenFOAM capability runner and artifacts."

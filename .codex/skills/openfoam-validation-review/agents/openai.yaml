@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenFOAM Validation Review"
+  short_description: "Review OpenFOAM validation gates and metrics"
+  default_prompt: "Use $openfoam-validation-review to review OpenFOAM validation evidence and gates."
