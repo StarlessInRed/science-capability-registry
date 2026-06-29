@@ -1,0 +1,67 @@
+capability_id: combustion.cantera.freely_propagating_premixed_flame
+case_id: hydrogen_enriched
+description: C02 perturbation case with higher hydrogen fraction in the premixed reactants.
+source_asset: software/cantera/assets/C02_freely_propagating_premixed_flame.yaml
+mechanism: h2o2.yaml
+pressure_pa: 101325.0
+unburned_temperature_k: 300.0
+reactants: H2:1.4, O2:1, AR:5
+width_m: 0.03
+loglevel: 0
+refine_criteria:
+  ratio: 3.0
+  slope: 0.06
+  curve: 0.12
+transport_modes:
+  - mode: mixture_averaged
+    transport_model: mixture-averaged
+    soret_enabled: false
+    flux_gradient_basis: mass
+    auto_solve: true
+  - mode: mixture_averaged_soret
+    transport_model: mixture-averaged
+    soret_enabled: true
+    flux_gradient_basis: mass
+    auto_solve: false
+  - mode: multicomponent
+    transport_model: multicomponent
+    soret_enabled: false
+    auto_solve: false
+  - mode: multicomponent_soret
+    transport_model: multicomponent
+    soret_enabled: true
+    auto_solve: false
+outputs:
+  output_dir: _results/cantera/c02_freely_propagating_premixed_flame/hydrogen_enriched
+  save_solution_snapshots: true
+  save_csv: true
+  save_plots: true
+  save_log: true
+  save_metrics: true
+  save_validation_report: true
+  major_species:
+    - O2
+    - H2
+    - H2O
+  minor_species:
+    - OH
+    - H
+    - O
+validation:
+  required_modes:
+    - mixture_averaged
+    - mixture_averaged_soret
+    - multicomponent
+    - multicomponent_soret
+  flame_speed_m_s:
+    min: 0.1
+    max: 8.0
+  peak_temperature_k:
+    min: 1200.0
+    max: 3500.0
+  burned_temperature_rise_k:
+    min: 500.0
+  max_heat_release_rate_w_m3:
+    min: 1000000.0
+  min_grid_points: 20
+  species_bounds_tolerance: 1.0e-8

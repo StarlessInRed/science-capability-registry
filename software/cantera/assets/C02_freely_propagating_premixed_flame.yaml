@@ -86,6 +86,28 @@ benchmark:
       flame_position_m: 0.021117187499999995
       grid_point_count: 143
       max_heat_release_rate_w_m3: 2238204470.8564863
+  perturbation_observations:
+    temperature_high:
+      config: configs/cantera/c02_freely_propagating_premixed_flame/perturbation_temperature_high.yaml
+      change: unburned_temperature_k 300.0 K to 350.0 K
+      validation: passed
+      trend: Flame speed and peak temperature increase for all configured transport modes.
+      mixture_averaged_flame_speed_m_s: 1.025110894210678
+      multicomponent_flame_speed_m_s: 1.0344107621012482
+    hydrogen_enriched:
+      config: configs/cantera/c02_freely_propagating_premixed_flame/perturbation_hydrogen_enriched.yaml
+      change: reactants H2:1.1, O2:1, AR:5 to H2:1.4, O2:1, AR:5
+      validation: passed
+      trend: Higher hydrogen fraction increases flame speed, peak temperature, and heat release.
+      mixture_averaged_flame_speed_m_s: 1.358464704917973
+      multicomponent_flame_speed_m_s: 1.3559772875435057
+    no_soret_transport_compare:
+      config: configs/cantera/c02_freely_propagating_premixed_flame/perturbation_no_soret_transport_compare.yaml
+      change: compare mixture-averaged and multicomponent transport with Soret disabled
+      validation: passed
+      trend: Without Soret diffusion, mixture-averaged and multicomponent flame speeds are close.
+      mixture_averaged_flame_speed_m_s: 0.7187425088779462
+      multicomponent_flame_speed_m_s: 0.721904227013925
   benchmark_role: Default benchmark for laminar flame speed and freely propagating premixed flame structure.
 validation_criteria:
   - Every configured transport mode must converge and report a positive flame speed.
