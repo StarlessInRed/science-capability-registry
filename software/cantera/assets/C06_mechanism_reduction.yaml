@@ -1,0 +1,143 @@
+asset_id: C06_mechanism_reduction
+software: Cantera
+source_url: https://cantera.org/stable/examples/python/kinetics/mechanism_reduction.html
+domain: combustion
+capability_name: mechanism reduction
+problem_type:
+  category: kinetic mechanism reduction
+  description: Rank reactions by maximum relative net rate of progress, build reduced mechanisms, and compare ignition temperature profiles against the detailed mechanism.
+physics:
+  reactor_model: IdealGasConstPressureMoleReactor
+  chemistry_model: finite-rate n-hexane oxidation using example_data/n-hexane-NUIG-2015.yaml
+  thermodynamic_constraint: adiabatic constant-pressure homogeneous reactor
+  ranking_model: maximum relative net rate of progress over the full-mechanism ignition run
+  reduction_model: keep top-ranked reactions and all species participating in those reactions, plus always-included inlet species
+inputs:
+  mechanism: example_data/n-hexane-NUIG-2015.yaml
+  reactor_model: ideal_gas_constant_pressure_mole
+  initial_temperature_k: 975.0
+  pressure_pa: 506625.0
+  equivalence_ratio: 0.8
+  fuel: NC6H14:1.0
+  oxidizer: O2:1.0, N2:3.76
+  simulation:
+    end_time_s: 0.04
+    max_steps: 200000
+    use_adaptive_preconditioner: true
+  reduction:
+    reaction_counts:
+      - 100
+      - 200
+      - 300
+      - 400
+      - 600
+      - 800
+outputs:
+  required_fields:
+    - full_species_count
+    - full_reaction_count
+    - full_ignition_delay_ms
+    - reaction_ranking
+    - reduced_species_count
+    - reduced_reaction_count
+    - reduced_ignition_delay_ms
+    - ignition_delay_relative_error
+    - final_temperature_error_k
+  required_artifacts:
+    - baseline_profile.csv
+    - reduced_<N>_profile.csv
+    - reaction_ranking.csv
+    - reduction_summary.csv
+    - reduced_mechanisms/reduced_<N>_reaction.yaml
+    - mechanism_reduction_temperature_profiles.png
+    - mechanism_reduction_run.log
+    - metrics.json
+    - validation_report.md
+benchmark:
+  source_name: Cantera official Python example, Mechanism reduction
+  reference_case:
+    mechanism: example_data/n-hexane-NUIG-2015.yaml
+    initial_temperature_k: 975.0
+    pressure_pa: 506625.0
+    equivalence_ratio: 0.8
+    fuel: NC6H14:1.0
+    oxidizer: O2:1.0, N2:3.76
+    end_time_s: 0.04
+    reaction_counts:
+      - 100
+      - 200
+      - 300
+      - 400
+      - 600
+      - 800
+  reference_observations:
+    cantera_version: 3.2.0
+    config: configs/cantera/c06_mechanism_reduction/baseline.yaml
+    validation: passed
+    full_species_count: 1268
+    full_reaction_count: 5336
+    full_ignition_delay_ms: 14.6679
+    full_final_temperature_k: 2508.04
+    full_profile_points: 1280
+    reduced_cases:
+      - reaction_count: 100
+        species_count: 64
+        ignition_delay_ms: 18.487
+        ignition_delay_relative_error: 0.260376
+        final_temperature_k: 1712.68
+        final_temperature_error_k: 795.359
+      - reaction_count: 200
+        species_count: 108
+        ignition_delay_ms: 22.8994
+        ignition_delay_relative_error: 0.561197
+        final_temperature_k: 2383.66
+        final_temperature_error_k: 124.378
+      - reaction_count: 300
+        species_count: 143
+        ignition_delay_ms: 16.7233
+        ignition_delay_relative_error: 0.140128
+        final_temperature_k: 2422.65
+        final_temperature_error_k: 85.3822
+      - reaction_count: 400
+        species_count: 171
+        ignition_delay_ms: 16.8089
+        ignition_delay_relative_error: 0.14597
+        final_temperature_k: 2500.27
+        final_temperature_error_k: 7.76854
+      - reaction_count: 600
+        species_count: 223
+        ignition_delay_ms: 15.6334
+        ignition_delay_relative_error: 0.0658295
+        final_temperature_k: 2501.86
+        final_temperature_error_k: 6.17181
+      - reaction_count: 800
+        species_count: 274
+        ignition_delay_ms: 15.2307
+        ignition_delay_relative_error: 0.0383737
+        final_temperature_k: 2505.05
+        final_temperature_error_k: 2.98818
+  benchmark_role: Default benchmark for converting reaction-rate ranking into reduced-mechanism candidates and validating ignition-profile fidelity.
+validation_criteria:
+  - Full mechanism ignition run must reach configured end time and produce finite temperature, pressure, and ranking data.
+  - Reaction ranking must include the full reaction set, have finite scores in descending order, and cover at least the largest configured reduced reaction count.
+  - Each reduced mechanism YAML must be generated, reloadable by Cantera, and have exactly the configured reaction count.
+  - Full and reduced temperature profiles must contain enough points, finite temperatures, and positive temperature rise.
+  - The largest reduced mechanism must stay within configured ignition-delay and final-temperature error limits.
+  - CSV profiles, ranking table, reduction summary, reduced YAML files, comparison plot, log, metrics, and validation report must be generated.
+integration_targets:
+  package_entrypoint: science_capability_registry.cantera.c06_mechanism_reduction:run
+  input_schema: schemas/cantera_C06_mechanism_reduction.schema.json
+  output_contract: reports/validation_report_template.md
+  workflow_stage: combustion.cantera.mechanism_reduction
+  integration_notes:
+    - Treat this as a benchmark capability for ranking and candidate reduction, not as a proof of globally optimal skeletal chemistry.
+    - Expose reaction counts, always-included species, run time, and validation tolerances through config.
+    - Feed C05 reaction path analysis and C01/C02 ignition benchmarks later for deeper reduced-mechanism validation.
+intern_deliverables:
+  - Python package implementation with a stable callable entrypoint.
+  - Input schema for official n-hexane reduction benchmark.
+  - Full/reduced profile CSVs, reaction ranking CSV, reduced YAML files, comparison plot, log, metrics, and validation report.
+  - Automatic validation script covering ranking, reduced mechanism generation, reloadability, profile integrity, and error metrics.
+  - Short explanation of why reduced-mechanism error generally decreases with reaction count and where non-monotonic behavior can occur.
+card_status: accepted
+benchmark_status: benchmark_validated

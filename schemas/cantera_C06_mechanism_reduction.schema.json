@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/cantera_C06_mechanism_reduction.schema.json",
+  "title": "Cantera C06 Mechanism Reduction Run Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "mechanism",
+    "reactor_model",
+    "initial_temperature_k",
+    "pressure_pa",
+    "fuel",
+    "oxidizer",
+    "equivalence_ratio",
+    "simulation",
+    "ranking",
+    "reduction",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {
+      "const": "combustion.cantera.mechanism_reduction"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source_asset": {
+      "type": "string"
+    },
+    "mechanism": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reactor_model": {
+      "const": "ideal_gas_constant_pressure_mole"
+    },
+    "initial_temperature_k": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "pressure_pa": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "fuel": {
+      "type": "string",
+      "minLength": 1
+    },
+    "oxidizer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "equivalence_ratio": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["end_time_s", "max_steps", "use_adaptive_preconditioner"],
+      "properties": {
+        "end_time_s": {"type": "number", "exclusiveMinimum": 0},
+        "max_steps": {"type": "integer", "minimum": 1},
+        "use_adaptive_preconditioner": {"type": "boolean"}
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "always_include_species"],
+      "properties": {
+        "metric": {
+          "const": "max_relative_net_rate_of_progress"
+        },
+        "always_include_species": {"$ref": "#/$defs/species_list"}
+      }
+    },
+    "reduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reaction_counts"],
+      "properties": {
+        "reaction_counts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_dir",
+        "save_profiles_csv",
+        "save_ranking_csv",
+        "save_reduced_mechanisms",
+        "save_comparison_plot",
+        "save_log",
+        "save_metrics",
+        "save_validation_report"
+      ],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "save_profiles_csv": {"type": "boolean"},
+        "save_ranking_csv": {"type": "boolean"},
+        "save_reduced_mechanisms": {"type": "boolean"},
+        "save_comparison_plot": {"type": "boolean"},
+        "save_log": {"type": "boolean"},
+        "save_metrics": {"type": "boolean"},
+        "save_validation_report": {"type": "boolean"}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "full_species_count",
+        "full_reaction_count",
+        "full_final_temperature_k",
+        "min_profile_points",
+        "min_temperature_rise_k",
+        "min_ranked_reaction_count",
+        "min_reduced_case_count",
+        "largest_reduced_reaction_count",
+        "largest_reduced_max_ignition_delay_relative_error",
+        "largest_reduced_max_final_temperature_error_k"
+      ],
+      "properties": {
+        "full_species_count": {"$ref": "#/$defs/minimum_value"},
+        "full_reaction_count": {"$ref": "#/$defs/minimum_value"},
+        "full_final_temperature_k": {"$ref": "#/$defs/range"},
+        "min_profile_points": {"type": "integer", "minimum": 2},
+        "min_temperature_rise_k": {"type": "number", "minimum": 0},
+        "min_ranked_reaction_count": {"type": "integer", "minimum": 1},
+        "min_reduced_case_count": {"type": "integer", "minimum": 1},
+        "largest_reduced_reaction_count": {"type": "integer", "minimum": 1},
+        "largest_reduced_max_ignition_delay_relative_error": {"type": "number", "minimum": 0},
+        "largest_reduced_max_final_temperature_error_k": {"type": "number", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "number"},
+        "max": {"type": "number"}
+      }
+    },
+    "minimum_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min"],
+      "properties": {
+        "min": {"type": "number"}
+      }
+    },
+    "species_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

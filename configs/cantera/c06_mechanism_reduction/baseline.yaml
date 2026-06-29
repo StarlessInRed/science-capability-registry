@@ -1,0 +1,53 @@
+capability_id: combustion.cantera.mechanism_reduction
+case_id: baseline
+description: Official Cantera n-hexane mechanism reduction benchmark using maximum relative net reaction rates.
+source_asset: software/cantera/assets/C06_mechanism_reduction.yaml
+mechanism: example_data/n-hexane-NUIG-2015.yaml
+reactor_model: ideal_gas_constant_pressure_mole
+initial_temperature_k: 975.0
+pressure_pa: 506625.0
+fuel: NC6H14:1.0
+oxidizer: O2:1.0, N2:3.76
+equivalence_ratio: 0.8
+simulation:
+  end_time_s: 0.04
+  max_steps: 200000
+  use_adaptive_preconditioner: true
+ranking:
+  metric: max_relative_net_rate_of_progress
+  always_include_species:
+    - N2
+    - NC6H14
+    - O2
+reduction:
+  reaction_counts:
+    - 100
+    - 200
+    - 300
+    - 400
+    - 600
+    - 800
+outputs:
+  output_dir: _results/cantera/c06_mechanism_reduction/baseline
+  save_profiles_csv: true
+  save_ranking_csv: true
+  save_reduced_mechanisms: true
+  save_comparison_plot: true
+  save_log: true
+  save_metrics: true
+  save_validation_report: true
+validation:
+  full_species_count:
+    min: 1000
+  full_reaction_count:
+    min: 4000
+  full_final_temperature_k:
+    min: 1500.0
+    max: 3500.0
+  min_profile_points: 10
+  min_temperature_rise_k: 100.0
+  min_ranked_reaction_count: 800
+  min_reduced_case_count: 6
+  largest_reduced_reaction_count: 800
+  largest_reduced_max_ignition_delay_relative_error: 0.5
+  largest_reduced_max_final_temperature_error_k: 500.0
