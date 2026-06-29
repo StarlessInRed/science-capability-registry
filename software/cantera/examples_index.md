@@ -4,6 +4,7 @@
 
 | ID | 来源 | capability | domain | 资产卡 | benchmark 状态 | 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
+| C01 | Cantera official Python example: Constant-pressure, adiabatic kinetics simulation | constant-pressure ignition | combustion | `software/cantera/assets/C01_constant_pressure_ignition.yaml` | benchmark validated | 氢气/氧气/N2 定压绝热反应器，已封装为可运行 package，输出温度、压力、内能、焓、点火延迟和 OH/H/H2 等关键组分随时间变化。 |
 | C02 | Cantera official Python example: Laminar flame speed calculation | freely propagating premixed flame | combustion | `software/cantera/assets/C02_freely_propagating_premixed_flame.yaml` | benchmark validated | 氢气/氧气/氩气自由传播预混平面火焰，覆盖 mixture-averaged、multicomponent 和 Soret diffusion 对 flame speed 的影响。 |
 | C03 | Cantera official Python example: Counterflow diffusion flame | counterflow diffusion flame | combustion | `software/cantera/assets/C03_counterflow_diffusion_flame.yaml` | benchmark candidate | 对向扩散火焰，覆盖无辐射/有辐射两种模式。 |
 | C04 | Cantera official Python example: Diffusion flame extinction strain rate | extinction strain rate | combustion | `software/cantera/assets/C04_extinction_strain_rate.yaml` | benchmark candidate | 氢氧对向扩散火焰熄灭搜索，输出最后燃烧解的多种应变率指标。 |

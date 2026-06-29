@@ -1,0 +1,45 @@
+capability_id: combustion.cantera.constant_pressure_ignition
+case_id: lean_mixture
+description: C01 perturbation case with leaner hydrogen mixture.
+source_asset: software/cantera/assets/C01_constant_pressure_ignition.yaml
+mechanism: h2o2.yaml
+reactor_model: ideal_gas_constant_pressure
+initial_temperature_k: 1001.0
+pressure_pa: 101325.0
+composition: H2:1.5,O2:1,N2:4
+ignition_delay_method: max_temperature_derivative
+advance:
+  dt_max_s: 1.0e-5
+  t_end_s: 1.0e-3
+  temperature_advance_limit_k: 20.0
+  verbose: false
+outputs:
+  output_dir: _results/cantera/c01_constant_pressure_ignition/lean_mixture
+  save_csv: true
+  save_plots: true
+  save_log: true
+  save_metrics: true
+  save_validation_report: true
+  tracked_species:
+    - OH
+    - H
+    - H2
+    - O2
+    - H2O
+validation:
+  final_temperature_k:
+    min: 2200.0
+    max: 3200.0
+  temperature_rise_k:
+    min: 800.0
+  ignition_delay_s:
+    min: 1.0e-5
+    max: 1.0e-3
+  min_time_points: 50
+  max_time_step_s: 1.1e-5
+  end_time_tolerance_s: 1.2e-5
+  initial_temperature_tolerance_k: 1.0e-9
+  max_temperature_step_k: 20.5
+  ignition_delay_boundary_margin_points: 2
+  max_pressure_relative_error: 1.0e-8
+  species_bounds_tolerance: 1.0e-8

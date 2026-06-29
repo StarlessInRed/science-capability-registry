@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/cantera_C01_constant_pressure_ignition.schema.json",
+  "title": "Cantera C01 Constant-Pressure Ignition Run Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "mechanism",
+    "reactor_model",
+    "initial_temperature_k",
+    "pressure_pa",
+    "composition",
+    "ignition_delay_method",
+    "advance",
+    "outputs",
+    "validation"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ignition_delay_method": {"const": "oh_peak"}
+        },
+        "required": ["ignition_delay_method"]
+      },
+      "then": {
+        "properties": {
+          "outputs": {
+            "properties": {
+              "tracked_species": {"contains": {"const": "OH"}}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "capability_id": {
+      "const": "combustion.cantera.constant_pressure_ignition"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source_asset": {
+      "type": "string"
+    },
+    "mechanism": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reactor_model": {
+      "const": "ideal_gas_constant_pressure"
+    },
+    "initial_temperature_k": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "pressure_pa": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "composition": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ignition_delay_method": {
+      "type": "string",
+      "enum": ["max_temperature_derivative", "oh_peak"]
+    },
+    "advance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dt_max_s", "t_end_s", "temperature_advance_limit_k", "verbose"],
+      "properties": {
+        "dt_max_s": {"type": "number", "exclusiveMinimum": 0},
+        "t_end_s": {"type": "number", "exclusiveMinimum": 0},
+        "temperature_advance_limit_k": {"type": "number", "exclusiveMinimum": 0},
+        "verbose": {"type": "boolean"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_dir",
+        "save_csv",
+        "save_plots",
+        "save_log",
+        "save_metrics",
+        "save_validation_report",
+        "tracked_species"
+      ],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "save_csv": {"type": "boolean"},
+        "save_plots": {"type": "boolean"},
+        "save_log": {"type": "boolean"},
+        "save_metrics": {"type": "boolean"},
+        "save_validation_report": {"type": "boolean"},
+        "tracked_species": {"$ref": "#/$defs/species_list"}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "final_temperature_k",
+        "temperature_rise_k",
+        "ignition_delay_s",
+        "min_time_points",
+        "max_time_step_s",
+        "end_time_tolerance_s",
+        "initial_temperature_tolerance_k",
+        "max_temperature_step_k",
+        "ignition_delay_boundary_margin_points",
+        "max_pressure_relative_error",
+        "species_bounds_tolerance"
+      ],
+      "properties": {
+        "final_temperature_k": {"$ref": "#/$defs/range"},
+        "temperature_rise_k": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min"],
+          "properties": {"min": {"type": "number"}}
+        },
+        "ignition_delay_s": {"$ref": "#/$defs/range"},
+        "min_time_points": {"type": "integer", "minimum": 2},
+        "max_time_step_s": {"type": "number", "exclusiveMinimum": 0},
+        "end_time_tolerance_s": {"type": "number", "minimum": 0},
+        "initial_temperature_tolerance_k": {"type": "number", "minimum": 0},
+        "max_temperature_step_k": {"type": "number", "exclusiveMinimum": 0},
+        "ignition_delay_boundary_margin_points": {"type": "integer", "minimum": 1},
+        "max_pressure_relative_error": {"type": "number", "minimum": 0},
+        "species_bounds_tolerance": {"type": "number", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "number"},
+        "max": {"type": "number"}
+      }
+    },
+    "species_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

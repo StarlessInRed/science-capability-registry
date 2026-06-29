@@ -1,0 +1,118 @@
+asset_id: C01_constant_pressure_ignition
+software: Cantera
+source_url: https://cantera.org/stable/examples/python/reactors/reactor1.html
+domain: combustion
+capability_name: constant-pressure ignition
+problem_type:
+  category: 0D adiabatic constant-pressure reactor
+  description: Simulate finite-rate homogeneous hydrogen ignition in an ideal-gas constant-pressure reactor network.
+physics:
+  reactor_model: IdealGasConstPressureReactor
+  chemistry_model: finite-rate gas-phase combustion using h2o2.yaml
+  thermodynamic_constraint: adiabatic and constant pressure
+  initial_state: fixed temperature, pressure, and gas composition
+  ignition_delay_definition: maximum temperature time derivative by default
+inputs:
+  mechanism: h2o2.yaml
+  reactor_model: ideal_gas_constant_pressure
+  initial_temperature_k: 1001.0
+  pressure_pa: 101325.0
+  composition: H2:2,O2:1,N2:4
+  advance:
+    dt_max_s: 1.0e-5
+    t_end_s: 1.0e-3
+    temperature_advance_limit_k: 20.0
+outputs:
+  required_fields:
+    - time_s
+    - temperature_k
+    - pressure_pa
+    - internal_energy_j_kg
+    - enthalpy_j_kg
+    - tracked_species_mole_fractions
+    - ignition_delay_s
+    - final_temperature_k
+    - temperature_rise_k
+    - max_temperature_derivative_k_s
+    - max_temperature_step_k
+  required_artifacts:
+    - ignition_profile.csv
+    - ignition_temperature_species.png
+    - ignition_run.log
+    - metrics.json
+    - validation_report.md
+benchmark:
+  source_name: Cantera official Python example, Constant-pressure adiabatic kinetics simulation
+  reference_case:
+    mechanism: h2o2.yaml
+    reactor_model: IdealGasConstPressureReactor
+    initial_temperature_k: 1001.0
+    pressure_pa: 101325.0
+    composition: H2:2,O2:1,N2:4
+    dt_max_s: 1.0e-5
+    t_end_s: 1.0e-3
+    temperature_advance_limit_k: 20.0
+  reference_observations:
+    cantera_version: 3.2.0
+    config: configs/cantera/c01_constant_pressure_ignition/baseline.yaml
+    validation: passed
+    ignition_delay_s: 0.00031501152
+    ignition_delay_method: max_temperature_derivative
+    final_temperature_k: 2665.65
+    temperature_rise_k: 1664.65
+    max_temperature_step_k: 20.0
+    time_point_count: 160
+  perturbation_observations:
+    temperature_high:
+      config: configs/cantera/c01_constant_pressure_ignition/perturbation_temperature_high.yaml
+      change: initial_temperature_k 1001.0 K to 1100.0 K
+      validation: passed
+      ignition_delay_s: 0.000092112814
+      final_temperature_k: 2703.91
+      temperature_rise_k: 1603.91
+      trend: Higher initial temperature strongly shortens ignition delay and slightly raises final temperature.
+    lean_mixture:
+      config: configs/cantera/c01_constant_pressure_ignition/perturbation_lean_mixture.yaml
+      change: composition H2:2,O2:1,N2:4 to H2:1.5,O2:1,N2:4
+      validation: passed
+      ignition_delay_s: 0.00030576171
+      final_temperature_k: 2507.26
+      temperature_rise_k: 1506.26
+      trend: Leaner hydrogen mixture lowers final temperature and temperature rise; ignition delay is slightly shorter in this finite-rate hydrogen mechanism window and must not be simplified to a monotonic equivalence-ratio rule.
+    dilution_high:
+      config: configs/cantera/c01_constant_pressure_ignition/perturbation_dilution_high.yaml
+      change: composition H2:2,O2:1,N2:4 to H2:2,O2:1,N2:6
+      validation: passed
+      ignition_delay_s: 0.00039733796
+      final_temperature_k: 2404.05
+      temperature_rise_k: 1403.05
+      trend: Stronger nitrogen dilution delays ignition and lowers final temperature because heat capacity and dilution increase.
+  benchmark_role: Default benchmark for 0D constant-pressure ignition and ignition-delay extraction.
+validation_criteria:
+  - Reactor network must integrate to the configured end time without uncaught Cantera errors.
+  - Raw profile must include t=0 initial state, strictly increasing time, finite columns, and all configured tracked species.
+  - Final temperature and temperature rise must fall inside configured reference ranges.
+  - Ignition delay must be finite, positive, and inside the configured reference range.
+  - Ignition delay event must not be located on the profile boundary.
+  - Maximum saved temperature step must respect the configured advance-limit tolerance.
+  - Pressure must remain constant within configured relative tolerance.
+  - Tracked species mole fractions must remain finite and physically bounded within numerical tolerance.
+  - CSV, plot, log, metrics, and validation report must be generated.
+  - At least three perturbation cases must compare ignition-delay and temperature trends.
+integration_targets:
+  package_entrypoint: science_capability_registry.cantera.c01_constant_pressure_ignition:run
+  input_schema: schemas/cantera_C01_constant_pressure_ignition.schema.json
+  output_contract: reports/validation_report_template.md
+  workflow_stage: combustion.cantera.constant_pressure_ignition
+  integration_notes:
+    - Accept structured reactor setup and ignition-delay definition instead of hardcoded official example values.
+    - Return machine-readable ignition metrics for mechanism validation and reduction workflows.
+    - Preserve profiles and plots so C05/C06 can reuse state and benchmark evidence.
+intern_deliverables:
+  - Python package implementation with a stable callable entrypoint.
+  - Input schema for baseline and perturbed ignition cases.
+  - CSV, plot, log, metrics, and validation report outputs.
+  - Automatic validation script covering integration success, ignition delay, pressure invariance, species bounds, and artifact completeness.
+  - Short explanation of perturbation trends and limitations of the ignition-delay definition.
+card_status: accepted
+benchmark_status: benchmark_validated
