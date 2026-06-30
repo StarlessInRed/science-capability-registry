@@ -10,6 +10,7 @@ backend:
   parallel: false
 executable_bindings:
   incompressible_laminar_transient: icoFoam
+  potential_flow_initialization: potentialFoam
   incompressible_laminar_pimple_transient: pimpleFoam
   incompressible_rans_steady: simpleFoam
   vof_free_surface_transient: interFoam
@@ -28,6 +29,7 @@ required_executables:
 - redistributePar
 - checkMesh
 - icoFoam
+- potentialFoam
 - pimpleFoam
 - simpleFoam
 - interFoam
@@ -35,6 +37,7 @@ required_executables:
 - postProcess
 tutorial_roots:
   c01_lid_driven_cavity: /opt/OpenFOAM-v2112/tutorials/incompressible/icoFoam/cavity/cavity
+  c02_potential_cylinder: /opt/OpenFOAM-v2112/tutorials/basic/potentialFoam/cylinder
   c03_pitz_daily: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/pitzDaily
   c05_cylinder2d: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   c06_dam_break: /opt/OpenFOAM-v2112/tutorials/multiphase/interFoam/laminar/damBreak/damBreak

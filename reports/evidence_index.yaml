@@ -106,6 +106,24 @@ evidence:
   scope: Local OpenFOAM C01 benchmark validation.
   limitations:
   - External centerline reference remains pending before double-v.
+- evidence_id: openfoam_C02_static_readiness_2026-06-30
+  capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
+  asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/openfoam_C02_potential_flow_cylinder_analytical_validation_static_readiness.md
+  supporting_paths:
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/mesh_refined.yaml
+  - schemas/openfoam_C02_potential_flow_cylinder_analytical_validation.schema.json
+  - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/runner.py
+  runtime_evidence_paths:
+  - _results/openfoam/potential_flow_cylinder_analytical_validation/
+  scope: C02 schema, config, package entrypoint, dry-run manifest, and analytical formula unit tests.
+  limitations:
+  - No OpenFOAM solver runtime evidence yet.
+  - No measured Cp, velocity, pressure, or mesh-refinement analytical error trend yet.
 - evidence_id: openfoam_C03_benchmark_validation
   capability_id: cfd.openfoam.backward_facing_step_rans_internal_flow
   asset_path: software/openfoam/assets/C03_backward_facing_step_rans_internal_flow.yaml

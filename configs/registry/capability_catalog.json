@@ -96,6 +96,19 @@
       "evidence_ids": ["openfoam_C01_benchmark_validation"]
     },
     {
+      "capability_id": "cfd.openfoam.potential_flow_cylinder_analytical_validation",
+      "asset_id": "C02_potential_flow_cylinder_analytical_validation",
+      "software": "OpenFOAM",
+      "domain": "CFD",
+      "asset_path": "software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml",
+      "run_schema_path": "schemas/openfoam_C02_potential_flow_cylinder_analytical_validation.schema.json",
+      "default_config_path": "configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": ["openfoam_C02_static_readiness_2026-06-30"]
+    },
+    {
       "capability_id": "cfd.openfoam.backward_facing_step_rans_internal_flow",
       "asset_id": "C03_backward_facing_step_rans_internal_flow",
       "software": "OpenFOAM",
