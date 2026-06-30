@@ -8,13 +8,17 @@ import re
 from pathlib import Path
 from typing import Any
 
+from science_capability_registry.openfoam.field_io import read_internal_scalars, read_internal_vectors
 from science_capability_registry.openfoam.template_case import execute_command_sequence
 
 from .postprocess import summarize_field_extrema, write_conservation_summary, write_shock_metrics
 from .validation import validate_runtime_metrics
 
 FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
-COURANT_RE = re.compile(rf"Courant Number.*?mean:\s*(?P<mean>{FLOAT_RE}).*?max:\s*(?P<max>{FLOAT_RE})")
+COURANT_RE = re.compile(
+    rf"(?:Courant Number.*?mean:\s*(?P<mean_colon>{FLOAT_RE}).*?max:\s*(?P<max_colon>{FLOAT_RE})|"
+    rf"Mean and max Courant Numbers\s*=\s*(?P<mean_equals>{FLOAT_RE})\s+(?P<max_equals>{FLOAT_RE}))"
+)
 TIME_RE = re.compile(rf"^Time\s+=\s+(?P<time>{FLOAT_RE})", re.MULTILINE)
 
 
@@ -23,10 +27,11 @@ def _true_floating_exception(log_text: str) -> bool:
 
 
 def parse_rhocentralfoam_log(log_text: str) -> dict[str, Any]:
-    courant_history = [
-        {"mean": float(match.group("mean")), "max": float(match.group("max"))}
-        for match in COURANT_RE.finditer(log_text)
-    ]
+    courant_history = []
+    for match in COURANT_RE.finditer(log_text):
+        mean_value = match.group("mean_colon") or match.group("mean_equals")
+        max_value = match.group("max_colon") or match.group("max_equals")
+        courant_history.append({"mean": float(mean_value), "max": float(max_value)})
     times = [float(match.group("time")) for match in TIME_RE.finditer(log_text)]
     fatal = (
         "FOAM FATAL" in log_text
@@ -58,9 +63,46 @@ def _solver_log(runtime: dict[str, Any], output_dir: Path) -> Path:
     return output_dir / "logs" / "log.rhoCentralFoam"
 
 
+def _numeric_time(path: Path) -> float | None:
+    try:
+        return float(path.name)
+    except ValueError:
+        return None
+
+
+def _latest_time_dir(case_dir: Path) -> Path:
+    candidates = []
+    for path in case_dir.iterdir():
+        if not path.is_dir():
+            continue
+        time_value = _numeric_time(path)
+        if time_value is not None:
+            candidates.append((time_value, path))
+    if not candidates:
+        raise FileNotFoundError(f"No numeric OpenFOAM time directories found under {case_dir}")
+    return max(candidates, key=lambda item: item[0])[1]
+
+
+def _read_final_fields(case_dir: Path) -> dict[str, list[float] | list[tuple[float, float, float]]]:
+    time_dir = _latest_time_dir(case_dir)
+    fields: dict[str, list[float] | list[tuple[float, float, float]]] = {}
+    for field_name in ["p", "T", "rho"]:
+        path = time_dir / field_name
+        if path.exists():
+            fields[field_name] = read_internal_scalars(path)
+    velocity_path = time_dir / "U"
+    if velocity_path.exists():
+        fields["U"] = read_internal_vectors(velocity_path)
+    return fields
+
+
 def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dict[str, Any]) -> dict[str, Any]:
     log_path = _solver_log(runtime, output_dir)
     solver_metrics = parse_rhocentralfoam_log(log_path.read_text(encoding="utf-8") if log_path.exists() else "")
+    try:
+        field_extrema = summarize_field_extrema(_read_final_fields(output_dir / "case"))
+    except (FileNotFoundError, ValueError) as exc:
+        field_extrema = {"error": str(exc)}
     try:
         shock_metrics = write_shock_metrics(config, output_dir)
     except (FileNotFoundError, ValueError, IndexError, ZeroDivisionError) as exc:
@@ -81,7 +123,7 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         "runtime": runtime,
         "solver": solver_metrics,
         "postprocess": {
-            "field_extrema": summarize_field_extrema({}),
+            "field_extrema": field_extrema,
             "shock": shock_metrics,
             "conservation": conservation,
         },

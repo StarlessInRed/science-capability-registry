@@ -9,6 +9,8 @@
 | Benchmark ID | Solver | Capability binding | Status | Sci_AI_OS replay |
 | --- | --- | --- | --- | --- |
 | `openfoam_c01_lid_driven_cavity` | OpenFOAM | `cfd.openfoam.lid_driven_cavity_incompressible_laminar` | `frozen_canonical` | `scientific_ci_openfoam_c01` |
+| `openfoam_c03_backward_facing_step_rans_internal_flow` | OpenFOAM | `cfd.openfoam.backward_facing_step_rans_internal_flow` | `frozen_canonical` | `scientific_ci_openfoam_c03` |
+| `openfoam_c06_dam_break_vof_free_surface` | OpenFOAM | `cfd.openfoam.dam_break_vof_free_surface` | `frozen_canonical` | `scientific_ci_openfoam_c06` |
 | `cantera_c01_constant_pressure_ignition` | Cantera | `combustion.cantera.constant_pressure_ignition` | `frozen_canonical` | `scientific_ci_cantera_c01` |
 
 ## 目录契约

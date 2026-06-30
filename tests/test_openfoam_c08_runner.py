@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from science_capability_registry.openfoam.compressible_shock_capturing_forward_step import cli
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step.runner import run
 
 
@@ -39,3 +40,30 @@ def test_openfoam_c08_runner_dry_run_patches_reduced_cfl() -> None:
     control = (output_dir / "case/system/controlDict").read_text(encoding="utf-8")
     assert "maxCo           0.1;" in control
     assert "deltaT          0.001;" in control
+
+
+def test_openfoam_c08_cli_forwards_runtime_arguments(monkeypatch) -> None:
+    captured = {}
+
+    def fake_run(**kwargs):
+        captured.update(kwargs)
+        return {"validation": {"passed": True}}
+
+    monkeypatch.setattr(cli, "run", fake_run)
+
+    code = cli.main(
+        [
+            "--config",
+            "configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml",
+            "--output-dir",
+            "_results/openfoam/compressible_shock_capturing_forward_step/cli_test",
+            "--backend",
+            "wsl",
+        ]
+    )
+
+    assert code == 0
+    assert captured["config_path"] == Path("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
+    assert captured["output_dir"] == Path("_results/openfoam/compressible_shock_capturing_forward_step/cli_test")
+    assert captured["dry_run"] is False
+    assert captured["backend"] == "wsl"

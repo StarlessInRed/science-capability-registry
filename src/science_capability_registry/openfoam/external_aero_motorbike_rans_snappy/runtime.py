@@ -10,7 +10,7 @@ from typing import Any
 
 from science_capability_registry.openfoam.template_case import execute_command_sequence
 
-from .postprocess import write_force_metrics, write_y_plus_summary
+from .postprocess import read_y_plus_log, write_force_metrics, write_y_plus_summary
 from .validation import validate_runtime_metrics
 
 FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
@@ -84,7 +84,12 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
     )
     solver_metrics = parse_simplefoam_log(simplefoam_log.read_text(encoding="utf-8") if simplefoam_log.exists() else "")
     force_metrics = write_force_metrics(config, output_dir)
-    y_plus_metrics = {"available": False, "reason": "yPlus summary extraction is not implemented without runtime yPlus source."}
+    y_plus_log = _command_log(runtime, "yPlus", output_dir)
+    y_plus_rows = read_y_plus_log(y_plus_log) if y_plus_log.exists() else []
+    if y_plus_rows:
+        y_plus_metrics = write_y_plus_summary(y_plus_rows, output_dir / "postprocess" / "yplus_summary.csv")
+    else:
+        y_plus_metrics = {"available": False, "reason": "OpenFOAM yPlus log summary was not found or could not be parsed."}
     return {
         "schema_version": "openfoam_c04_metrics_v1",
         "parser": {

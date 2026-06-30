@@ -1,0 +1,74 @@
+{
+  "schema_version": "openfoam_c06_expected_metrics_v1",
+  "benchmark_id": "openfoam_c06_dam_break_vof_free_surface",
+  "source_matrix": "local_openfoam_com_v2112_short_horizon_integration_matrix",
+  "runtime_profile": "openfoam_com_v2112",
+  "openfoam_version": "v2112",
+  "solver": {
+    "name": "interFoam",
+    "mode": "transient_vof_free_surface"
+  },
+  "cases": {
+    "baseline_wsl_v2112": {
+      "gravity_m_s2": 9.81,
+      "water_height_m": 0.292,
+      "mesh_scale": 1.0,
+      "front_x_m": 0.24756521739999998,
+      "water_volume_m3": 0.000646099,
+      "volume_relative_error": -1.3011760106366253e-07,
+      "validation_passed": true
+    },
+    "mesh_refined_wsl_v2112": {
+      "gravity_m_s2": 9.81,
+      "water_height_m": 0.292,
+      "mesh_scale": 1.5,
+      "front_x_m": 0.2404299398,
+      "volume_relative_error": -3.0968999924197594e-07,
+      "validation_passed": true
+    },
+    "gravity_half_wsl_v2112": {
+      "gravity_m_s2": 4.905,
+      "water_height_m": 0.292,
+      "mesh_scale": 1.0,
+      "front_x_m": 0.2094782609,
+      "volume_relative_error": -8.168176655022503e-08,
+      "validation_passed": true
+    },
+    "water_height_125pct_wsl_v2112": {
+      "gravity_m_s2": 9.81,
+      "water_height_m": 0.365,
+      "mesh_scale": 1.0,
+      "front_x_m": 0.24756521739999998,
+      "water_volume_m3": 0.000816415,
+      "volume_relative_error": -1.0777392843908812e-07,
+      "validation_passed": true
+    }
+  },
+  "trend_metrics": {
+    "mesh_refined_front_same_order": {
+      "baseline": 0.24756521739999998,
+      "candidate": 0.2404299398,
+      "passed": true
+    },
+    "gravity_half_front_slower": {
+      "baseline": 0.24756521739999998,
+      "candidate": 0.2094782609,
+      "passed": true
+    },
+    "water_height_125pct_volume_increases": {
+      "baseline": 0.000646099,
+      "candidate": 0.000816415,
+      "passed": true
+    },
+    "water_height_125pct_front_not_slower": {
+      "baseline": 0.24756521739999998,
+      "candidate": 0.24756521739999998,
+      "passed": true
+    }
+  },
+  "validation_source": {
+    "passed": true,
+    "gate": "integration",
+    "report": "reports/openfoam_C06_dam_break_vof_free_surface_benchmark_validation.md"
+  }
+}

@@ -81,11 +81,11 @@ benchmark:
   source_type: official tutorial plus analytical potential-flow reference target
   tutorial_path: $FOAM_TUTORIALS/basic/potentialFoam/cylinder
   benchmark_role: Benchmark candidate for analytical validation of potential-flow velocity, pressure, and Cp around a cylinder.
-  status_rationale: Official tutorial evidence, analytical validation target, run schema, baseline config, package dry-run runner, and static-readiness tests are identified. This repository does not yet contain local solver runtime metrics or analytical validation reports for C02.
+  status_rationale: Official tutorial evidence, analytical validation target, run schema, baseline config, package runner, static-readiness tests, and a local WSL v2112 runtime attempt exist. The runtime path completes blockMesh and potentialFoam, but analytical velocity and Cp error gates fail, so the capability remains below benchmark_validated.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose cylinder geometry, inlet speed, mesh resolution, analytical reference parameters, and error thresholds.
-- Runtime must complete potentialFoam without fatal errors and produce U and p fields.
+- Runtime must complete potentialFoam without fatal errors and produce U and p fields; the current baseline runtime attempt satisfies solver execution but fails analytical velocity and Cp thresholds.
 - Postprocess must compute analytical velocity, pressure, and Cp references at comparable sample locations.
 - Validation must reject cases whose Cp or field errors exceed configured tolerances.
 - Mesh refinement should reduce analytical error before the capability can move beyond benchmark_candidate.

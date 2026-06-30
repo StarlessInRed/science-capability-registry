@@ -1,0 +1,38 @@
+{
+  "schema_version": "openfoam_c06_validation_criteria_v1",
+  "benchmark_id": "openfoam_c06_dam_break_vof_free_surface",
+  "status_rules": {
+    "required_evidence_status": "complete",
+    "required_solver_backend": "OpenFOAM",
+    "required_runtime_profile": "openfoam_com_v2112",
+    "required_validation_json_passed": true,
+    "required_gate": "integration"
+  },
+  "case_rules": {
+    "required_case_ids": [
+      "baseline_wsl_v2112",
+      "mesh_refined_wsl_v2112",
+      "gravity_half_wsl_v2112",
+      "water_height_125pct_wsl_v2112"
+    ],
+    "required_runtime_validation_passed": true
+  },
+  "trend_rules": {
+    "mesh_refined_front_same_order": {
+      "max_abs_delta_m": 0.08
+    },
+    "gravity_half_front_slower": {
+      "candidate_must_be_less_than_baseline": true
+    },
+    "water_height_125pct_volume_increases": {
+      "candidate_min_baseline_ratio": 1.15
+    },
+    "water_height_125pct_front_not_slower": {
+      "candidate_min_baseline_ratio": 0.95
+    }
+  },
+  "artifact_rules": {
+    "require_reference_hash_match": true,
+    "hash_algorithm": "sha256"
+  }
+}

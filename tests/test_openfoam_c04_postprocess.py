@@ -5,6 +5,7 @@ from pathlib import Path
 
 from science_capability_registry.openfoam.external_aero_motorbike_rans_snappy.config import load_case_config
 from science_capability_registry.openfoam.external_aero_motorbike_rans_snappy.postprocess import (
+    read_y_plus_log,
     read_force_coefficients,
     summarize_force_tail,
     summarize_y_plus,
@@ -33,6 +34,23 @@ def test_openfoam_c04_yplus_summary_tracks_range(tmp_path: Path) -> None:
 
     assert summary["available"] is True
     assert summary["sample_count"] == 15
+    assert summary["min"] == 35.0
+    assert summary["max"] == 120.0
+
+
+def test_openfoam_c04_reads_yplus_log_summary(tmp_path: Path) -> None:
+    log_path = tmp_path / "log.yPlus"
+    log_path.write_text(
+        "patch motorBikeGroup y+ : min = 40 max = 120 average = 80\n"
+        "patch lowerWall y+ : min = 35 max = 90 mean = 70\n",
+        encoding="utf-8",
+    )
+
+    rows = read_y_plus_log(log_path)
+    summary = summarize_y_plus(rows)
+
+    assert len(rows) == 2
+    assert summary["available"] is True
     assert summary["min"] == 35.0
     assert summary["max"] == 120.0
 

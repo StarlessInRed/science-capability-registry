@@ -27,3 +27,17 @@
 - 不得把 force/Strouhal 目标写死在代码中，必须来自 config。
 - 没有 force coefficient 时间序列时不得计算 Strouhal。
 - 没有 native/DMD/reference parity 和至少一个 mesh/time-step sensitivity case 前，不得提升为 `benchmark_validated`。
+
+## 下一步验收检查
+
+1. 稳定 native OpenFOAM `forceCoeffs` 路径，或给出等价提取路径的可复核证明；必须生成 force coefficient artifacts。
+2. 执行 Re=100 long-horizon run，并同时满足：
+   - `postprocess.strouhal_target_range` 进入 `[0.16, 0.24]`
+   - `postprocess.strouhal_peak_count >= 5`
+   - `postprocess.strouhal_period_cv <= 0.3`
+   - `postprocess.strouhal_cl_amplitude >= 0.001`
+   - `postprocess.force_sample_count >= 200`
+   - `postprocess.force_time_span >= 6 s`
+   - Courant 与 residual 均低于配置阈值
+3. 增加至少一个 mesh 或 time-step sensitivity case，且保持同一 Strouhal/force gate 通过。
+4. 若最终仍采用 Python patch-surface force proxy，必须记录与 native forceCoeffs、official DMD 或外部 reference 的 parity 结果，否则 C05 维持 `validation_failed`。

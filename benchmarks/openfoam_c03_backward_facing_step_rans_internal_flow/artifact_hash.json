@@ -1,0 +1,10 @@
+{
+  "schema_version": "benchmark_artifact_hash_v1",
+  "benchmark_id": "openfoam_c03_backward_facing_step_rans_internal_flow",
+  "hash_algorithm": "sha256",
+  "frozen_reference_artifacts": {
+    "benchmark_manifest.json": "3293697c9a29dda82af0267fa74ea792bf326976e1bc50e828baf34546a5e01a",
+    "expected_metrics.json": "b3c1a71319c71f951353bb6076604b779b9e37a21be1bae544ac05c63a01795f",
+    "validation_criteria.json": "5bc76c80a10981e151e961f8240751520b968fac9208a744a0dca40862b8513e"
+  }
+}

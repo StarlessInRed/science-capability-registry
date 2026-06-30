@@ -5,11 +5,18 @@ from __future__ import annotations
 import csv
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
 
 FORCE_COLUMNS = ["iteration", "cm", "cd", "cl"]
 YPLUS_COLUMNS = ["patch", "sample_count", "min", "max", "mean"]
+FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+YPLUS_LINE_RE = re.compile(
+    rf"(?:patch\s+)?(?P<patch>[A-Za-z_][\w./-]*).*?y\+.*?min\s*=?\s*(?P<min>{FLOAT_RE}).*?"
+    rf"max\s*=?\s*(?P<max>{FLOAT_RE}).*?(?:average|mean)\s*=?\s*(?P<mean>{FLOAT_RE})",
+    re.IGNORECASE,
+)
 
 
 def read_force_coefficients(path: str | Path) -> list[dict[str, float]]:
@@ -93,6 +100,24 @@ def summarize_y_plus(rows: list[dict[str, float]]) -> dict[str, Any]:
         "max": max(maxs) if maxs else math.nan,
         "mean": _mean(means),
     }
+
+
+def read_y_plus_log(path: str | Path) -> list[dict[str, float]]:
+    rows: list[dict[str, float]] = []
+    for line in Path(path).read_text(encoding="utf-8", errors="replace").splitlines():
+        match = YPLUS_LINE_RE.search(line)
+        if match is None:
+            continue
+        rows.append(
+            {
+                "patch": match.group("patch"),
+                "sample_count": 0,
+                "min": float(match.group("min")),
+                "max": float(match.group("max")),
+                "mean": float(match.group("mean")),
+            }
+        )
+    return rows
 
 
 def write_y_plus_summary(rows: list[dict[str, float]], path: str | Path) -> dict[str, Any]:

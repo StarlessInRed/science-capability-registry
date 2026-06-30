@@ -106,7 +106,10 @@
       "package_entrypoint": "science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
-      "evidence_ids": ["openfoam_C02_static_readiness_2026-06-30"]
+      "evidence_ids": [
+        "openfoam_C02_static_readiness_2026-06-30",
+        "openfoam_C02_runtime_smoke_attempt_2026-06-30"
+      ]
     },
     {
       "capability_id": "cfd.openfoam.backward_facing_step_rans_internal_flow",
@@ -197,7 +200,10 @@
       "package_entrypoint": "science_capability_registry.openfoam.compressible_shock_capturing_forward_step:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
-      "evidence_ids": ["openfoam_C08_static_readiness_2026-06-30"]
+      "evidence_ids": [
+        "openfoam_C08_static_readiness_2026-06-30",
+        "openfoam_C08_runtime_smoke_attempt_2026-06-30"
+      ]
     },
     {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",

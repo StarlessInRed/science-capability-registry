@@ -54,6 +54,16 @@
 - `integration`: baseline 加三类 perturbation 均通过，并记录清晰物理趋势。
 - `double-v`: native/reference heat-flux、长时收敛和外部对比通过后，才允许考虑 `benchmark_status=benchmark_validated`。
 
+## 下一步验收检查
+
+1. 建立 native 或独立复核的 interface heat-flux metric pipeline。
+   - 必须输出 face area、normal convention、radiative flux inclusion policy、per-interface heat-rate balance。
+   - 必须给出 heat-flux mismatch tolerance，且比当前 proxy availability check 更严格。
+2. 延长 baseline 与 perturbation runs，增加 residual history、temperature asymptote 和 heat-rate trend 稳定性检查。
+3. 增加 airflow 物理响应指标，例如 fluid-region `U` magnitude、inlet/outlet flow-rate proxy 或 convective heat-transfer response。
+4. 增加 mesh/decomposition sensitivity，至少比较两个 mesh levels 或 decomposition variants 的关键温度/热率相对差异。
+5. 在 native/reference heat-flux、长时收敛和 independent comparison 同时通过前，C07 维持 `benchmark_candidate`。
+
 ## 风险
 
 - 当前 integration matrix 仍是短时 `Time=2`，不代表稳态收敛。

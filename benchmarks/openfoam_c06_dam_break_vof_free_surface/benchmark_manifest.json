@@ -1,0 +1,61 @@
+{
+  "schema_version": "benchmark_freeze_manifest_v1",
+  "benchmark_id": "openfoam_c06_dam_break_vof_free_surface",
+  "capability_id": "cfd.openfoam.dam_break_vof_free_surface",
+  "benchmark_status": "frozen_canonical",
+  "freeze_version": 1,
+  "description": "OpenFOAM C06 dam-break VOF free-surface matrix frozen from local OpenFOAM.com v2112 WSL evidence.",
+  "source_evidence": {
+    "case_id": "baseline_wsl_v2112",
+    "source_config": "configs/openfoam/dam_break_vof_free_surface/baseline_wsl_v2112.yaml",
+    "source_result_root": "_results/openfoam/dam_break_vof_free_surface/benchmark_matrix",
+    "runtime_profile": "openfoam_com_v2112",
+    "openfoam_distribution": "openfoam_com",
+    "openfoam_version": "v2112",
+    "wsl_distro": "Ubuntu-24.04",
+    "primary_report": "reports/openfoam_C06_dam_break_vof_free_surface_benchmark_validation.md"
+  },
+  "physics_definition": {
+    "model": "incompressible two-phase VOF",
+    "regime": "laminar dam-break free-surface propagation",
+    "primary_behavior": "alpha boundedness, water-volume preservation, front propagation, gravity sensitivity, and initial-height sensitivity"
+  },
+  "solver_binding": {
+    "backend": "OpenFOAM",
+    "solver": "interFoam",
+    "mode": "transient_vof_free_surface",
+    "command_sequence": [
+      "blockMesh",
+      "setFields",
+      "checkMesh",
+      "interFoam",
+      "python:alpha_field_postprocess"
+    ]
+  },
+  "case_matrix": {
+    "required_case_ids": [
+      "baseline_wsl_v2112",
+      "mesh_refined_wsl_v2112",
+      "gravity_half_wsl_v2112",
+      "water_height_125pct_wsl_v2112"
+    ],
+    "matrix_gate": "integration"
+  },
+  "reference_files": {
+    "expected_metrics": "expected_metrics.json",
+    "validation_criteria": "validation_criteria.json",
+    "artifact_hash": "artifact_hash.json"
+  },
+  "replay_contract": {
+    "consumer": "Sci_AI_OS",
+    "source_registry": "science-capability-registry",
+    "benchmark_entrypoint": "science-openfoam-c06-benchmark",
+    "required_runtime_profile": "openfoam_com_v2112",
+    "comparison_source": "expected_metrics.json"
+  },
+  "v4_memory_tags": {
+    "benchmark": "dam_break_vof",
+    "solver": "OpenFOAM",
+    "reproducibility_target": "confirmed"
+  }
+}

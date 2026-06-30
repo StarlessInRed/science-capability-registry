@@ -4,7 +4,7 @@
 
 把 OpenFOAM.com v2112 `basic/potentialFoam/cylinder` 官方 tutorial 转化为 `cfd.openfoam.potential_flow_cylinder_analytical_validation` 能力。该能力的核心不是“运行 potentialFoam”，而是用圆柱势流解析解自动验证速度、压力和表面压力系数。
 
-当前状态为 `benchmark_candidate`。仓库已有 capability card 和 examples index 入口，但还没有 run schema、baseline config、case generator、runtime runner、后处理、metrics 或验证报告。
+当前状态为 `package_skeleton_created`。仓库已有 capability card、examples index、run schema、baseline/mesh-refined configs、case generator、runtime runner 入口、解析公式单元测试、static-readiness report 和一次本地 `potentialFoam` runtime attempt。该 runtime attempt 中 `blockMesh` 与 `potentialFoam` 均成功，但速度误差和 `Cp` 误差超阈值，因此不能提升状态。
 
 ## 源证据
 
@@ -15,14 +15,12 @@
 
 ## 必须交付
 
-1. 建立 config-first run schema，至少暴露 runtime profile、官方 template source、圆柱半径/直径、来流速度、密度、网格分辨率、采样位置和误差阈值。
-2. 建立 baseline config，默认指向 OpenFOAM.com v2112 `potentialFoam/cylinder` tutorial。
-3. 实现 dry-run manifest，明确 case source、mesh、patch roles、field requirements、postprocess targets 和 validation thresholds。
-4. 实现 runtime runner，能够复制或生成 case，执行 `potentialFoam`，保存 solver log、field summary 和 manifest。
-5. 实现解析解后处理，输出速度、压力、表面 `Cp` 的对比 CSV，并计算 `L2`、`Linf` 或等价误差指标。
-6. 增加至少一个网格加密 perturbation，验证解析误差随网格加密下降或解释不下降的数值原因。
-7. 增加 pytest gate，覆盖 schema、dry-run manifest、runtime artifact completeness、解析误差和网格趋势。
-8. 生成验证报告，说明解析公式、采样位置、误差阈值、当前 benchmark 状态和不能推广到粘性绕流的边界。
+1. 保持现有 config-first schema、baseline config、mesh-refined config 和 dry-run manifest 与 capability card 同步。
+2. 通过 capability CLI 运行本地 `potentialFoam` smoke，保存 solver log、field summary、manifest、metrics 和 validation。
+3. 完成解析解后处理，输出速度、压力、表面 `Cp` 的对比 CSV，并计算 `L2`、`Linf` 或等价误差指标。
+4. 运行 mesh-refined perturbation，验证解析误差随网格加密下降或解释不下降的数值原因。
+5. 增加 pytest gate，覆盖 runtime artifact completeness、解析误差和网格趋势。
+6. 生成验证报告，说明解析公式、采样位置、误差阈值、当前 benchmark 状态和不能推广到粘性绕流的边界。
 
 ## 验收门槛
 

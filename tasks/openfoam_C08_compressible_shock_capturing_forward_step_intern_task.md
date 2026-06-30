@@ -4,7 +4,7 @@
 
 把 OpenFOAM.com v2112 `compressible/rhoCentralFoam/forwardStep` 官方 tutorial 转化为 `cfd.openfoam.compressible_shock_capturing_forward_step` 能力。该能力必须验证激波位置、压力/密度跳跃、CFL 和守恒趋势，不能只证明 `rhoCentralFoam` 能生成场文件。
 
-当前状态为 `benchmark_candidate`。仓库已有 capability card 和 examples index 入口，但还没有 run schema、baseline config、case generator、runtime runner、shock 后处理、metrics 或验证报告。
+当前状态为 `package_skeleton_created`。仓库已有 capability card、examples index、run schema、baseline/reduced-CFL configs、case generator、runtime runner 入口、dry-run manifest、shock metric 单元测试、static-readiness report 和一次本地 `rhoCentralFoam` runtime attempt。该 runtime attempt 能到达 `Time=4` 且字段有限，但 max Courant、shock sampling、conservation 和 reference jump gate 未通过，因此不能提升状态。
 
 ## 源证据
 
@@ -15,15 +15,13 @@
 
 ## 必须交付
 
-1. 建立 config-first run schema，至少暴露 runtime profile、official template source、前台阶几何、来流 Mach 或完整热力状态、thermophysical properties、time controls、CFL 阈值、shock sampling lines 和守恒阈值。
-2. 建立 baseline config，默认使用官方 `rhoCentralFoam/forwardStep` tutorial。
-3. 实现 dry-run manifest，明确字段 `U`、`p`、`T`、`rho`、时间控制、thermophysical model、shock sample targets 和 validation thresholds。
-4. 实现 runtime runner，执行 `rhoCentralFoam`，保存 solver log、Courant history、field extrema、manifest 和 artifact index。
-5. 实现 shock 后处理，从配置采样线或等价场切片中提取激波位置、压力跳跃和密度跳跃。
-6. 实现守恒检查，至少报告质量守恒误差和可解释的能量 proxy；不能定义清楚时必须保持 benchmark_candidate。
-7. 增加至少一个 CFL 或网格 perturbation，记录激波位置和跳跃量的敏感性。
-8. 增加 pytest gate，覆盖 schema、dry-run manifest、runtime artifact completeness、CFL gate、field boundedness、shock metric 和 conservation metric。
-9. 生成验证报告，说明 shock reference、数值耗散、阈值来源和当前 benchmark 状态。
+1. 保持现有 config-first schema、baseline config、reduced-CFL perturbation 和 dry-run manifest 与 capability card 同步。
+2. 通过 capability CLI 执行本地 `rhoCentralFoam` smoke，保存 solver log、Courant history、field extrema、manifest 和 artifact index。
+3. 实现 shock 后处理，从配置采样线或等价场切片中提取激波位置、压力跳跃和密度跳跃。
+4. 实现守恒检查，至少报告质量守恒误差和可解释的能量 proxy；不能定义清楚时必须保持 `package_skeleton_created` 或更低。
+5. 运行 reduced-CFL perturbation，记录激波位置和跳跃量的敏感性。
+6. 增加 pytest gate，覆盖 runtime artifact completeness、CFL gate、field boundedness、shock metric 和 conservation metric。
+7. 生成验证报告，说明 shock reference、数值耗散、阈值来源和当前 benchmark 状态。
 
 ## 验收门槛
 

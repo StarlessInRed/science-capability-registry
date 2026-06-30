@@ -4,7 +4,7 @@
 
 把 OpenFOAM.com v2112 `incompressible/simpleFoam/motorBike` 官方 tutorial 转化为 `cfd.openfoam.external_aero_motorbike_rans_snappy` 能力。该能力必须覆盖 snappyHexMesh 网格质量、RANS 求解、forceCoeffs、`Cd`/`Cl` 和 `y+`，不能只停留在几何展示或 solver smoke。
 
-当前状态为 `benchmark_candidate`。仓库已有 capability card 和 examples index 入口，但还没有 run schema、baseline config、case generator、runtime runner、force/y+ 后处理、metrics 或验证报告。
+当前状态为 `package_skeleton_created`。仓库已有 capability card、examples index、run schema、baseline/inlet-speed configs、case generator、runtime runner 入口、dry-run manifest、motorBike 几何准备、forceCoeffs contract、`y+` contract 和 static-readiness report；尚未完成 snappyHexMesh/checkMesh/simpleFoam runtime metrics、native forceCoeffs/`y+` evidence、Cd/Cl tail-window 统计和 integration validation。
 
 ## 源证据
 
@@ -16,15 +16,13 @@
 
 ## 必须交付
 
-1. 建立 config-first run schema，至少暴露 runtime profile、official template source、motorBike 几何源、snappyHexMesh refinement、来流速度、湍流模型、wall functions、force reference area、`y+` 阈值和 mesh quality 阈值。
-2. 建立 baseline config，默认使用官方 motorBike tutorial，并把几何、网格、solver、functionObjects 和 validation thresholds 写入配置。
-3. 实现 dry-run manifest，列出 mesh workflow、patch roles、field requirements、forceCoeffs 输出、`y+` 输出和 artifact targets。
-4. 实现 mesh 阶段 gate，解析 `checkMesh`，至少检查 cell count、patch 完整性、non-orthogonality、skewness、aspect ratio 和 fatal mesh errors。
-5. 实现 runtime runner，顺序执行网格生成、mesh 检查、`simpleFoam` 和必要 functionObjects。
-6. 实现 `forceCoeffs`、`Cd`/`Cl`、residual 和 `y+` 后处理；如果必须使用 proxy，必须在 metrics 和报告中显式标注。
-7. 增加至少一个 refinement 或 inlet-speed perturbation，记录 mesh/runtime 成本和气动力趋势。
-8. 增加 pytest gate，覆盖 schema、dry-run manifest、mesh quality、solver log、force/y+ artifact completeness 和 validation thresholds。
-9. 生成验证报告，说明当前 tutorial 是否只能作为趋势 benchmark，是否有可信 Cd/Cl reference，以及 wall-function `y+` 是否落在配置范围。
+1. 保持现有 config-first schema、baseline config、inlet-speed perturbation 和 dry-run manifest 与 capability card 同步。
+2. 通过 capability CLI 运行 mesh smoke，解析 `checkMesh`，至少检查 cell count、patch 完整性、non-orthogonality、skewness、aspect ratio 和 fatal mesh errors。
+3. 运行 `simpleFoam` 和必要 functionObjects，保存 solver log、mesh log、forceCoeffs 和 `y+` artifacts。
+4. 实现或补强 `forceCoeffs`、`Cd`/`Cl`、residual 和 `y+` 后处理；如果必须使用 proxy，必须在 metrics 和报告中显式标注。
+5. 使用 inlet-speed perturbation 或 refinement perturbation 记录 mesh/runtime 成本和气动力趋势。
+6. 增加 pytest gate，覆盖 mesh quality、solver log、force/y+ artifact completeness 和 validation thresholds。
+7. 生成验证报告，说明当前 tutorial 是否只能作为趋势 benchmark，是否有可信 Cd/Cl reference，以及 wall-function `y+` 是否落在配置范围。
 
 ## 验收门槛
 

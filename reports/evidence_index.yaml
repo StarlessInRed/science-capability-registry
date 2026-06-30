@@ -122,8 +122,26 @@ evidence:
   - _results/openfoam/potential_flow_cylinder_analytical_validation/
   scope: C02 schema, config, package entrypoint, dry-run manifest, and analytical formula unit tests.
   limitations:
-  - No OpenFOAM solver runtime evidence yet.
-  - No measured Cp, velocity, pressure, or mesh-refinement analytical error trend yet.
+  - This static-readiness report predates the runtime attempt and does not itself contain solver runtime evidence.
+  - No passing measured Cp, velocity, pressure, or mesh-refinement analytical error trend yet.
+- evidence_id: openfoam_C02_runtime_smoke_attempt_2026-06-30
+  capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
+  asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C02_potential_flow_cylinder_analytical_validation_runtime_smoke_attempt_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml
+  - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/runtime.py
+  - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/postprocess.py
+  - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/potential_flow_cylinder_analytical_validation/baseline_runtime_smoke_wsl_v2112/
+  scope: Local WSL OpenFOAM.com v2112 C02 runtime completes blockMesh and potentialFoam but fails configured analytical velocity and Cp thresholds.
+  limitations:
+  - Analytical sampling and finite-domain effects require review before benchmark promotion.
+  - Mesh-refinement analytical error trend has not been validated.
 - evidence_id: openfoam_C03_benchmark_validation
   capability_id: cfd.openfoam.backward_facing_step_rans_internal_flow
   asset_path: software/openfoam/assets/C03_backward_facing_step_rans_internal_flow.yaml
@@ -366,8 +384,26 @@ evidence:
   - _results/openfoam/compressible_shock_capturing_forward_step/
   scope: C08 schema, config, package entrypoint, dry-run manifest, and shock metric unit-test readiness.
   limitations:
-  - No rhoCentralFoam runtime metrics have been promoted in this report.
-  - No shock position, pressure/density jump, CFL, or conservation runtime evidence has been validated yet.
+  - This static-readiness report predates the runtime attempt and does not itself contain solver runtime evidence.
+  - No passing shock position, pressure/density jump, CFL, or conservation runtime evidence has been validated yet.
+- evidence_id: openfoam_C08_runtime_smoke_attempt_2026-06-30
+  capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
+  asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C08_compressible_shock_capturing_forward_step_runtime_smoke_attempt_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/runtime.py
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/postprocess.py
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/compressible_shock_capturing_forward_step/baseline_runtime_smoke_wsl_v2112/
+  scope: Local WSL OpenFOAM.com v2112 C08 runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4, but fails CFL, shock sampling, and conservation gates.
+  limitations:
+  - Initial max Courant exceeds the configured threshold.
+  - Shock-line samples, shock metrics, and conservation metrics remain unavailable.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

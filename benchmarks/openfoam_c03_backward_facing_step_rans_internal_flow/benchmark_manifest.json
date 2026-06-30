@@ -1,0 +1,61 @@
+{
+  "schema_version": "benchmark_freeze_manifest_v1",
+  "benchmark_id": "openfoam_c03_backward_facing_step_rans_internal_flow",
+  "capability_id": "cfd.openfoam.backward_facing_step_rans_internal_flow",
+  "benchmark_status": "frozen_canonical",
+  "freeze_version": 1,
+  "description": "OpenFOAM C03 backward-facing step RANS internal-flow matrix frozen from local OpenFOAM.com v2112 WSL evidence.",
+  "source_evidence": {
+    "case_id": "baseline_wsl_v2112",
+    "source_config": "configs/openfoam/backward_facing_step_rans_internal_flow/baseline_wsl_v2112.yaml",
+    "source_result_root": "_results/openfoam/backward_facing_step_rans_internal_flow/benchmark_matrix",
+    "runtime_profile": "openfoam_com_v2112",
+    "openfoam_distribution": "openfoam_com",
+    "openfoam_version": "v2112",
+    "wsl_distro": "Ubuntu-24.04",
+    "primary_report": "reports/openfoam_C03_backward_facing_step_rans_internal_flow_benchmark_validation.md"
+  },
+  "physics_definition": {
+    "model": "incompressible RANS",
+    "regime": "internal separated flow with backward-facing step",
+    "baseline_reynolds_number_H": 25400,
+    "primary_behavior": "pressure-drop and velocity response across mesh and inlet-velocity perturbations"
+  },
+  "solver_binding": {
+    "backend": "OpenFOAM",
+    "solver": "simpleFoam",
+    "mode": "steady_incompressible_rans",
+    "command_sequence": [
+      "blockMesh",
+      "checkMesh",
+      "simpleFoam",
+      "python:final_field_postprocess"
+    ]
+  },
+  "case_matrix": {
+    "required_case_ids": [
+      "baseline_wsl_v2112",
+      "mesh_refined_wsl_v2112",
+      "inlet_velocity_high_wsl_v2112",
+      "inlet_velocity_low_wsl_v2112"
+    ],
+    "matrix_gate": "integration"
+  },
+  "reference_files": {
+    "expected_metrics": "expected_metrics.json",
+    "validation_criteria": "validation_criteria.json",
+    "artifact_hash": "artifact_hash.json"
+  },
+  "replay_contract": {
+    "consumer": "Sci_AI_OS",
+    "source_registry": "science-capability-registry",
+    "benchmark_entrypoint": "science-openfoam-c03-benchmark",
+    "required_runtime_profile": "openfoam_com_v2112",
+    "comparison_source": "expected_metrics.json"
+  },
+  "v4_memory_tags": {
+    "benchmark": "backward_facing_step_rans",
+    "solver": "OpenFOAM",
+    "reproducibility_target": "confirmed"
+  }
+}

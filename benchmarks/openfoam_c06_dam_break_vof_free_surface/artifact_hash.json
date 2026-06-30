@@ -1,0 +1,10 @@
+{
+  "schema_version": "benchmark_artifact_hash_v1",
+  "benchmark_id": "openfoam_c06_dam_break_vof_free_surface",
+  "hash_algorithm": "sha256",
+  "frozen_reference_artifacts": {
+    "benchmark_manifest.json": "f92fcd6c3cbe0e8672d63cd36af39b878a37e9de96e921a8b1cd75babe447551",
+    "expected_metrics.json": "16a33a07d144ba9d863c7844a3c1134229d4297de7ad0b0e8ffdcfdd7ba07a04",
+    "validation_criteria.json": "20174a2857d5896f04357dd47e370853e6f4b2663fe86be65864a02047354fb3"
+  }
+}

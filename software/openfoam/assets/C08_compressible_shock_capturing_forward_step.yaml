@@ -85,11 +85,11 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
   benchmark_role: Benchmark candidate for compressible shock-capturing solver health, shock location, jump conditions, CFL control, and conservation.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, and static-readiness tests. It remains below benchmark_validated until local rhoCentralFoam runtime metrics and reference shock validation evidence exist.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and a local WSL v2112 runtime attempt. The runtime path completes blockMesh, checkMesh, and rhoCentralFoam to final time, but CFL, shock sampling, conservation, and reference jump validation remain incomplete.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose compressible state, thermophysical model, step geometry, time controls, CFL limit, and shock validation targets.
-- Runtime validation must check rhoCentralFoam completion, max CFL, finite bounded thermodynamic fields, and absence of fatal errors.
+- Runtime validation must check rhoCentralFoam completion, max CFL, finite bounded thermodynamic fields, and absence of fatal errors; the current baseline runtime attempt completes but exceeds the configured max-CFL threshold.
 - Postprocess must extract shock position and pressure/density jumps from field samples.
 - Conservation validation must report mass and energy proxy errors.
 - Benchmark promotion requires shock position and jump metrics to match configured reference tolerances.
@@ -108,6 +108,6 @@ intern_deliverables:
 - Extend the C08 package from static-readiness to local WSL runtime smoke using rhoCentralFoam forwardStep.
 - Implement runtime field sampling for shock position, pressure/density jumps, CFL, and conservation postprocess.
 - Add runtime execution after solver health and field-boundedness gates are defined.
-- Keep benchmark_status below benchmark_validated until local runtime and reference shock validation pass.
+- Keep benchmark_status below benchmark_validated until local runtime shock sampling, conservation, CFL, and reference shock validation pass.
 card_status: review
 benchmark_status: package_skeleton_created

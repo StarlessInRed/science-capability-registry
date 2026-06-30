@@ -1,0 +1,43 @@
+{
+  "schema_version": "openfoam_c03_validation_criteria_v1",
+  "benchmark_id": "openfoam_c03_backward_facing_step_rans_internal_flow",
+  "status_rules": {
+    "required_evidence_status": "complete",
+    "required_solver_backend": "OpenFOAM",
+    "required_runtime_profile": "openfoam_com_v2112",
+    "required_validation_json_passed": true,
+    "required_gate": "integration"
+  },
+  "case_rules": {
+    "required_case_ids": [
+      "baseline_wsl_v2112",
+      "mesh_refined_wsl_v2112",
+      "inlet_velocity_high_wsl_v2112",
+      "inlet_velocity_low_wsl_v2112"
+    ],
+    "required_runtime_validation_passed": true
+  },
+  "trend_rules": {
+    "mesh_refined_pressure_drop_same_order": {
+      "candidate_min_baseline_ratio": 0.4,
+      "candidate_max_baseline_ratio": 2.5
+    },
+    "inlet_velocity_high_pressure_drop_increases": {
+      "candidate_min_baseline_ratio": 1.3
+    },
+    "inlet_velocity_low_pressure_drop_decreases": {
+      "candidate_max_baseline_ratio": 0.9
+    },
+    "inlet_velocity_speed_response": {
+      "required_order": [
+        "low",
+        "baseline",
+        "high"
+      ]
+    }
+  },
+  "artifact_rules": {
+    "require_reference_hash_match": true,
+    "hash_algorithm": "sha256"
+  }
+}

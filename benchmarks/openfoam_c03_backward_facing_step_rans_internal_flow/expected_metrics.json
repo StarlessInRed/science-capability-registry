@@ -1,0 +1,72 @@
+{
+  "schema_version": "openfoam_c03_expected_metrics_v1",
+  "benchmark_id": "openfoam_c03_backward_facing_step_rans_internal_flow",
+  "source_matrix": "local_openfoam_com_v2112_integration_matrix",
+  "runtime_profile": "openfoam_com_v2112",
+  "openfoam_version": "v2112",
+  "solver": {
+    "name": "simpleFoam",
+    "mode": "steady_incompressible_rans"
+  },
+  "cases": {
+    "baseline_wsl_v2112": {
+      "inlet_velocity_m_s": 10.0,
+      "reynolds_number_H": 25400,
+      "mesh_scale": 1.0,
+      "pressure_drop_kinematic_m2_s2": 11.626448689110163,
+      "max_speed_m_s": 10.5816,
+      "validation_passed": true
+    },
+    "mesh_refined_wsl_v2112": {
+      "inlet_velocity_m_s": 10.0,
+      "reynolds_number_H": 25400,
+      "mesh_scale": 1.5,
+      "pressure_drop_kinematic_m2_s2": 9.912575957130482,
+      "validation_passed": true
+    },
+    "inlet_velocity_high_wsl_v2112": {
+      "inlet_velocity_m_s": 15.0,
+      "reynolds_number_H": 38100,
+      "mesh_scale": 1.0,
+      "pressure_drop_kinematic_m2_s2": 26.845949494547177,
+      "max_speed_m_s": 15.8534,
+      "validation_passed": true
+    },
+    "inlet_velocity_low_wsl_v2112": {
+      "inlet_velocity_m_s": 7.5,
+      "reynolds_number_H": 19050,
+      "mesh_scale": 1.0,
+      "pressure_drop_kinematic_m2_s2": 6.360619399762921,
+      "max_speed_m_s": 7.95365,
+      "validation_passed": true
+    }
+  },
+  "trend_metrics": {
+    "mesh_refined_pressure_drop_same_order": {
+      "baseline": 11.626448689110163,
+      "candidate": 9.912575957130482,
+      "passed": true
+    },
+    "inlet_velocity_high_pressure_drop_increases": {
+      "baseline": 11.626448689110163,
+      "candidate": 26.845949494547177,
+      "passed": true
+    },
+    "inlet_velocity_low_pressure_drop_decreases": {
+      "baseline": 11.626448689110163,
+      "candidate": 6.360619399762921,
+      "passed": true
+    },
+    "inlet_velocity_speed_response": {
+      "low": 7.95365,
+      "baseline": 10.5816,
+      "high": 15.8534,
+      "passed": true
+    }
+  },
+  "validation_source": {
+    "passed": true,
+    "gate": "integration",
+    "report": "reports/openfoam_C03_backward_facing_step_rans_internal_flow_benchmark_validation.md"
+  }
+}

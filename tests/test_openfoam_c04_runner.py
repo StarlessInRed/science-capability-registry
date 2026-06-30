@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from science_capability_registry.openfoam.external_aero_motorbike_rans_snappy import cli
 from science_capability_registry.openfoam.external_aero_motorbike_rans_snappy.runner import run
 
 
@@ -54,3 +55,30 @@ def test_openfoam_c04_runner_dry_run_patches_force_coefficients_and_inlet_speed(
     assert "flowVelocity         (25 0 0);" in initial
     assert "magUInf         25;" in force
     assert "Aref            0.75;" in force
+
+
+def test_openfoam_c04_cli_forwards_runtime_arguments(monkeypatch) -> None:
+    captured = {}
+
+    def fake_run(**kwargs):
+        captured.update(kwargs)
+        return {"validation": {"passed": True}}
+
+    monkeypatch.setattr(cli, "run", fake_run)
+
+    code = cli.main(
+        [
+            "--config",
+            "configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml",
+            "--output-dir",
+            "_results/openfoam/external_aero_motorbike_rans_snappy/cli_test",
+            "--backend",
+            "wsl",
+        ]
+    )
+
+    assert code == 0
+    assert captured["config_path"] == Path("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
+    assert captured["output_dir"] == Path("_results/openfoam/external_aero_motorbike_rans_snappy/cli_test")
+    assert captured["dry_run"] is False
+    assert captured["backend"] == "wsl"
