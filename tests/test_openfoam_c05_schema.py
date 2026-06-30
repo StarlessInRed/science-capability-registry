@@ -51,13 +51,13 @@ def test_openfoam_c05_schema_rejects_untracked_top_level_key() -> None:
     assert any("Additional properties" in error.message for error in errors)
 
 
-def test_openfoam_c05_assets_remain_benchmark_candidate() -> None:
+def test_openfoam_c05_assets_record_validation_failure() -> None:
     asset = yaml.safe_load(ASSET_PATH.read_text(encoding="utf-8"))
     task_text = TASK_PATH.read_text(encoding="utf-8")
 
     assert asset["integration_targets"]["input_schema"] == SCHEMA_PATH.as_posix()
-    assert asset["benchmark_status"] == "package_skeleton_created"
-    assert "package_skeleton_created" in task_text
+    assert asset["benchmark_status"] == "validation_failed"
+    assert "validation_failed" in task_text
 
 
 def test_openfoam_c05_schema_rejects_wrong_solver() -> None:

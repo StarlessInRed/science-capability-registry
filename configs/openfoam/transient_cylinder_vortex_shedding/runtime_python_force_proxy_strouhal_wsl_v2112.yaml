@@ -1,6 +1,7 @@
 capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
-case_id: runtime_python_force_proxy_wsl_v2112
-description: Local WSL OpenFOAM.com v2112 force-coefficient smoke for cylinder2D using Python patch-surface proxy extraction, with OpenFOAM functionObjects disabled to avoid the local sha1 IO blocker.
+case_id: runtime_python_force_proxy_strouhal_wsl_v2112
+description: Local WSL OpenFOAM.com v2112 long-horizon cylinder2D force-proxy run
+  for provisional Strouhal estimation using Python patch-surface extraction.
 openfoam:
   distribution: openfoam_com
   version: v2112
@@ -20,7 +21,7 @@ openfoam:
   - postProcess
 backend:
   type: wsl
-  timeout_s: 900
+  timeout_s: 3600
   parallel: false
   wsl_distro: Ubuntu-24.04
 solver:
@@ -33,7 +34,9 @@ template:
   source_path: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   copy_strategy: copy_official_tutorial_then_patch
   disabled_function_objects:
-  - "OpenFOAM forceCoeffs is disabled because local v2112 WSL functionObject startup hits sha1 IO failure; this config uses Python patch-surface proxy extraction instead."
+  - OpenFOAM forceCoeffs is disabled because local v2112 WSL functionObject startup
+    hits sha1 IO failure; this config uses Python patch-surface proxy extraction for
+    long-horizon Strouhal evidence.
 geometry:
   cylinder_diameter_m: 0.12
   cylinder_center_m:
@@ -67,23 +70,25 @@ mesh:
   - restore0Dir
 material:
   density_kg_m3: 1
-  kinematic_viscosity_m2_s: 1.558e-5
-  inlet_velocity_m_s: 0.012984
+  kinematic_viscosity_m2_s: 0.0012
+  inlet_velocity_m_s: 1
   reynolds_number_D: 100
 fields:
   velocity_field: U
   pressure_field: p
   initial_velocity_m_s:
-  - 0.012984
+  - 1
   - 0
   - 0
   initial_pressure_m2_s2: 0
 numerics:
   control:
-    end_time_s: 1
-    delta_t_s: 0.05
-    write_interval_s: 0.25
-    max_courant: 1
+    end_time_s: 8
+    delta_t_s: 0.0005
+    write_interval_s: 0.025
+    max_courant: 0.5
+    adjust_time_step: true
+    max_delta_t_s: 0.001
   pimple:
     n_outer_correctors: 2
     n_correctors: 2
@@ -105,10 +110,10 @@ function_objects:
 postprocess:
   force_coefficients: true
   lift_drag_time_series: true
-  strouhal_estimate: false
+  strouhal_estimate: true
   force_extraction_source: python_patch_surface_proxy
 outputs:
-  output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_wsl_v2112
+  output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112
   retain_generated_case: true
   expected_outputs:
   - case/0/U
@@ -124,14 +129,21 @@ outputs:
   - validation.json
   - validation_report.md
   - postprocess/force_coefficients.csv
+  - postprocess/strouhal_summary.json
 validation:
-  gate: smoke
+  gate: integration
   max_courant: 1
   max_final_residual: 0.01
   force_coefficients_required: true
   strouhal_target_range:
   - 0.16
   - 0.24
+  min_force_samples: 200
+  min_force_time_span_s: 6
+  analysis_window_s: 6
+  min_lift_peak_count: 5
+  max_period_cv: 0.3
+  min_cl_amplitude: 0.001
   required_generated_files:
   - case/0/U
   - case/0/p
@@ -157,4 +169,5 @@ validation:
   - validation_targets
   matrix_role: baseline
   expected_trend:
-    description: Runtime smoke verifies pimpleFoam command wiring and Python patch-surface force proxy artifacts; Strouhal is intentionally out of scope for this short-horizon force-artifact smoke.
+    description: Longer Re=100 cylinder2D run should produce a lift time series with
+      enough peaks for provisional Strouhal estimation in the configured target range.

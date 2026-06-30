@@ -20,6 +20,18 @@ def _replace_assignment(text: str, keyword: str, value: str, count: int = 1) -> 
     return re.sub(pattern, rf"\g<1>{value};", text, count=count)
 
 
+def _upsert_assignment(text: str, keyword: str, value: str) -> str:
+    pattern = rf"({re.escape(keyword)}\s+)[^;]+;"
+    updated, count = re.subn(pattern, rf"\g<1>{value};", text, count=1)
+    if count:
+        return updated
+    assignment = f"{keyword:<16}{value};\n"
+    anchor = re.search(r"\nrunTimeModifiable\s+[^;]+;", text)
+    if anchor:
+        return text[: anchor.start()] + "\n" + assignment + text[anchor.start() :]
+    return text.rstrip() + "\n\n" + assignment
+
+
 def _replace_vector_internal_field(text: str, vector: list[float]) -> str:
     vector_text = f"({vector[0]:g} {vector[1]:g} {vector[2]:g})"
     return re.sub(r"(internalField\s+uniform\s*)\([^)]*\)(\s*;)", lambda match: match.group(1) + vector_text + match.group(2), text, count=1)
@@ -86,6 +98,11 @@ def _patch_case_files(output_dir: Path, config: dict[str, Any]) -> None:
     control_text = _replace_assignment(control_text, "endTime", f"{control['end_time_s']:g}")
     control_text = _replace_assignment(control_text, "deltaT", f"{control['delta_t_s']:g}")
     control_text = _replace_assignment(control_text, "writeInterval", f"{control['write_interval_s']:g}")
+    if "adjust_time_step" in control:
+        control_text = _upsert_assignment(control_text, "adjustTimeStep", "yes" if control["adjust_time_step"] else "no")
+        control_text = _upsert_assignment(control_text, "maxCo", f"{control['max_courant']:g}")
+    if "max_delta_t_s" in control:
+        control_text = _upsert_assignment(control_text, "maxDeltaT", f"{control['max_delta_t_s']:g}")
     control_text = _replace_functions_block(control_text, _force_coefficients_block(config))
     (case_dir / "system" / "controlDict").write_text(control_text, encoding="utf-8")
 

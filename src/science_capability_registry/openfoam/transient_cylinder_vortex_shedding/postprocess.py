@@ -47,13 +47,65 @@ def write_force_coefficients_csv(rows: list[dict[str, float]], path: str | Path)
     return {
         "available": bool(rows),
         "path": str(output_path),
-        "row_count": len(rows),
+        **summarize_force_rows(rows),
     }
 
 
-def estimate_strouhal(rows: list[dict[str, float]], cylinder_diameter_m: float, inlet_velocity_m_s: float) -> dict[str, Any]:
-    if len(rows) < 5:
-        return {"available": False, "reason": "at least five force samples are required"}
+def summarize_force_rows(rows: list[dict[str, float]]) -> dict[str, Any]:
+    finite_rows = [
+        row
+        for row in rows
+        if all(math.isfinite(float(row[column])) for column in FORCE_COLUMNS)
+    ]
+    summary: dict[str, Any] = {
+        "row_count": len(rows),
+        "finite_row_count": len(finite_rows),
+        "nonfinite_count": len(rows) - len(finite_rows),
+    }
+    if finite_rows:
+        times = [float(row["time_s"]) for row in finite_rows]
+        cls = [float(row["cl"]) for row in finite_rows]
+        cds = [float(row["cd"]) for row in finite_rows]
+        summary.update(
+            {
+                "time_start_s": min(times),
+                "time_end_s": max(times),
+                "time_span_s": max(times) - min(times),
+                "cl_min": min(cls),
+                "cl_max": max(cls),
+                "cl_amplitude": max(cls) - min(cls),
+                "cd_min": min(cds),
+                "cd_max": max(cds),
+            }
+        )
+    return summary
+
+
+def _analysis_rows(rows: list[dict[str, float]], analysis_window_s: float | None) -> list[dict[str, float]]:
+    finite_rows = [
+        row
+        for row in sorted(rows, key=lambda item: float(item["time_s"]))
+        if all(math.isfinite(float(row[column])) for column in FORCE_COLUMNS)
+    ]
+    if analysis_window_s is None or not finite_rows:
+        return finite_rows
+    end_time = float(finite_rows[-1]["time_s"])
+    window_start = end_time - analysis_window_s
+    return [row for row in finite_rows if float(row["time_s"]) >= window_start]
+
+
+def estimate_strouhal(
+    rows: list[dict[str, float]],
+    cylinder_diameter_m: float,
+    inlet_velocity_m_s: float,
+    analysis_window_s: float | None = None,
+    min_force_samples: int = 5,
+    min_lift_peaks: int = 3,
+) -> dict[str, Any]:
+    rows = _analysis_rows(rows, analysis_window_s)
+    summary = summarize_force_rows(rows)
+    if len(rows) < min_force_samples:
+        return {**summary, "available": False, "reason": f"at least {min_force_samples} force samples are required"}
     peaks: list[dict[str, float]] = []
     for index in range(1, len(rows) - 1):
         previous_cl = rows[index - 1]["cl"]
@@ -61,19 +113,32 @@ def estimate_strouhal(rows: list[dict[str, float]], cylinder_diameter_m: float, 
         next_cl = rows[index + 1]["cl"]
         if current_cl > previous_cl and current_cl >= next_cl:
             peaks.append(rows[index])
-    if len(peaks) < 3:
-        return {"available": False, "reason": "at least three lift peaks are required", "peak_count": len(peaks)}
+    if len(peaks) < min_lift_peaks:
+        return {
+            **summary,
+            "available": False,
+            "reason": f"at least {min_lift_peaks} lift peaks are required",
+            "peak_count": len(peaks),
+            "peak_times_s": [peak["time_s"] for peak in peaks],
+        }
     periods = [peaks[index + 1]["time_s"] - peaks[index]["time_s"] for index in range(len(peaks) - 1)]
     finite_periods = [period for period in periods if math.isfinite(period) and period > 0.0]
     if not finite_periods:
-        return {"available": False, "reason": "no positive finite lift-peak periods were found", "peak_count": len(peaks)}
+        return {**summary, "available": False, "reason": "no positive finite lift-peak periods were found", "peak_count": len(peaks)}
     mean_period = sum(finite_periods) / len(finite_periods)
+    variance = sum((period - mean_period) ** 2 for period in finite_periods) / len(finite_periods)
+    period_cv = math.sqrt(variance) / mean_period if mean_period > 0.0 else math.inf
     frequency_hz = 1.0 / mean_period
     strouhal = frequency_hz * cylinder_diameter_m / inlet_velocity_m_s
     return {
+        **summary,
         "available": True,
+        "analysis_window_s": analysis_window_s,
         "peak_count": len(peaks),
+        "peak_times_s": [peak["time_s"] for peak in peaks],
+        "periods_s": finite_periods,
         "mean_period_s": mean_period,
+        "period_cv": period_cv,
         "frequency_hz": frequency_hz,
         "strouhal_number": strouhal,
     }
@@ -288,6 +353,7 @@ def _patch_force_rows(config: dict[str, Any], output_dir: Path) -> list[dict[str
 
 
 def _write_openfoam_force_coefficients(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    validation = config.get("validation", {})
     case_dir = output_dir / "case"
     candidates = sorted(
         {
@@ -307,6 +373,9 @@ def _write_openfoam_force_coefficients(config: dict[str, Any], output_dir: Path)
         rows,
         cylinder_diameter_m=float(config["geometry"]["cylinder_diameter_m"]),
         inlet_velocity_m_s=float(config["material"]["inlet_velocity_m_s"]),
+        analysis_window_s=validation.get("analysis_window_s"),
+        min_force_samples=int(validation.get("min_force_samples", 5)),
+        min_lift_peaks=int(validation.get("min_lift_peak_count", 3)),
     )
     strouhal = write_strouhal_summary(strouhal, output_dir / "postprocess" / "strouhal_summary.json")
     return {
@@ -316,6 +385,7 @@ def _write_openfoam_force_coefficients(config: dict[str, Any], output_dir: Path)
 
 
 def _write_python_patch_force_proxy(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    validation = config.get("validation", {})
     rows = _patch_force_rows(config, output_dir)
     force_info = write_force_coefficients_csv(rows, output_dir / "postprocess" / "force_coefficients.csv")
     force_info.update(
@@ -333,6 +403,9 @@ def _write_python_patch_force_proxy(config: dict[str, Any], output_dir: Path) ->
         rows,
         cylinder_diameter_m=float(config["geometry"]["cylinder_diameter_m"]),
         inlet_velocity_m_s=float(config["material"]["inlet_velocity_m_s"]),
+        analysis_window_s=validation.get("analysis_window_s"),
+        min_force_samples=int(validation.get("min_force_samples", 5)),
+        min_lift_peaks=int(validation.get("min_lift_peak_count", 3)),
     )
     strouhal = write_strouhal_summary(strouhal, output_dir / "postprocess" / "strouhal_summary.json")
     return {

@@ -119,3 +119,106 @@ def test_openfoam_c05_runtime_validation_rejects_wrong_force_source(tmp_path: Pa
 
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "postprocess.force_coefficients_source" in failed
+
+
+def test_openfoam_c05_runtime_validation_checks_strouhal_target_range(tmp_path: Path) -> None:
+    config = _baseline_config()
+    config["postprocess"]["force_extraction_source"] = "python_patch_surface_proxy"
+    config["postprocess"]["strouhal_estimate"] = True
+    config["outputs"]["expected_outputs"] = []
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "final_time": config["numerics"]["control"]["end_time_s"],
+            "max_courant_number": 0.1,
+            "residual_history": [{"final": 1e-6}],
+        },
+        "postprocess": {
+            "force_coefficients": {
+                "available": True,
+                "source": "python_patch_surface_proxy",
+            },
+            "strouhal": {
+                "available": True,
+                "strouhal_number": 0.5,
+            },
+        },
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "postprocess.strouhal_target_range" in failed
+
+
+def test_openfoam_c05_runtime_validation_checks_force_series_quality(tmp_path: Path) -> None:
+    config = _baseline_config()
+    config["postprocess"]["force_extraction_source"] = "python_patch_surface_proxy"
+    config["postprocess"]["strouhal_estimate"] = True
+    config["validation"]["min_force_samples"] = 60
+    config["validation"]["min_force_time_span_s"] = 20
+    config["validation"]["min_lift_peak_count"] = 3
+    config["validation"]["max_period_cv"] = 0.3
+    config["validation"]["min_cl_amplitude"] = 0.001
+    config["outputs"]["expected_outputs"] = []
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "final_time": config["numerics"]["control"]["end_time_s"],
+            "max_courant_number": 0.1,
+            "residual_history": [{"final": 1e-6}],
+        },
+        "postprocess": {
+            "force_coefficients": {
+                "available": True,
+                "source": "python_patch_surface_proxy",
+                "row_count": 4,
+                "time_span_s": 1.0,
+                "nonfinite_count": 0,
+            },
+            "strouhal": {
+                "available": True,
+                "strouhal_number": 0.2,
+                "peak_count": 2,
+                "period_cv": 0.4,
+                "cl_amplitude": 0.0001,
+            },
+        },
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "postprocess.force_sample_count" in failed
+    assert "postprocess.force_time_span" in failed
+    assert "postprocess.strouhal_peak_count" in failed
+    assert "postprocess.strouhal_period_cv" in failed
+    assert "postprocess.strouhal_lift_amplitude" in failed
+
+
+def test_openfoam_c05_runtime_validation_allows_final_time_step_tolerance(tmp_path: Path) -> None:
+    config = _baseline_config()
+    config["postprocess"]["strouhal_estimate"] = False
+    config["validation"]["force_coefficients_required"] = False
+    config["outputs"]["expected_outputs"] = []
+    final_time = config["numerics"]["control"]["end_time_s"] - config["numerics"]["control"]["delta_t_s"] / 2.0
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "final_time": final_time,
+            "max_courant_number": 0.1,
+            "residual_history": [{"final": 1e-6}],
+        },
+        "postprocess": {},
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "solver.final_time" not in failed

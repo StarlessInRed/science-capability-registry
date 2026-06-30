@@ -141,7 +141,9 @@
             "end_time_s": {"type": "number", "exclusiveMinimum": 0},
             "delta_t_s": {"type": "number", "exclusiveMinimum": 0},
             "write_interval_s": {"type": "number", "exclusiveMinimum": 0},
-            "max_courant": {"type": "number", "exclusiveMinimum": 0}
+            "max_courant": {"type": "number", "exclusiveMinimum": 0},
+            "adjust_time_step": {"type": "boolean"},
+            "max_delta_t_s": {"type": "number", "exclusiveMinimum": 0}
           }
         },
         "pimple": {
@@ -206,6 +208,12 @@
         "max_final_residual": {"type": "number", "exclusiveMinimum": 0},
         "force_coefficients_required": {"type": "boolean"},
         "strouhal_target_range": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "min_force_samples": {"type": "integer", "minimum": 1},
+        "min_force_time_span_s": {"type": "number", "exclusiveMinimum": 0},
+        "analysis_window_s": {"type": "number", "exclusiveMinimum": 0},
+        "min_lift_peak_count": {"type": "integer", "minimum": 1},
+        "max_period_cv": {"type": "number", "minimum": 0},
+        "min_cl_amplitude": {"type": "number", "exclusiveMinimum": 0},
         "required_generated_files": {"type": "array", "items": {"type": "string"}},
         "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
         "matrix_role": {"enum": ["baseline", "mesh_refinement", "time_step_sensitivity", "reynolds_sensitivity"]},

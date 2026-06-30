@@ -84,9 +84,20 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
 
     final_time = solver.get("final_time")
     max_courant = solver.get("max_courant_number")
+    control = config["numerics"]["control"]
+    final_time_tolerance = max(
+        float(control.get("delta_t_s", 0.0)),
+        float(control.get("max_delta_t_s", 0.0)),
+        1e-12,
+    )
     _check(checks, "solver.started", solver.get("started") is True, "time or residual signal found")
     _check(checks, "solver.no_fatal_error", solver.get("fatal_error_detected") is False, "FOAM FATAL and true FPE must be absent")
-    _check(checks, "solver.final_time", _is_finite(final_time) and float(final_time) >= float(config["numerics"]["control"]["end_time_s"]) - 1e-12, f"final_time={final_time}")
+    _check(
+        checks,
+        "solver.final_time",
+        _is_finite(final_time) and float(final_time) >= float(control["end_time_s"]) - final_time_tolerance,
+        f"final_time={final_time}, target={control['end_time_s']}, tolerance={final_time_tolerance}",
+    )
     _check(checks, "solver.max_courant", _is_finite(max_courant) and float(max_courant) <= float(config["validation"]["max_courant"]), str(max_courant))
 
     max_final = max(
@@ -100,11 +111,62 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
         _check(checks, "postprocess.force_coefficients", force.get("available") is True, json.dumps(force, ensure_ascii=False))
         expected_source = config["postprocess"].get("force_extraction_source", OPENFOAM_FORCE_COEFFS)
         _check(checks, "postprocess.force_coefficients_source", force.get("source") == expected_source, json.dumps(force, ensure_ascii=False))
+        if "min_force_samples" in config["validation"]:
+            row_count = force.get("row_count")
+            _check(
+                checks,
+                "postprocess.force_sample_count",
+                _is_finite(row_count) and int(row_count) >= int(config["validation"]["min_force_samples"]),
+                f"row_count={row_count}, minimum={config['validation']['min_force_samples']}",
+            )
+        if "min_force_time_span_s" in config["validation"]:
+            time_span = force.get("time_span_s")
+            _check(
+                checks,
+                "postprocess.force_time_span",
+                _is_finite(time_span) and float(time_span) >= float(config["validation"]["min_force_time_span_s"]),
+                f"time_span_s={time_span}, minimum={config['validation']['min_force_time_span_s']}",
+            )
+        nonfinite_count = force.get("nonfinite_count")
+        if nonfinite_count is not None:
+            _check(checks, "postprocess.force_finite_values", int(nonfinite_count) == 0, f"nonfinite_count={nonfinite_count}")
     else:
         _check(checks, "postprocess.force_coefficients_not_required", True, "force coefficient functionObject is disabled for solver-only smoke")
     if config["postprocess"]["strouhal_estimate"]:
         strouhal = postprocess.get("strouhal", {})
         _check(checks, "postprocess.strouhal_available", strouhal.get("available") is True, json.dumps(strouhal, ensure_ascii=False))
+        value = strouhal.get("strouhal_number")
+        lower, upper = config["validation"]["strouhal_target_range"]
+        _check(
+            checks,
+            "postprocess.strouhal_target_range",
+            _is_finite(value) and float(lower) <= float(value) <= float(upper),
+            f"strouhal={value}, target=[{lower}, {upper}]",
+        )
+        if "min_lift_peak_count" in config["validation"]:
+            peak_count = strouhal.get("peak_count")
+            _check(
+                checks,
+                "postprocess.strouhal_peak_count",
+                _is_finite(peak_count) and int(peak_count) >= int(config["validation"]["min_lift_peak_count"]),
+                f"peak_count={peak_count}, minimum={config['validation']['min_lift_peak_count']}",
+            )
+        if "max_period_cv" in config["validation"]:
+            period_cv = strouhal.get("period_cv")
+            _check(
+                checks,
+                "postprocess.strouhal_period_cv",
+                _is_finite(period_cv) and float(period_cv) <= float(config["validation"]["max_period_cv"]),
+                f"period_cv={period_cv}, maximum={config['validation']['max_period_cv']}",
+            )
+        if "min_cl_amplitude" in config["validation"]:
+            cl_amplitude = strouhal.get("cl_amplitude")
+            _check(
+                checks,
+                "postprocess.strouhal_lift_amplitude",
+                _is_finite(cl_amplitude) and float(cl_amplitude) >= float(config["validation"]["min_cl_amplitude"]),
+                f"cl_amplitude={cl_amplitude}, minimum={config['validation']['min_cl_amplitude']}",
+            )
 
     for rel_path in config["outputs"].get("expected_outputs", []):
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:

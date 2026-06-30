@@ -10,4 +10,4 @@ def test_registry_cli_plan_and_resolve(capsys) -> None:
 
     assert main(["resolve", "cfd.openfoam.transient_cylinder_vortex_shedding"]) == 0
     resolve_output = capsys.readouterr().out
-    assert "package_skeleton_created" in resolve_output
+    assert "validation_failed" in resolve_output

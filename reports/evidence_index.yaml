@@ -214,6 +214,24 @@ evidence:
   scope: Local WSL OpenFOAM.com v2112 cylinder2D smoke completes pimpleFoam and writes a config-visible Python patch-surface force coefficient proxy CSV.
   limitations:
   - This is not native OpenFOAM forceCoeffs parity and does not validate Strouhal, long-horizon shedding, or mesh/time-step sensitivity.
+- evidence_id: openfoam_C05_strouhal_long_horizon_attempt_2026-06-30
+  capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+  asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
+  evidence_kind: validation_report
+  gate: integration
+  status: failed
+  primary_evidence_path: reports/openfoam_C05_transient_cylinder_vortex_shedding_strouhal_long_horizon_attempt_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/postprocess.py
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112_20260630_002/
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112_20260630_003/
+  scope: Corrected-geometry OpenFOAM.com v2112 cylinder2D long-horizon Python patch-surface force proxy run completes pimpleFoam and force extraction but fails the configured Strouhal target range.
+  limitations:
+  - Python force proxy is not native forceCoeffs parity.
+  - Current Strouhal estimate is below the configured target range and lacks DMD/reference and mesh/time-step sensitivity confirmation.
 - evidence_id: openfoam_C07_low_rank_runtime_diagnostics_2026-06-30
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml

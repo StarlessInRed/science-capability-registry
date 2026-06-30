@@ -118,11 +118,12 @@
       "default_config_path": "configs/openfoam/transient_cylinder_vortex_shedding/baseline_cylinder2d.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run",
       "card_status": "review",
-      "benchmark_status": "package_skeleton_created",
+      "benchmark_status": "validation_failed",
       "evidence_ids": [
         "openfoam_C05_solver_runtime_smoke_2026-06-30",
         "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30",
-        "openfoam_C05_python_force_proxy_smoke_2026-06-30"
+        "openfoam_C05_python_force_proxy_smoke_2026-06-30",
+        "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30"
       ]
     },
     {
