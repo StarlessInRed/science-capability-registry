@@ -9,6 +9,7 @@ from typing import Any
 def write_validation_report(path: str | Path, config: dict[str, Any], summary: dict[str, Any], validation: dict[str, Any]) -> None:
     status = "passed" if validation["passed"] else "failed"
     downstream = summary.get("downstream_import", {})
+    solve = summary.get("downstream_solve", {})
     lines = [
         f"# Gmsh C01 {config['case_id']} validation report",
         "",
@@ -19,6 +20,12 @@ def write_validation_report(path: str | Path, config: dict[str, Any], summary: d
         f"- element count: {summary.get('element_count')}",
         f"- physical groups: {', '.join(sorted(summary.get('physical_groups', {})))}",
         f"- downstream import: {downstream.get('status', 'not_configured')}",
+        f"- downstream solve: {solve.get('status', 'not_configured')}",
+        f"- solve commands: {', '.join(item.get('command', '') for item in solve.get('command_results', [])) or 'n/a'}",
+        f"- checkMesh OK: {solve.get('check_mesh_ok', 'n/a')}",
+        f"- potentialFoam completed: {solve.get('potentialFoam_completed', 'n/a')}",
+        f"- max continuity error: {solve.get('max_continuity_error', 'n/a')}",
+        f"- max interpolated velocity error: {solve.get('max_interpolated_velocity_error', 'n/a')}",
         "",
         "## Checks",
         "",
@@ -31,7 +38,7 @@ def write_validation_report(path: str | Path, config: dict[str, Any], summary: d
             "",
             "## Scope",
             "",
-            "This report validates deterministic generation of a small parameterized Gmsh geometry and mesh. When configured, it also validates an OpenFOAM gmshToFoam import smoke.",
+            "This report validates deterministic generation of a small parameterized Gmsh geometry and mesh. When configured, it also validates OpenFOAM gmshToFoam import and minimal potentialFoam solve smokes.",
         ]
     )
     Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")

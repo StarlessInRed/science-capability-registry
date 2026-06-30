@@ -178,11 +178,12 @@
     "postprocess": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["force_coefficients", "lift_drag_time_series", "strouhal_estimate"],
+      "required": ["force_coefficients", "lift_drag_time_series", "strouhal_estimate", "force_extraction_source"],
       "properties": {
         "force_coefficients": {"type": "boolean"},
         "lift_drag_time_series": {"type": "boolean"},
-        "strouhal_estimate": {"type": "boolean"}
+        "strouhal_estimate": {"type": "boolean"},
+        "force_extraction_source": {"enum": ["openfoam_forceCoeffs", "python_patch_surface_proxy"]}
       }
     },
     "outputs": {

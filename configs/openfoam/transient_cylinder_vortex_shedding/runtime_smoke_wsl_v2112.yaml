@@ -106,6 +106,7 @@ postprocess:
   force_coefficients: true
   lift_drag_time_series: true
   strouhal_estimate: true
+  force_extraction_source: openfoam_forceCoeffs
 outputs:
   output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_smoke_wsl_v2112
   retain_generated_case: true

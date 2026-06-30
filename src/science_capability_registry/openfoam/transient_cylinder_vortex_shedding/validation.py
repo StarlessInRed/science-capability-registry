@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 from typing import Any
 
+OPENFOAM_FORCE_COEFFS = "openfoam_forceCoeffs"
+
 
 def _check(checks: list[dict[str, Any]], name: str, passed: bool, details: str) -> None:
     checks.append({"name": name, "passed": bool(passed), "details": details})
@@ -14,6 +16,10 @@ def _check(checks: list[dict[str, Any]], name: str, passed: bool, details: str) 
 
 def _is_finite(value: Any) -> bool:
     return isinstance(value, (int, float)) and math.isfinite(float(value))
+
+
+def _uses_openfoam_force_coeffs(config: dict[str, Any]) -> bool:
+    return config["postprocess"].get("force_extraction_source", OPENFOAM_FORCE_COEFFS) == OPENFOAM_FORCE_COEFFS
 
 
 def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_dir: str | Path | None = None) -> dict[str, Any]:
@@ -28,6 +34,7 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     geometry = config["geometry"]
     generated_files = set(manifest.get("generated_files", []))
     force_required = bool(config["validation"]["force_coefficients_required"])
+    openfoam_force_coeffs_required = force_required and _uses_openfoam_force_coeffs(config)
 
     _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", f"backend={backend.get('type')!r}")
     _check(checks, "solver.pimpleFoam", solver.get("name") == "pimpleFoam", json.dumps(solver, ensure_ascii=False))
@@ -39,13 +46,13 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     _check(
         checks,
         "function_object.force_coefficients_enabled",
-        force_coeffs.get("enabled") is True or not force_required,
+        force_coeffs.get("enabled") is True or not openfoam_force_coeffs_required,
         json.dumps(force_coeffs, ensure_ascii=False),
     )
     _check(
         checks,
         "function_object.force_coefficients_patch",
-        "cylinder" in force_coeffs.get("patches", []) or not force_required,
+        "cylinder" in force_coeffs.get("patches", []) or not openfoam_force_coeffs_required,
         json.dumps(force_coeffs, ensure_ascii=False),
     )
 
@@ -91,11 +98,13 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     force = postprocess.get("force_coefficients", {})
     if config["validation"]["force_coefficients_required"]:
         _check(checks, "postprocess.force_coefficients", force.get("available") is True, json.dumps(force, ensure_ascii=False))
+        expected_source = config["postprocess"].get("force_extraction_source", OPENFOAM_FORCE_COEFFS)
+        _check(checks, "postprocess.force_coefficients_source", force.get("source") == expected_source, json.dumps(force, ensure_ascii=False))
     else:
         _check(checks, "postprocess.force_coefficients_not_required", True, "force coefficient functionObject is disabled for solver-only smoke")
     if config["postprocess"]["strouhal_estimate"]:
         strouhal = postprocess.get("strouhal", {})
-        _check(checks, "postprocess.strouhal_summary_written", bool(strouhal.get("path")), json.dumps(strouhal, ensure_ascii=False))
+        _check(checks, "postprocess.strouhal_available", strouhal.get("available") is True, json.dumps(strouhal, ensure_ascii=False))
 
     for rel_path in config["outputs"].get("expected_outputs", []):
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:

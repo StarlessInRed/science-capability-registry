@@ -62,19 +62,23 @@ benchmark:
   - https://gmsh.info/doc/texinfo/gmsh.html
   - https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/tutorials/t1.geo
   benchmark_role: Benchmark candidate for a reusable parametric mesh-generation capability that emits solver-ready mesh files with explicit physical-group contracts.
-  status_rationale: The repository now implements a strict run schema, baseline config, package runner, dry-run .geo generation, Python API runtime path, mesh summary, validation contract, and a downstream OpenFOAM.com v2112 gmshToFoam import smoke for a thin 3D volume mesh. A downstream CFD solve, perturbation matrix, and broader mesh-quality validation remain pending, so this is package_skeleton_created rather than benchmark_validated.
+  status_rationale: The repository now implements a strict run schema, baseline config, package runner, dry-run .geo generation, Python API runtime path, mesh summary, validation contract, downstream OpenFOAM.com v2112 gmshToFoam import smoke, and minimal potentialFoam solve smoke for a thin 3D volume mesh. Perturbation matrix, broader mesh-quality validation, and benchmark-grade CFD accuracy remain pending, so this is package_skeleton_created rather than benchmark_validated.
   runtime_evidence:
   - report: reports/gmsh_C01_parametric_geometry_mesh_generation_openfoam_import_smoke_2026-06-30.md
     scope: Gmsh Python API mesh generation plus OpenFOAM gmshToFoam import
     status: passed
     result_root: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112_20260630_003/
+  - report: reports/gmsh_C01_parametric_geometry_mesh_generation_openfoam_solve_smoke_2026-06-30.md
+    scope: Gmsh Python API mesh generation plus OpenFOAM gmshToFoam import and potentialFoam solve smoke
+    status: passed
+    result_root: _results/gmsh/parametric_geometry_mesh_generation/openfoam_solve_wsl_v2112_20260630_003/
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json and remain package_skeleton_created until local mesh generation plus downstream import evidence exists.
 - Schema must expose geometry parameters, physical groups, mesh dimension, mesh-size controls, element order, output format, and quality thresholds.
 - Generated mesh must include all required physical groups and must reject missing or renamed boundary groups.
 - Mesh quality summary must report element counts, minimum quality proxy, maximum skewness or equivalent quality metric, and nonfinite coordinate detection.
 - Repeated runs from the same config must produce a deterministic manifest and stable physical-group mapping.
-- Downstream solver integration must be validated by at least one import or conversion smoke test before promotion beyond benchmark_candidate.
+- Downstream solver integration must keep import and solve smoke evidence current before promotion beyond benchmark_candidate.
 integration_targets:
   package_entrypoint: science_capability_registry.gmsh.parametric_geometry_mesh_generation:run
   input_schema: schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json
@@ -85,6 +89,6 @@ intern_deliverables:
 - Extend config-first generation of a `.geo` file from explicit geometry and physical-group parameters.
 - Run Gmsh in a controlled local runtime profile and export `.msh` plus a machine-readable mesh summary.
 - Validate physical groups, element counts, coordinate finiteness, basic mesh-quality thresholds, and artifact completeness.
-- Add a downstream import smoke test or conversion path before claiming solver-ready integration.
+- Add perturbation and mesh-quality regression cases before claiming benchmark-grade solver-ready integration.
 card_status: review
 benchmark_status: package_skeleton_created

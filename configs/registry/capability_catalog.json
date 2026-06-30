@@ -121,7 +121,8 @@
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
         "openfoam_C05_solver_runtime_smoke_2026-06-30",
-        "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30"
+        "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30",
+        "openfoam_C05_python_force_proxy_smoke_2026-06-30"
       ]
     },
     {
@@ -151,7 +152,9 @@
       "evidence_ids": [
         "openfoam_C07_runtime_smoke_attempt_2026-06-30",
         "openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30",
-        "openfoam_C07_low_rank_runtime_diagnostics_2026-06-30"
+        "openfoam_C07_low_rank_runtime_diagnostics_2026-06-30",
+        "openfoam_C07_kEpsilon_closure_diagnostic_2026-06-30",
+        "openfoam_C07_multiRegionHeaterRadiation_short_smoke_2026-06-30"
       ]
     },
     {
@@ -165,7 +168,10 @@
       "package_entrypoint": "science_capability_registry.gmsh.parametric_geometry_mesh_generation:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
-      "evidence_ids": ["gmsh_C01_openfoam_import_smoke_2026-06-30"]
+      "evidence_ids": [
+        "gmsh_C01_openfoam_import_smoke_2026-06-30",
+        "gmsh_C01_openfoam_solve_smoke_2026-06-30"
+      ]
     }
   ]
 }

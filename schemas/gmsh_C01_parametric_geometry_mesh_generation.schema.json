@@ -101,6 +101,82 @@
         "timeout_s": {"type": "number", "exclusiveMinimum": 0}
       }
     },
+    "downstream_solve": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "engine",
+        "runtime_profile",
+        "bashrc_path",
+        "wsl_distro",
+        "application",
+        "command_sequence",
+        "control",
+        "fields",
+        "numerics",
+        "expected_outputs",
+        "validation",
+        "timeout_s"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "engine": {"const": "openfoam_potentialFoam"},
+        "runtime_profile": {"const": "openfoam_com_v2112"},
+        "bashrc_path": {"type": "string", "minLength": 1},
+        "wsl_distro": {"type": "string", "minLength": 1},
+        "application": {"const": "potentialFoam"},
+        "command_sequence": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+        "control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start_time", "end_time", "delta_t", "write_interval"],
+          "properties": {
+            "start_time": {"type": "number"},
+            "end_time": {"type": "number", "exclusiveMinimum": 0},
+            "delta_t": {"type": "number", "exclusiveMinimum": 0},
+            "write_interval": {"type": "integer", "minimum": 1}
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inlet_velocity_m_s", "initial_pressure_m2_s2"],
+          "properties": {
+            "inlet_velocity_m_s": {
+              "type": "array",
+              "items": {"type": "number"},
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "initial_pressure_m2_s2": {"type": "number"}
+          }
+        },
+        "numerics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["div_phi_U", "div_div_phi_U", "laplacian_default", "n_non_orthogonal_correctors"],
+          "properties": {
+            "div_phi_U": {"type": "string", "minLength": 1},
+            "div_div_phi_U": {"type": "string", "minLength": 1},
+            "laplacian_default": {"type": "string", "minLength": 1},
+            "n_non_orthogonal_correctors": {"type": "integer", "minimum": 0}
+          }
+        },
+        "expected_outputs": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["require_check_mesh_ok", "max_continuity_error", "required_boundary_names"],
+          "properties": {
+            "require_check_mesh_ok": {"type": "boolean"},
+            "max_continuity_error": {"type": "number", "exclusiveMinimum": 0},
+            "required_boundary_names": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+          }
+        },
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
     "outputs": {
       "type": "object",
       "additionalProperties": false,

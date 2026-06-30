@@ -27,7 +27,12 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     required = _required_groups(config)
 
     _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", json.dumps(backend, ensure_ascii=False))
-    _check(checks, "geometry.family", manifest.get("geometry", {}).get("family") == "rectangle_channel_2d", json.dumps(manifest.get("geometry", {}), ensure_ascii=False))
+    _check(
+        checks,
+        "geometry.family",
+        manifest.get("geometry", {}).get("family") == config["geometry"]["family"],
+        json.dumps(manifest.get("geometry", {}), ensure_ascii=False),
+    )
     _check(checks, "physical_groups.required", required.issubset(group_names), f"groups={sorted(group_names)}, required={sorted(required)}")
 
     for rel_path in config["validation"]["required_generated_files"]:
@@ -93,6 +98,66 @@ def validate_mesh_summary(summary: dict[str, Any], config: dict[str, Any], outpu
             )
         for name, passed in structural_checks.items():
             _check(checks, f"downstream_import.structure.{name}", passed is True, json.dumps(structural_checks, ensure_ascii=False))
+
+    solve = config.get("downstream_solve") or {}
+    if solve.get("enabled"):
+        solve_summary = summary.get("downstream_solve", {})
+        files = solve_summary.get("files", {})
+        validation = solve["validation"]
+        command_results = solve_summary.get("command_results", [])
+        continuity_error = solve_summary.get("max_continuity_error")
+        boundary_names = set(solve_summary.get("boundary_names", []))
+        expected_boundaries = set(validation["required_boundary_names"])
+        _check(checks, "downstream_solve.status", solve_summary.get("status") == "passed", json.dumps(solve_summary, ensure_ascii=False))
+        _check(
+            checks,
+            "downstream_solve.returncodes",
+            bool(command_results) and all(item.get("returncode") == 0 for item in command_results),
+            json.dumps(command_results, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "downstream_solve.boundary_names",
+            expected_boundaries.issubset(boundary_names),
+            f"boundaries={sorted(boundary_names)}, required={sorted(expected_boundaries)}",
+        )
+        _check(
+            checks,
+            "downstream_solve.check_mesh_ok",
+            solve_summary.get("check_mesh_ok") is True or not validation["require_check_mesh_ok"],
+            json.dumps(solve_summary, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "downstream_solve.potentialFoam_completed",
+            solve_summary.get("potentialFoam_completed") is True,
+            json.dumps(solve_summary, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "downstream_solve.max_continuity_error",
+            (
+                isinstance(continuity_error, (int, float))
+                and math.isfinite(float(continuity_error))
+                and float(continuity_error) <= float(validation["max_continuity_error"])
+            ),
+            f"max_continuity_error={continuity_error}",
+        )
+        _check(
+            checks,
+            "downstream_solve.no_fatal_error",
+            solve_summary.get("fatal_error_detected") is False,
+            json.dumps(solve_summary, ensure_ascii=False),
+        )
+        for rel_path in solve["expected_outputs"]:
+            file_info = files.get(rel_path, {})
+            path = Path(output_dir) / rel_path if output_dir is not None else Path(rel_path)
+            _check(
+                checks,
+                f"downstream_solve.artifact.{rel_path}",
+                file_info.get("exists") is True and int(file_info.get("size_bytes", 0)) > 0 and (output_dir is None or path.exists()),
+                json.dumps(file_info, ensure_ascii=False),
+            )
 
     if output_dir is not None:
         for rel_path in config["outputs"]["expected_outputs"]:

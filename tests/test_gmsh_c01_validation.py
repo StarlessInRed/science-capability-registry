@@ -20,6 +20,12 @@ def _openfoam_import_config() -> dict:
     )
 
 
+def _openfoam_solve_config() -> dict:
+    return yaml.safe_load(
+        Path("configs/gmsh/parametric_geometry_mesh_generation/openfoam_solve_wsl_v2112.yaml").read_text(encoding="utf-8")
+    )
+
+
 def test_gmsh_c01_validation_rejects_missing_physical_group() -> None:
     config = _baseline_config()
     manifest = {
@@ -94,6 +100,65 @@ def test_gmsh_c01_validation_accepts_openfoam_import_summary(tmp_path: Path) -> 
                     "neighbour_not_larger_than_faces": True,
                 },
             },
+        },
+    }
+
+    result = validate_mesh_summary(summary, config, tmp_path)
+
+    assert result["passed"] is True
+
+
+def test_gmsh_c01_validation_accepts_openfoam_solve_summary(tmp_path: Path) -> None:
+    config = _openfoam_solve_config()
+    for rel_path in config["outputs"]["expected_outputs"]:
+        if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
+            continue
+        path = tmp_path / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("1\n(\n0\n)\n", encoding="utf-8")
+
+    expected_import_files = {
+        rel_path: {"path": str(tmp_path / rel_path), "exists": True, "size_bytes": 8}
+        for rel_path in config["downstream_import"]["expected_outputs"]
+    }
+    expected_solve_files = {
+        rel_path: {"path": str(tmp_path / rel_path), "exists": True, "size_bytes": 8}
+        for rel_path in config["downstream_solve"]["expected_outputs"]
+    }
+    summary = {
+        "node_count": 10,
+        "element_count": 12,
+        "coordinates_finite": True,
+        "physical_groups": {"inlet": {}, "outlet": {}, "wall": {}, "frontAndBack": {}, "fluid_domain": {}},
+        "quality": {"min_quality_proxy": 0.5},
+        "downstream_import": {
+            "enabled": True,
+            "status": "passed",
+            "polyMesh": {
+                "files": expected_import_files,
+                "counts": {"points": 10, "faces": 20, "owner": 20, "neighbour": 8},
+                "boundary_names": ["inlet", "outlet", "wall", "frontAndBack"],
+                "structural_checks": {
+                    "has_points": True,
+                    "has_faces": True,
+                    "owner_matches_faces": True,
+                    "neighbour_not_larger_than_faces": True,
+                },
+            },
+        },
+        "downstream_solve": {
+            "enabled": True,
+            "status": "passed",
+            "command_results": [
+                {"command": "checkMesh -constant", "returncode": 0},
+                {"command": "potentialFoam -writep", "returncode": 0},
+            ],
+            "files": expected_solve_files,
+            "boundary_names": ["inlet", "outlet", "wall", "frontAndBack"],
+            "check_mesh_ok": True,
+            "potentialFoam_completed": True,
+            "max_continuity_error": 1e-8,
+            "fatal_error_detected": False,
         },
     }
 

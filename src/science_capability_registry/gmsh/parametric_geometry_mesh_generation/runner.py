@@ -85,8 +85,22 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "physical_groups": config["physical_groups"],
         "mesh": config["mesh"],
         "downstream_import": config.get("downstream_import", {"enabled": False}),
+        "downstream_solve": config.get("downstream_solve", {"enabled": False}),
         "generated_files": generated_files,
-        "runtime_commands": ["gmsh-python:open case.geo", "gmsh-python:model.mesh.generate"],
+        "runtime_commands": [
+            "gmsh-python:open case.geo",
+            "gmsh-python:model.mesh.generate",
+            *(
+                [config["downstream_import"]["command"]]
+                if config.get("downstream_import", {}).get("enabled")
+                else []
+            ),
+            *(
+                list(config["downstream_solve"]["command_sequence"])
+                if config.get("downstream_solve", {}).get("enabled")
+                else []
+            ),
+        ],
         "expected_outputs": config["outputs"]["expected_outputs"],
         "validation_targets": config["validation"],
         "scope": "dry-run geometry script generation; no mesh generated",
@@ -134,6 +148,14 @@ def run(
         runtime_generated.update(
             rel_path
             for rel_path, file_info in downstream.get("polyMesh", {}).get("files", {}).items()
+            if file_info.get("exists")
+        )
+    solve = runtime["summary"].get("downstream_solve", {})
+    if solve.get("enabled"):
+        runtime_generated.update(rel_path for rel_path in solve.get("written_case_files", []))
+        runtime_generated.update(
+            rel_path
+            for rel_path, file_info in solve.get("files", {}).items()
             if file_info.get("exists")
         )
     manifest["generated_files"] = sorted(runtime_generated)

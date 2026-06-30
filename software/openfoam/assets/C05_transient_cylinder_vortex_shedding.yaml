@@ -77,7 +77,7 @@ benchmark:
   source_type: official tutorial and local runtime evidence source
   tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
   benchmark_role: Benchmark candidate for transient cylinder wake, force-coefficient extraction, and vortex-shedding trend validation.
-  status_rationale: The repository now records a run schema, baseline config, package runner, dry-run manifest path, runtime parser, and force-coefficient postprocess contract. A local WSL OpenFOAM.com v2112 solver-only smoke reaches final time with finite residuals after patching both 0/U and 0.orig/U, but force-enabled smoke still fails at functionObject startup with local v2112 sha1 IO behavior. Force time-series, Strouhal evidence, and perturbation reports have not been produced, so the capability is package_skeleton_created rather than benchmark_validated.
+  status_rationale: The repository now records a run schema, baseline config, package runner, dry-run manifest path, runtime parser, and config-visible force-coefficient postprocess contract. A local WSL OpenFOAM.com v2112 solver-only smoke reaches final time with finite residuals after patching both 0/U and 0.orig/U. Native forceCoeffs still fails at functionObject startup with local v2112 sha1 IO behavior, but the Python patch-surface force proxy now produces a short-horizon force coefficient CSV. Native parity, Strouhal evidence, long-horizon force time series, and perturbation reports have not been produced, so the capability is package_skeleton_created rather than benchmark_validated.
   local_source_evidence:
     runtime_profile: openfoam_com_v2112
     wsl_distro: Ubuntu-24.04
@@ -92,13 +92,17 @@ benchmark:
     scope: forceCoeffs-enabled pimpleFoam smoke
     status: failed
     result_root: _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_smoke_wsl_v2112_20260630_002/
+  - report: reports/openfoam_C05_transient_cylinder_vortex_shedding_runtime_smoke_2026-06-30.md
+    scope: Python patch-surface force proxy pimpleFoam smoke
+    status: passed
+    result_root: _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_wsl_v2112_20260630_002/
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json and must remain package_skeleton_created until local runtime evidence exists.
 - Run schema must expose geometry, material, Reynolds number, mesh workflow, time controls, PIMPLE controls, force extraction, and validation thresholds as config-visible fields.
 - Dry-run manifest must prove the generated case contains U and p fields, transportProperties, turbulenceProperties, controlDict, fvSchemes, fvSolution, and mesh dictionaries.
 - Runtime smoke must complete mesh generation and pimpleFoam without FOAM FATAL errors or true floating-point exceptions.
 - Solver log must report finite residuals, bounded Courant numbers, and final time reaching the configured horizon.
-- Force coefficient extraction must produce lift and drag time series before shedding-frequency validation is attempted.
+- Force coefficient extraction source must be config-visible and must produce lift and drag time series before shedding-frequency validation is attempted.
 - Strouhal target must remain provisional until a local force time series and at least one mesh/time-step sensitivity case pass.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run
