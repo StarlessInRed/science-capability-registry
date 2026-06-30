@@ -31,6 +31,8 @@ def _replace_functions_block(text: str, replacement: str) -> str:
 
 def _force_coefficients_block(config: dict[str, Any]) -> str:
     force = config["function_objects"]["force_coefficients"]
+    if not force["enabled"]:
+        return "functions\n{\n}"
     patches = " ".join(force["patches"])
     lift = force["lift_dir"]
     drag = force["drag_dir"]
@@ -91,9 +93,10 @@ def _patch_case_files(output_dir: Path, config: dict[str, Any]) -> None:
     transport_text = _replace_assignment(transport.read_text(encoding="utf-8"), "nu", f"{config['material']['kinematic_viscosity_m2_s']:g}")
     transport.write_text(transport_text, encoding="utf-8")
 
-    u_path = case_dir / "0" / "U"
-    u_text = _replace_vector_internal_field(u_path.read_text(encoding="utf-8"), config["fields"]["initial_velocity_m_s"])
-    u_path.write_text(u_text, encoding="utf-8")
+    for u_path in [case_dir / "0" / "U", case_dir / "0.orig" / "U"]:
+        if u_path.exists():
+            u_text = _replace_vector_internal_field(u_path.read_text(encoding="utf-8"), config["fields"]["initial_velocity_m_s"])
+            u_path.write_text(u_text, encoding="utf-8")
 
     fv_solution = case_dir / "system" / "fvSolution"
     solution_text = fv_solution.read_text(encoding="utf-8")

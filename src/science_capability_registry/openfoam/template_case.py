@@ -69,10 +69,14 @@ def profile_env(distro: str, bashrc_path: str, timeout_s: float) -> dict[str, st
     return env
 
 
-def command_log_name(command: str) -> str:
-    executable = command.split()[0]
-    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", executable)
-    return f"log.{safe}"
+def command_log_name(command: str, index: int | None = None) -> str:
+    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", command).strip("_")
+    if not safe:
+        safe = "command"
+    if len(safe) > 96:
+        safe = safe[:96].rstrip("_")
+    prefix = f"{index:02d}_" if index is not None else ""
+    return f"log.{prefix}{safe}"
 
 
 def reset_generated_case_dir(output_dir: Path) -> Path:
@@ -230,14 +234,14 @@ def execute_command_sequence(config: dict[str, Any], output_dir: Path) -> dict[s
             raise RuntimeError(f"Required OpenFOAM executable not found: {executable}")
 
     command_results = []
-    for command in config["solver"]["command_sequence"]:
+    for index, command in enumerate(config["solver"]["command_sequence"], start=1):
         result = run_openfoam_command(
             distro=distro,
             bashrc_path=bashrc_path,
             case_dir_linux=case_dir_linux,
             command=command,
             timeout_s=timeout_s,
-            log_path=logs_dir / command_log_name(command),
+            log_path=logs_dir / command_log_name(command, index),
         )
         command_results.append(result)
         if result["returncode"] != 0:

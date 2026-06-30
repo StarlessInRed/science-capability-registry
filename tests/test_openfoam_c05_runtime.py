@@ -29,3 +29,9 @@ def test_openfoam_c05_parse_pimplefoam_log_detects_true_fpe() -> None:
     parsed = parse_pimplefoam_log("Time = 0.05\nFloating point exception (core dumped)\n")
 
     assert parsed["fatal_error_detected"] is True
+
+
+def test_openfoam_c05_parse_pimplefoam_log_detects_sigfpe_stack() -> None:
+    parsed = parse_pimplefoam_log("Time = 0.3\n#1  Foam::sigFpe::sigHandler(int) at ??:?\n")
+
+    assert parsed["fatal_error_detected"] is True

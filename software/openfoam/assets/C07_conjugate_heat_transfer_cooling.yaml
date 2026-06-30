@@ -102,13 +102,18 @@ benchmark:
   source_type: official tutorial and local solver source
   tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
   benchmark_role: Benchmark candidate for reusable steady electronics-cooling CHT capability with explicit solid and fluid regions.
-  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository has a C07 run schema, dry-run generator, runtime command path, log parser, runtime smoke attempt report, and official cpuCabinet debug report. Unmodified official Allrun is blocked by local MPI slots; official unpatched oversubscribe is blocked by v2112 sha1 IO; after minimal probe mitigation the official case reproduces the same Time=2 floating-point exception in compressibleTurbulenceModel::phi()/realizableKE::correct(). The capability must remain a benchmark candidate.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository has a C07 run schema, dry-run generator, runtime command path, log parser, runtime smoke attempt report, official cpuCabinet debug report, and low-rank np=2 diagnostic report. Unmodified official Allrun is blocked by local MPI slots; official unpatched oversubscribe is blocked by v2112 sha1 IO; after minimal probe mitigation and after lowering decomposition to np=2, the official case still reproduces the same Time=2 floating-point exception in compressibleTurbulenceModel::phi()/realizableKE::correct(). The capability must remain a benchmark candidate.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112_cht
     wsl_distro: Ubuntu-24.04
     solver_binary: /opt/OpenFOAM-v2112/platforms/linux64GccDPInt32Opt/bin/chtMultiRegionSimpleFoam
     tutorial_root: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
     source_file: /opt/OpenFOAM-v2112/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C
+  runtime_evidence:
+  - report: reports/openfoam_C07_conjugate_heat_transfer_cooling_low_rank_diagnostics_2026-06-30.md
+    scope: official cpuCabinet np=2 realizableKE diagnostic
+    status: failed
+    result_root: _results/openfoam/conjugate_heat_transfer_cooling/cpuCabinet_np2_realizableKE_diag_20260630_004/
   alternate_tutorials:
   - tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
   - tutorials/heatTransfer/chtMultiRegionSimpleFoam/externalCoupledHeater

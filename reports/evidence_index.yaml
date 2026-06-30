@@ -166,3 +166,65 @@ evidence:
   scope: Official cpuCabinet runtime diagnostics show local launcher slots failure, sha1 IO failure, and then the same Time=2 realizableKE FPE after minimal probe mitigation.
   limitations:
   - Does not validate CHT physics or promote C07; it classifies the current runtime blocker.
+- evidence_id: openfoam_C05_solver_runtime_smoke_2026-06-30
+  capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+  asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C05_transient_cylinder_vortex_shedding_runtime_smoke_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_solver_smoke_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/runtime.py
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_solver_smoke_wsl_v2112_20260630_002/
+  scope: Local WSL OpenFOAM.com v2112 solver-only pimpleFoam smoke reached final time with finite residuals and bounded Courant number.
+  limitations:
+  - Force coefficient extraction and Strouhal validation are intentionally disabled and remain unresolved.
+- evidence_id: openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30
+  capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+  asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C05_transient_cylinder_vortex_shedding_runtime_smoke_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_smoke_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/postprocess.py
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_smoke_wsl_v2112_20260630_002/
+  scope: Local WSL OpenFOAM.com v2112 force-enabled cylinder2D smoke classifies the current forceCoeffs blocker.
+  limitations:
+  - Fails before force coefficient CSV generation due local v2112/WSL functionObject sha1 IO behavior.
+- evidence_id: openfoam_C07_low_rank_runtime_diagnostics_2026-06-30
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: runtime_debug_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C07_conjugate_heat_transfer_cooling_low_rank_diagnostics_2026-06-30.md
+  supporting_paths:
+  - reports/openfoam_C07_conjugate_heat_transfer_cooling_official_cpuCabinet_runtime_debug_2026-06-30.md
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/cpuCabinet_np2_realizableKE_diag_20260630_004/
+  scope: Low-rank np=2 cpuCabinet diagnostic completes preprocessing and checkMesh but reproduces the Time=2 realizableKE floating-point exception.
+  limitations:
+  - Does not validate CHT physics; it narrows the blocker away from MPI slots, functionObject sha1 IO, and high decomposition count.
+- evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
+  capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_C01_parametric_geometry_mesh_generation_openfoam_import_smoke_2026-06-30.md
+  supporting_paths:
+  - configs/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112.yaml
+  - src/science_capability_registry/gmsh/parametric_geometry_mesh_generation/runtime.py
+  - src/science_capability_registry/gmsh/parametric_geometry_mesh_generation/validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112_20260630_003/
+  scope: Local Gmsh Python API runtime generated a thin 3D volume mesh and imported it into OpenFOAM.com v2112 polyMesh with named boundaries preserved.
+  limitations:
+  - Does not run a downstream CFD solve or perturbation matrix.

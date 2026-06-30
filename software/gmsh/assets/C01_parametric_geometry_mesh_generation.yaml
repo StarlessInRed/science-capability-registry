@@ -62,7 +62,12 @@ benchmark:
   - https://gmsh.info/doc/texinfo/gmsh.html
   - https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/tutorials/t1.geo
   benchmark_role: Benchmark candidate for a reusable parametric mesh-generation capability that emits solver-ready mesh files with explicit physical-group contracts.
-  status_rationale: The repository now implements a strict run schema, baseline config, package runner, dry-run .geo generation, Python API runtime path, mesh summary, and validation contract. Downstream solver import smoke and broader mesh-quality validation remain pending, so this is package_skeleton_created rather than benchmark_validated.
+  status_rationale: The repository now implements a strict run schema, baseline config, package runner, dry-run .geo generation, Python API runtime path, mesh summary, validation contract, and a downstream OpenFOAM.com v2112 gmshToFoam import smoke for a thin 3D volume mesh. A downstream CFD solve, perturbation matrix, and broader mesh-quality validation remain pending, so this is package_skeleton_created rather than benchmark_validated.
+  runtime_evidence:
+  - report: reports/gmsh_C01_parametric_geometry_mesh_generation_openfoam_import_smoke_2026-06-30.md
+    scope: Gmsh Python API mesh generation plus OpenFOAM gmshToFoam import
+    status: passed
+    result_root: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112_20260630_003/
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json and remain package_skeleton_created until local mesh generation plus downstream import evidence exists.
 - Schema must expose geometry parameters, physical groups, mesh dimension, mesh-size controls, element order, output format, and quality thresholds.

@@ -1,0 +1,106 @@
+capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+case_id: openfoam_import_wsl_v2112
+description: Gmsh Python API mesh generation plus OpenFOAM.com v2112 gmshToFoam downstream import smoke.
+gmsh:
+  runtime_profile: python_api
+  api: gmsh-python
+  version_expectation: ">=4.12"
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: python_api
+  timeout_s: 300
+geometry:
+  family: extruded_rectangle_channel_3d
+  origin_m:
+  - 0
+  - 0
+  length_m: 4
+  height_m: 1
+  thickness_m: 0.1
+  characteristic_length_m: 0.2
+physical_groups:
+- name: inlet
+  dimension: 2
+  role: inlet
+- name: outlet
+  dimension: 2
+  role: outlet
+- name: wall
+  dimension: 2
+  role: wall
+- name: frontAndBack
+  dimension: 2
+  role: front_back
+- name: fluid_domain
+  dimension: 3
+  role: domain
+mesh:
+  dimension: 3
+  element_order: 1
+  algorithm: 6
+  output_format: msh2
+downstream_import:
+  enabled: true
+  engine: openfoam_gmshToFoam
+  runtime_profile: openfoam_com_v2112
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  wsl_distro: Ubuntu-24.04
+  command: gmshToFoam case.msh
+  expected_outputs:
+  - system/controlDict
+  - constant/polyMesh/points
+  - constant/polyMesh/faces
+  - constant/polyMesh/owner
+  - constant/polyMesh/neighbour
+  - constant/polyMesh/boundary
+  - logs/log.gmshToFoam
+  - downstream_import_summary.json
+  expected_boundary_names:
+  - inlet
+  - outlet
+  - wall
+  - frontAndBack
+  timeout_s: 300
+outputs:
+  output_dir: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112
+  expected_outputs:
+  - case.geo
+  - case.msh
+  - mesh_summary.json
+  - manifest.json
+  - validation.json
+  - validation_report.md
+  - system/controlDict
+  - constant/polyMesh/points
+  - constant/polyMesh/faces
+  - constant/polyMesh/owner
+  - constant/polyMesh/neighbour
+  - constant/polyMesh/boundary
+  - logs/log.gmshToFoam
+  - downstream_import_summary.json
+validation:
+  gate: smoke
+  required_physical_groups:
+  - inlet
+  - outlet
+  - wall
+  - frontAndBack
+  - fluid_domain
+  required_generated_files:
+  - case.geo
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry
+  - physical_groups
+  - mesh
+  - downstream_import
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  min_node_count: 4
+  min_element_count: 2
+  min_quality_proxy: 0.05
+  require_coordinate_finiteness: true

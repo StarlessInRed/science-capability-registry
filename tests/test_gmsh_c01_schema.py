@@ -8,6 +8,7 @@ from jsonschema import Draft202012Validator
 
 SCHEMA_PATH = Path("schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json")
 CONFIG_PATH = Path("configs/gmsh/parametric_geometry_mesh_generation/baseline.yaml")
+CONFIG_DIR = CONFIG_PATH.parent
 
 
 def _schema() -> dict:
@@ -22,6 +23,18 @@ def test_gmsh_c01_baseline_config_matches_schema() -> None:
     errors = sorted(Draft202012Validator(_schema()).iter_errors(_config()), key=lambda error: list(error.path))
 
     assert not errors, [error.message for error in errors]
+
+
+def test_gmsh_c01_all_configs_match_schema() -> None:
+    validator = Draft202012Validator(_schema())
+    failures = {}
+    for path in sorted(CONFIG_DIR.glob("*.yaml")):
+        config = yaml.safe_load(path.read_text(encoding="utf-8"))
+        errors = sorted(validator.iter_errors(config), key=lambda error: list(error.path))
+        if errors:
+            failures[path.as_posix()] = [error.message for error in errors]
+
+    assert not failures
 
 
 def test_gmsh_c01_schema_rejects_unknown_key() -> None:

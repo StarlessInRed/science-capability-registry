@@ -24,7 +24,7 @@ def _geo_text(config: dict[str, Any]) -> str:
     lc = float(geometry["characteristic_length_m"])
     x1 = float(x0) + length
     y1 = float(y0) + height
-    return (
+    base = (
         'SetFactory("Built-in");\n'
         f"lc = {lc:g};\n"
         f"Point(1) = {{{float(x0):g}, {float(y0):g}, 0, lc}};\n"
@@ -37,14 +37,32 @@ def _geo_text(config: dict[str, Any]) -> str:
         "Line(4) = {4, 1};\n"
         "Curve Loop(1) = {1, 2, 3, 4};\n"
         "Plane Surface(1) = {1};\n"
-        f'Physical Curve("{groups["inlet"]["name"]}") = {{4}};\n'
-        f'Physical Curve("{groups["outlet"]["name"]}") = {{2}};\n'
-        f'Physical Curve("{groups["wall"]["name"]}") = {{1, 3}};\n'
-        f'Physical Surface("{groups["domain"]["name"]}") = {{1}};\n'
+    )
+    if geometry["family"] == "rectangle_channel_2d":
+        physical_groups = (
+            f'Physical Curve("{groups["inlet"]["name"]}") = {{4}};\n'
+            f'Physical Curve("{groups["outlet"]["name"]}") = {{2}};\n'
+            f'Physical Curve("{groups["wall"]["name"]}") = {{1, 3}};\n'
+            f'Physical Surface("{groups["domain"]["name"]}") = {{1}};\n'
+        )
+    elif geometry["family"] == "extruded_rectangle_channel_3d":
+        thickness = float(geometry["thickness_m"])
+        physical_groups = (
+            f"out[] = Extrude {{0, 0, {thickness:g}}} {{ Surface{{1}}; Layers{{1}}; }};\n"
+            f'Physical Surface("{groups["front_back"]["name"]}") = {{1, out[0]}};\n'
+            f'Physical Surface("{groups["wall"]["name"]}") = {{out[2], out[4]}};\n'
+            f'Physical Surface("{groups["outlet"]["name"]}") = {{out[3]}};\n'
+            f'Physical Surface("{groups["inlet"]["name"]}") = {{out[5]}};\n'
+            f'Physical Volume("{groups["domain"]["name"]}") = {{out[1]}};\n'
+        )
+    else:
+        raise ValueError(f"Unsupported Gmsh geometry family: {geometry['family']!r}")
+    mesh_options = (
         f"Mesh.ElementOrder = {int(config['mesh']['element_order'])};\n"
         f"Mesh.Algorithm = {int(config['mesh']['algorithm'])};\n"
         f"Mesh.MshFileVersion = {2.2 if config['mesh']['output_format'] == 'msh2' else 4.1};\n"
     )
+    return base + physical_groups + mesh_options
 
 
 def _write_geo(output_dir: Path, config: dict[str, Any]) -> list[str]:
@@ -66,6 +84,7 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "geometry": config["geometry"],
         "physical_groups": config["physical_groups"],
         "mesh": config["mesh"],
+        "downstream_import": config.get("downstream_import", {"enabled": False}),
         "generated_files": generated_files,
         "runtime_commands": ["gmsh-python:open case.geo", "gmsh-python:model.mesh.generate"],
         "expected_outputs": config["outputs"]["expected_outputs"],
@@ -109,7 +128,15 @@ def run(
 
     runtime = generate_mesh(config, resolved_output_dir)
     manifest["scope"] = "Gmsh Python API geometry and mesh generation"
-    manifest["generated_files"] = sorted({*generated_files, "case.msh", "mesh_summary.json"})
+    runtime_generated = {*generated_files, "case.msh", "mesh_summary.json"}
+    downstream = runtime["summary"].get("downstream_import", {})
+    if downstream.get("enabled"):
+        runtime_generated.update(
+            rel_path
+            for rel_path, file_info in downstream.get("polyMesh", {}).get("files", {}).items()
+            if file_info.get("exists")
+        )
+    manifest["generated_files"] = sorted(runtime_generated)
     manifest["runtime"] = runtime["summary"]
     manifest["validation"] = runtime["validation"]
     (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")

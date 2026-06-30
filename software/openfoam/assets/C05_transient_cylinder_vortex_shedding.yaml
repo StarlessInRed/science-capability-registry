@@ -77,12 +77,21 @@ benchmark:
   source_type: official tutorial and local runtime evidence source
   tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
   benchmark_role: Benchmark candidate for transient cylinder wake, force-coefficient extraction, and vortex-shedding trend validation.
-  status_rationale: The repository now records a run schema, baseline config, package runner, dry-run manifest path, runtime parser, and force-coefficient postprocess contract. Local solver metrics, force time-series evidence, and perturbation reports have not been produced, so the capability is package_skeleton_created rather than benchmark_validated.
+  status_rationale: The repository now records a run schema, baseline config, package runner, dry-run manifest path, runtime parser, and force-coefficient postprocess contract. A local WSL OpenFOAM.com v2112 solver-only smoke reaches final time with finite residuals after patching both 0/U and 0.orig/U, but force-enabled smoke still fails at functionObject startup with local v2112 sha1 IO behavior. Force time-series, Strouhal evidence, and perturbation reports have not been produced, so the capability is package_skeleton_created rather than benchmark_validated.
   local_source_evidence:
     runtime_profile: openfoam_com_v2112
     wsl_distro: Ubuntu-24.04
     tutorial_root: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
     solver: pimpleFoam
+  runtime_evidence:
+  - report: reports/openfoam_C05_transient_cylinder_vortex_shedding_runtime_smoke_2026-06-30.md
+    scope: solver-only pimpleFoam smoke
+    status: passed
+    result_root: _results/openfoam/transient_cylinder_vortex_shedding/runtime_solver_smoke_wsl_v2112_20260630_002/
+  - report: reports/openfoam_C05_transient_cylinder_vortex_shedding_runtime_smoke_2026-06-30.md
+    scope: forceCoeffs-enabled pimpleFoam smoke
+    status: failed
+    result_root: _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_smoke_wsl_v2112_20260630_002/
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json and must remain package_skeleton_created until local runtime evidence exists.
 - Run schema must expose geometry, material, Reynolds number, mesh workflow, time controls, PIMPLE controls, force extraction, and validation thresholds as config-visible fields.

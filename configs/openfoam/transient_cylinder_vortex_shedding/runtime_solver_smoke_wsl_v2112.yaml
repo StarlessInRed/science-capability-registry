@@ -1,0 +1,158 @@
+capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+case_id: runtime_solver_smoke_wsl_v2112
+description: Local WSL OpenFOAM.com v2112 solver-only runtime smoke for cylinder2D, with functionObjects disabled to isolate the local sha1 IO blocker.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112
+  tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.2-flow-around-a-cylinder
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - blockMesh
+  - snappyHexMesh
+  - mirrorMesh
+  - decomposePar
+  - renumberMesh
+  - redistributePar
+  - pimpleFoam
+  - postProcess
+backend:
+  type: wsl
+  timeout_s: 900
+  parallel: false
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: pimpleFoam
+  mode: transient_incompressible_laminar
+  command_sequence:
+  - ./Allrun.pre
+  - pimpleFoam
+template:
+  source_path: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
+  copy_strategy: copy_official_tutorial_then_patch
+  disabled_function_objects:
+  - "All functionObjects are disabled in this solver-only smoke to isolate the local v2112 sha1 IO failure observed with forceCoeffs."
+geometry:
+  cylinder_diameter_m: 1
+  cylinder_center_m:
+  - 0
+  - 0
+  domain_bounds_m:
+    x_min: -15
+    x_max: 30
+    y_min: -15
+    y_max: 15
+  two_dimensional_thickness_m: 1
+  patch_roles:
+    inlet: velocity_inlet
+    outlet: pressure_outlet
+    cylinder: no_slip_wall
+    topAndBottom: slip_or_farfield
+    frontAndBack: empty
+mesh:
+  generator: blockMesh_snappyHexMesh_mirrorMesh
+  template_dictionaries:
+  - system/blockMeshDict.coarse
+  - system/snappyHexMeshDict
+  - system/blockMeshDict.main
+  - system/mirrorMeshDict
+  front_back_patch_type: empty
+  workflow:
+  - blockMesh -dict system/blockMeshDict.coarse
+  - snappyHexMesh -overwrite
+  - blockMesh -dict system/blockMeshDict.main
+  - mirrorMesh -overwrite
+  - restore0Dir
+material:
+  density_kg_m3: 1
+  kinematic_viscosity_m2_s: 1.558e-5
+  inlet_velocity_m_s: 0.012984
+  reynolds_number_D: 833.376
+fields:
+  velocity_field: U
+  pressure_field: p
+  initial_velocity_m_s:
+  - 0.012984
+  - 0
+  - 0
+  initial_pressure_m2_s2: 0
+numerics:
+  control:
+    end_time_s: 1
+    delta_t_s: 0.05
+    write_interval_s: 0.5
+    max_courant: 1
+  pimple:
+    n_outer_correctors: 2
+    n_correctors: 2
+    n_non_orthogonal_correctors: 0
+function_objects:
+  force_coefficients:
+    enabled: false
+    patches:
+    - cylinder
+    rho_inf_kg_m3: 1
+    lift_dir:
+    - 0
+    - 1
+    - 0
+    drag_dir:
+    - 1
+    - 0
+    - 0
+postprocess:
+  force_coefficients: false
+  lift_drag_time_series: false
+  strouhal_estimate: false
+outputs:
+  output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_solver_smoke_wsl_v2112
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - case/system/snappyHexMeshDict
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  max_courant: 1
+  max_final_residual: 0.01
+  force_coefficients_required: false
+  strouhal_target_range:
+  - 0.16
+  - 0.24
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - case/system/snappyHexMeshDict
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - solver
+  - template
+  - geometry
+  - mesh
+  - material
+  - fields
+  - numerics
+  - function_objects
+  - expected_outputs
+  - validation_targets
+  matrix_role: baseline
+  expected_trend:
+    description: Solver-only smoke verifies mesh generation and pimpleFoam time advancement; force coefficient artifacts remain blocked by local v2112 sha1 IO behavior and are tracked by the force-enabled smoke config.

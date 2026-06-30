@@ -8,6 +8,7 @@ from typing import Any
 
 def write_validation_report(path: str | Path, config: dict[str, Any], summary: dict[str, Any], validation: dict[str, Any]) -> None:
     status = "passed" if validation["passed"] else "failed"
+    downstream = summary.get("downstream_import", {})
     lines = [
         f"# Gmsh C01 {config['case_id']} validation report",
         "",
@@ -17,6 +18,7 @@ def write_validation_report(path: str | Path, config: dict[str, Any], summary: d
         f"- node count: {summary.get('node_count')}",
         f"- element count: {summary.get('element_count')}",
         f"- physical groups: {', '.join(sorted(summary.get('physical_groups', {})))}",
+        f"- downstream import: {downstream.get('status', 'not_configured')}",
         "",
         "## Checks",
         "",
@@ -29,7 +31,7 @@ def write_validation_report(path: str | Path, config: dict[str, Any], summary: d
             "",
             "## Scope",
             "",
-            "This report validates deterministic generation of a small parameterized Gmsh geometry and mesh. Downstream solver import remains a separate gate.",
+            "This report validates deterministic generation of a small parameterized Gmsh geometry and mesh. When configured, it also validates an OpenFOAM gmshToFoam import smoke.",
         ]
     )
     Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")

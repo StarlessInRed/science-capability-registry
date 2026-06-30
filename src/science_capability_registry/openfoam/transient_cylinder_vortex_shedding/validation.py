@@ -27,6 +27,7 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     material = config["material"]
     geometry = config["geometry"]
     generated_files = set(manifest.get("generated_files", []))
+    force_required = bool(config["validation"]["force_coefficients_required"])
 
     _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", f"backend={backend.get('type')!r}")
     _check(checks, "solver.pimpleFoam", solver.get("name") == "pimpleFoam", json.dumps(solver, ensure_ascii=False))
@@ -35,8 +36,18 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     _check(checks, "physics.positive_inlet_velocity", float(material["inlet_velocity_m_s"]) > 0.0, str(material["inlet_velocity_m_s"]))
     _check(checks, "physics.positive_viscosity", float(material["kinematic_viscosity_m2_s"]) > 0.0, str(material["kinematic_viscosity_m2_s"]))
     _check(checks, "geometry.positive_diameter", float(geometry["cylinder_diameter_m"]) > 0.0, str(geometry["cylinder_diameter_m"]))
-    _check(checks, "function_object.force_coefficients_enabled", force_coeffs.get("enabled") is True, json.dumps(force_coeffs, ensure_ascii=False))
-    _check(checks, "function_object.force_coefficients_patch", "cylinder" in force_coeffs.get("patches", []), json.dumps(force_coeffs, ensure_ascii=False))
+    _check(
+        checks,
+        "function_object.force_coefficients_enabled",
+        force_coeffs.get("enabled") is True or not force_required,
+        json.dumps(force_coeffs, ensure_ascii=False),
+    )
+    _check(
+        checks,
+        "function_object.force_coefficients_patch",
+        "cylinder" in force_coeffs.get("patches", []) or not force_required,
+        json.dumps(force_coeffs, ensure_ascii=False),
+    )
 
     for rel_path in config["validation"]["required_generated_files"]:
         _check(checks, f"generated_file.listed.{rel_path}", rel_path in generated_files, rel_path)
@@ -78,7 +89,10 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     _check(checks, "solver.final_residual_threshold", math.isfinite(max_final) and max_final <= float(config["validation"]["max_final_residual"]), f"max_final_residual={max_final}")
 
     force = postprocess.get("force_coefficients", {})
-    _check(checks, "postprocess.force_coefficients", force.get("available") is True, json.dumps(force, ensure_ascii=False))
+    if config["validation"]["force_coefficients_required"]:
+        _check(checks, "postprocess.force_coefficients", force.get("available") is True, json.dumps(force, ensure_ascii=False))
+    else:
+        _check(checks, "postprocess.force_coefficients_not_required", True, "force coefficient functionObject is disabled for solver-only smoke")
     if config["postprocess"]["strouhal_estimate"]:
         strouhal = postprocess.get("strouhal", {})
         _check(checks, "postprocess.strouhal_summary_written", bool(strouhal.get("path")), json.dumps(strouhal, ensure_ascii=False))

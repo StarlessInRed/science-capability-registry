@@ -66,6 +66,34 @@ def validate_mesh_summary(summary: dict[str, Any], config: dict[str, Any], outpu
         isinstance(min_quality, (int, float)) and math.isfinite(float(min_quality)) and float(min_quality) >= float(config["validation"]["min_quality_proxy"]),
         json.dumps(quality, ensure_ascii=False),
     )
+
+    downstream = config.get("downstream_import") or {}
+    if downstream.get("enabled"):
+        import_summary = summary.get("downstream_import", {})
+        poly_mesh = import_summary.get("polyMesh", {})
+        files = poly_mesh.get("files", {})
+        boundary_names = set(poly_mesh.get("boundary_names", []))
+        expected_boundaries = set(downstream["expected_boundary_names"])
+        structural_checks = poly_mesh.get("structural_checks", {})
+        _check(checks, "downstream_import.status", import_summary.get("status") == "passed", json.dumps(import_summary, ensure_ascii=False))
+        _check(
+            checks,
+            "downstream_import.boundary_names",
+            expected_boundaries.issubset(boundary_names),
+            f"boundaries={sorted(boundary_names)}, required={sorted(expected_boundaries)}",
+        )
+        for rel_path in downstream["expected_outputs"]:
+            file_info = files.get(rel_path, {})
+            path = Path(output_dir) / rel_path if output_dir is not None else Path(rel_path)
+            _check(
+                checks,
+                f"downstream_import.artifact.{rel_path}",
+                file_info.get("exists") is True and int(file_info.get("size_bytes", 0)) > 0 and (output_dir is None or path.exists()),
+                json.dumps(file_info, ensure_ascii=False),
+            )
+        for name, passed in structural_checks.items():
+            _check(checks, f"downstream_import.structure.{name}", passed is True, json.dumps(structural_checks, ensure_ascii=False))
+
     if output_dir is not None:
         for rel_path in config["outputs"]["expected_outputs"]:
             if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:

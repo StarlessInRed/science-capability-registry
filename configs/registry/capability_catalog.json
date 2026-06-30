@@ -119,7 +119,10 @@
       "package_entrypoint": "science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
-      "evidence_ids": []
+      "evidence_ids": [
+        "openfoam_C05_solver_runtime_smoke_2026-06-30",
+        "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30"
+      ]
     },
     {
       "capability_id": "cfd.openfoam.dam_break_vof_free_surface",
@@ -147,7 +150,8 @@
       "benchmark_status": "benchmark_candidate",
       "evidence_ids": [
         "openfoam_C07_runtime_smoke_attempt_2026-06-30",
-        "openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30"
+        "openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30",
+        "openfoam_C07_low_rank_runtime_diagnostics_2026-06-30"
       ]
     },
     {
@@ -161,7 +165,7 @@
       "package_entrypoint": "science_capability_registry.gmsh.parametric_geometry_mesh_generation:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
-      "evidence_ids": []
+      "evidence_ids": ["gmsh_C01_openfoam_import_smoke_2026-06-30"]
     }
   ]
 }

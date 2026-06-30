@@ -10,6 +10,7 @@ from jsonschema import Draft202012Validator
 
 SCHEMA_PATH = Path("schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json")
 CONFIG_PATH = Path("configs/openfoam/transient_cylinder_vortex_shedding/baseline_cylinder2d.yaml")
+CONFIG_DIR = CONFIG_PATH.parent
 ASSET_PATH = Path("software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml")
 TASK_PATH = Path("tasks/openfoam_C05_transient_cylinder_vortex_shedding_intern_task.md")
 
@@ -26,6 +27,18 @@ def test_openfoam_c05_baseline_config_matches_schema() -> None:
     validator = Draft202012Validator(_schema())
     errors = sorted(validator.iter_errors(_config()), key=lambda error: list(error.path))
     assert not errors, [error.message for error in errors]
+
+
+def test_openfoam_c05_all_configs_match_schema() -> None:
+    validator = Draft202012Validator(_schema())
+    failures = {}
+    for path in sorted(CONFIG_DIR.glob("*.yaml")):
+        config = yaml.safe_load(path.read_text(encoding="utf-8"))
+        errors = sorted(validator.iter_errors(config), key=lambda error: list(error.path))
+        if errors:
+            failures[path.as_posix()] = [error.message for error in errors]
+
+    assert not failures
 
 
 def test_openfoam_c05_schema_rejects_untracked_top_level_key() -> None:

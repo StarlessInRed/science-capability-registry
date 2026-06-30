@@ -56,7 +56,13 @@ def parse_pimplefoam_log(log_text: str) -> dict[str, Any]:
         }
         for match in CONTINUITY_RE.finditer(log_text)
     ]
-    fatal = "FOAM FATAL" in log_text or "FOAM exiting" in log_text or "Segmentation fault" in log_text or _true_floating_exception(log_text)
+    fatal = (
+        "FOAM FATAL" in log_text
+        or "FOAM exiting" in log_text
+        or "Segmentation fault" in log_text
+        or "sigFpe::sigHandler" in log_text
+        or _true_floating_exception(log_text)
+    )
     return {
         "started": bool(times or residual_history or "Starting time loop" in log_text),
         "fatal_error_detected": fatal,
@@ -86,7 +92,11 @@ def _solver_log(runtime: dict[str, Any], output_dir: Path) -> Path:
 def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dict[str, Any]) -> dict[str, Any]:
     log_path = _solver_log(runtime, output_dir)
     solver_metrics = parse_pimplefoam_log(log_path.read_text(encoding="utf-8") if log_path.exists() else "")
-    postprocess_metrics = write_force_metrics(config, output_dir) if solver_metrics.get("final_time") is not None else {}
+    postprocess_metrics = (
+        write_force_metrics(config, output_dir)
+        if config["postprocess"]["force_coefficients"] and solver_metrics.get("final_time") is not None
+        else {}
+    )
     logs = {Path(item["log"]).name: item["log"] for item in runtime.get("commands", [])}
     return {
         "schema_version": "openfoam_c05_metrics_v1",

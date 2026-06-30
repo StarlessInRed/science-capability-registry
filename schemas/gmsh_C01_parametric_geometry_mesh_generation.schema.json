@@ -46,12 +46,19 @@
       "additionalProperties": false,
       "required": ["family", "origin_m", "length_m", "height_m", "characteristic_length_m"],
       "properties": {
-        "family": {"const": "rectangle_channel_2d"},
+        "family": {"enum": ["rectangle_channel_2d", "extruded_rectangle_channel_3d"]},
         "origin_m": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
         "length_m": {"type": "number", "exclusiveMinimum": 0},
         "height_m": {"type": "number", "exclusiveMinimum": 0},
+        "thickness_m": {"type": "number", "exclusiveMinimum": 0},
         "characteristic_length_m": {"type": "number", "exclusiveMinimum": 0}
-      }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"family": {"const": "extruded_rectangle_channel_3d"}}, "required": ["family"]},
+          "then": {"required": ["thickness_m"]}
+        }
+      ]
     },
     "physical_groups": {
       "type": "array",
@@ -62,8 +69,8 @@
         "required": ["name", "dimension", "role"],
         "properties": {
           "name": {"type": "string", "pattern": "^[A-Za-z0-9_/-]+$"},
-          "dimension": {"type": "integer", "minimum": 1, "maximum": 2},
-          "role": {"enum": ["inlet", "outlet", "wall", "domain"]}
+          "dimension": {"type": "integer", "minimum": 1, "maximum": 3},
+          "role": {"enum": ["inlet", "outlet", "wall", "domain", "front_back"]}
         }
       }
     },
@@ -72,10 +79,26 @@
       "additionalProperties": false,
       "required": ["dimension", "element_order", "algorithm", "output_format"],
       "properties": {
-        "dimension": {"const": 2},
+        "dimension": {"enum": [2, 3]},
         "element_order": {"type": "integer", "minimum": 1, "maximum": 2},
         "algorithm": {"type": "integer", "minimum": 1},
         "output_format": {"enum": ["msh2", "msh4"]}
+      }
+    },
+    "downstream_import": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "engine", "runtime_profile", "bashrc_path", "wsl_distro", "command", "expected_outputs", "expected_boundary_names", "timeout_s"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "engine": {"const": "openfoam_gmshToFoam"},
+        "runtime_profile": {"const": "openfoam_com_v2112"},
+        "bashrc_path": {"type": "string", "minLength": 1},
+        "wsl_distro": {"type": "string", "minLength": 1},
+        "command": {"type": "string", "minLength": 1},
+        "expected_outputs": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "expected_boundary_names": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
       }
     },
     "outputs": {

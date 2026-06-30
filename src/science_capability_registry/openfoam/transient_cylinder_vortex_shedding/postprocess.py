@@ -83,7 +83,13 @@ def write_strouhal_summary(summary: dict[str, Any], path: str | Path) -> dict[st
 
 
 def write_force_metrics(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
-    candidates = sorted((output_dir / "case" / "postProcessing").glob("forceCoeffs*/**/coefficient.dat"))
+    case_dir = output_dir / "case"
+    candidates = sorted(
+        {
+            *case_dir.glob("postProcessing/forceCoeffs*/**/coefficient.dat"),
+            *case_dir.glob("processor*/postProcessing/forceCoeffs*/**/coefficient.dat"),
+        }
+    )
     if not candidates:
         return {
             "force_coefficients": {"available": False, "reason": "OpenFOAM coefficient.dat was not found"},
