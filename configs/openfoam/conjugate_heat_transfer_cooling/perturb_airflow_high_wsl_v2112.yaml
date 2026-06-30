@@ -1,6 +1,7 @@
 capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
-case_id: baseline_multi_region_heater_radiation_wsl_v2112
-description: Packaged short-horizon OpenFOAM.com v2112 multiRegionHeaterRadiation CHT smoke baseline with radiation view-factor preprocessing.
+case_id: perturb_airflow_high_wsl_v2112
+description: C07 multiRegionHeaterRadiation perturbation with topAir inlet/internal
+  streamwise velocity raised from 0.1 m/s to 0.2 m/s.
 openfoam:
   distribution: openfoam_com
   version: v2112
@@ -33,7 +34,8 @@ template:
   source_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
   copy_strategy: copy_official_tutorial_then_patch
   disabled_function_objects:
-  - "system/controlDict functions block is emptied because local OpenFOAM.com v2112 WSL functionObject writes trigger a sha1 IO failure before the smoke endpoint."
+  - system/controlDict functions block is emptied because local OpenFOAM.com v2112
+    WSL functionObject writes trigger a sha1 IO failure before the smoke endpoint.
 regions:
   fluid:
   - bottomAir
@@ -131,6 +133,27 @@ fields:
     rightSolid:
     - T
     - p
+  velocity_overrides_m_s:
+    topAir:
+      internal:
+      - 0.2
+      - 0.0
+      - 0.0
+      boundary_values:
+        minX:
+          value:
+          - 0.2
+          - 0.0
+          - 0.0
+        maxX:
+          value:
+          - 0.2
+          - 0.0
+          - 0.0
+          inletValue:
+          - 0.0
+          - 0.0
+          - 0.0
 interfaces:
 - name: bottomAir_to_heater
   owner_region: bottomAir
@@ -197,9 +220,11 @@ postprocess:
   - python:write_region_temperature_summary
   - python:write_interface_balance_summary
   - python:write_patch_heat_flux_proxy_summary
-  method_note: Smoke gate extracts region T min/max/mean, an interface region-mean proxy, and a paired patch owner-cell series-resistance heat-flux proxy; native heat-flux conservation is not claimed.
+  method_note: Smoke gate extracts region T min/max/mean, an interface region-mean
+    proxy, and a paired patch owner-cell series-resistance heat-flux proxy; native
+    heat-flux conservation is not claimed.
 outputs:
-  output_dir: _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112
+  output_dir: _results/openfoam/conjugate_heat_transfer_cooling/perturb_airflow_high_wsl_v2112
   retain_generated_case: true
   expected_outputs:
   - case/0/bottomAir/T
@@ -238,7 +263,7 @@ outputs:
   - postprocess/interface_balance_summary.csv
   - postprocess/patch_heat_flux_proxy_summary.csv
 validation:
-  gate: smoke
+  gate: integration
   temperature_min_K: 250
   temperature_max_K: 500.1
   max_interface_temperature_jump_K: 250
@@ -272,8 +297,10 @@ validation:
   - topAir_to_heater
   - heater_to_leftSolid
   - heater_to_rightSolid
-  matrix_role: baseline
+  matrix_role: airflow_high
   expected_trend:
-    description: Short-horizon radiation CHT smoke should reach Time=2 with finite region temperatures and a hotter heater/bottomAir response than the ambient topAir field.
-    primary_metric: max_temperature_by_region
-    direction: heater_and_bottomAir_hotter_than_topAir
+    description: Increasing topAir through-flow should alter the topAir thermal response
+      without unbounded temperatures or missing regions; short-horizon smoke does
+      not claim a monotonic heat-transfer coefficient.
+    primary_metric: topAir.max_T_K_and_solver_health
+    direction: airflow_high

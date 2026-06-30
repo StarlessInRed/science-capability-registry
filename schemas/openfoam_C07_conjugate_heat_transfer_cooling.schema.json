@@ -202,6 +202,9 @@
         },
         "required_generated_files": {
           "$ref": "#/$defs/non_empty_string_array"
+        },
+        "block_mesh_cells": {
+          "$ref": "#/$defs/positive_integer_vector3"
         }
       }
     },
@@ -266,6 +269,13 @@
           "minProperties": 1,
           "additionalProperties": {
             "$ref": "#/$defs/non_empty_string_array"
+          }
+        },
+        "velocity_overrides_m_s": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/velocity_override"
           }
         }
       }
@@ -419,6 +429,9 @@
         "interface_balance_summary": {
           "type": "boolean"
         },
+        "patch_heat_flux_proxy_summary": {
+          "type": "boolean"
+        },
         "command_sequence": {
           "type": "array",
           "items": {
@@ -552,6 +565,61 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "number_vector3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "positive_integer_vector3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "velocity_override": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "internal": {
+          "$ref": "#/$defs/number_vector3"
+        },
+        "boundary_values": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "minProperties": 1,
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/number_vector3"
+              },
+              "inletValue": {
+                "$ref": "#/$defs/number_vector3"
+              }
+            }
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "internal"
+          ]
+        },
+        {
+          "required": [
+            "boundary_values"
+          ]
+        }
+      ]
     },
     "fluid_material": {
       "type": "object",

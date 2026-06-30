@@ -155,7 +155,8 @@
         "openfoam_C07_low_rank_runtime_diagnostics_2026-06-30",
         "openfoam_C07_kEpsilon_closure_diagnostic_2026-06-30",
         "openfoam_C07_multiRegionHeaterRadiation_short_smoke_2026-06-30",
-        "openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30"
+        "openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30",
+        "openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30"
       ]
     },
     {

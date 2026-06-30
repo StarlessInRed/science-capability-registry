@@ -120,6 +120,24 @@ def _minimal_metrics(config: dict, *, residual: float = 1.0e-5, max_temperature:
                 "max_T_K": max_temperature if index == 0 else min(340.0 + index, max_temperature),
             }
         )
+    postprocess = {
+        "temperatures": {
+            "regions": temperature_rows
+        },
+        "interfaces": {"available": True, "interfaces": [{"interface": "domain0_to_v_CPU", "mean_abs_delta_T_K": 12.0}]},
+    }
+    if config["postprocess"].get("patch_heat_flux_proxy_summary"):
+        postprocess["patch_heat_flux_proxy"] = {
+            "available": True,
+            "interfaces": [
+                {
+                    "interface": config["interfaces"][0]["name"],
+                    "paired_face_count": 1,
+                    "owner_to_neighbour_flux_proxy_W_m2": 10.0,
+                    "owner_to_neighbour_heat_rate_proxy_W": 1.0,
+                }
+            ],
+        }
     return {
         "runtime": {"commands": [{"command": command, "returncode": 0} for command in [
             *config["mesh_workflow"]["command_sequence"],
@@ -135,12 +153,7 @@ def _minimal_metrics(config: dict, *, residual: float = 1.0e-5, max_temperature:
             "regions_seen": regions,
             "last_residuals": {regions[0]: {"T": {"final": residual}}},
         },
-        "postprocess": {
-            "temperatures": {
-                "regions": temperature_rows
-            },
-            "interfaces": {"available": True, "interfaces": [{"interface": "domain0_to_v_CPU", "mean_abs_delta_T_K": 12.0}]},
-        },
+        "postprocess": postprocess,
     }
 
 
@@ -196,3 +209,15 @@ def test_openfoam_c07_runtime_validation_accepts_heater_radiation_smoke_metrics(
 
     assert validation["passed"] is True
     assert validation["gate"] == "smoke"
+
+
+def test_openfoam_c07_runtime_validation_rejects_missing_patch_heat_flux_proxy(tmp_path: Path) -> None:
+    config = _mhr_config()
+    metrics = _minimal_metrics(config, residual=8.0e-2, max_temperature=500.0)
+    metrics["postprocess"].pop("patch_heat_flux_proxy")
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert validation["passed"] is False
+    failed = {check["name"] for check in validation["checks"] if not check["passed"]}
+    assert "postprocess.patch_heat_flux_proxy_available" in failed

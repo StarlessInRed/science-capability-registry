@@ -30,6 +30,31 @@ def _replace_internal_temperature(text: str, value: float) -> str:
     return re.sub(r"(internalField\s+uniform\s+)[^;]+;", rf"\g<1>{value:g};", text, count=1)
 
 
+def _format_vector(vector: list[float]) -> str:
+    if len(vector) != 3:
+        raise ValueError(f"Expected a 3-component OpenFOAM vector, got {vector!r}.")
+    return f"({float(vector[0]):g} {float(vector[1]):g} {float(vector[2]):g})"
+
+
+def _replace_field_internal_vector(text: str, field_name: str, vector: list[float]) -> str:
+    pattern = rf"(\b{re.escape(field_name)}\s*\{{.*?\binternalField\s+uniform\s+)\([^;]+\);"
+    updated, count = re.subn(pattern, rf"\g<1>{_format_vector(vector)};", text, count=1, flags=re.DOTALL)
+    if count != 1:
+        raise ValueError(f"Could not patch {field_name!r} internal vector field.")
+    return updated
+
+
+def _replace_field_patch_vector(text: str, field_name: str, patch_name: str, keyword: str, vector: list[float]) -> str:
+    pattern = (
+        rf"(\b{re.escape(field_name)}\s*\{{.*?\bboundaryField\s*\{{.*?"
+        rf"\b{re.escape(patch_name)}\s*\{{.*?\b{re.escape(keyword)}\s+uniform\s+)\([^;]+\);"
+    )
+    updated, count = re.subn(pattern, rf"\g<1>{_format_vector(vector)};", text, count=1, flags=re.DOTALL)
+    if count != 1:
+        raise ValueError(f"Could not patch {field_name!r}.{patch_name!r}.{keyword!r} vector.")
+    return updated
+
+
 def _replace_heat_source_power(text: str, power_w: float) -> str:
     return re.sub(r"(h\s*)\(\s*[-+]?\d+(?:\.\d*)?(?:[eE][-+]?\d+)?\s+0\s*\)(\s*;)", rf"\g<1>( {power_w:g} 0 )\2", text, count=1)
 
@@ -128,6 +153,19 @@ def _patch_decompose_dicts(case_dir: Path, config: dict[str, Any]) -> None:
         _write_text(path, text)
 
 
+def _patch_block_mesh_cells(case_dir: Path, config: dict[str, Any]) -> None:
+    cells = config["mesh_workflow"].get("block_mesh_cells")
+    if cells is None:
+        return
+    path = case_dir / "system" / "blockMeshDict"
+    text = path.read_text(encoding="utf-8")
+    cell_text = f"({int(cells[0])} {int(cells[1])} {int(cells[2])})"
+    updated, count = re.subn(r"(hex\s*\([^)]*\)\s*)\(\s*\d+\s+\d+\s+\d+\s*\)", rf"\g<1>{cell_text}", text, count=1)
+    if count != 1:
+        raise ValueError("Could not patch blockMeshDict hex cell counts.")
+    _write_text(path, updated)
+
+
 def _patch_temperature_fields(case_dir: Path, config: dict[str, Any]) -> None:
     initial_temperature = float(config["fields"]["initial_temperature_K"])
     for region in [*config["regions"]["fluid"], *config["regions"]["solid"]]:
@@ -150,6 +188,19 @@ def _patch_fixed_temperature_sources(case_dir: Path, config: dict[str, Any]) -> 
         path = case_dir / "system" / region / "changeDictionaryDict"
         text = path.read_text(encoding="utf-8")
         text = _replace_fixed_boundary_temperature(text, str(source["boundary_patch"]), float(source["temperature_K"]))
+        _write_text(path, text)
+
+
+def _patch_velocity_overrides(case_dir: Path, config: dict[str, Any]) -> None:
+    overrides = config["fields"].get("velocity_overrides_m_s", {})
+    for region, settings in overrides.items():
+        path = case_dir / "system" / region / "changeDictionaryDict"
+        text = path.read_text(encoding="utf-8")
+        if "internal" in settings:
+            text = _replace_field_internal_vector(text, "U", settings["internal"])
+        for patch_name, patch_settings in settings.get("boundary_values", {}).items():
+            for keyword, vector in patch_settings.items():
+                text = _replace_field_patch_vector(text, "U", patch_name, keyword, vector)
         _write_text(path, text)
 
 
@@ -189,6 +240,8 @@ def _patch_case_files(output_dir: Path, config: dict[str, Any]) -> None:
     case_dir = output_dir / "case"
     _patch_control_dict(case_dir, config)
     _patch_decompose_dicts(case_dir, config)
+    _patch_block_mesh_cells(case_dir, config)
+    _patch_velocity_overrides(case_dir, config)
     _patch_fluid_material(case_dir, config)
     _patch_solid_materials(case_dir, config)
     source_profile_key = config["template"]["source_profile_key"]

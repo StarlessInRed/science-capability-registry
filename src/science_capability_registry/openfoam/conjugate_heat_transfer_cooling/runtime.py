@@ -17,7 +17,11 @@ from science_capability_registry.openfoam.template_case import (
     run_wsl,
 )
 
-from .postprocess import write_interface_balance_summary, write_region_temperature_summary
+from .postprocess import (
+    write_interface_balance_summary,
+    write_patch_heat_flux_proxy_summary,
+    write_region_temperature_summary,
+)
 
 FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
 TIME_RE = re.compile(rf"^Time =\s*({FLOAT_RE})", re.MULTILINE)
@@ -246,14 +250,25 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
     )
     temperature_metrics = write_region_temperature_summary(config, output_dir, solver_metrics.get("final_time"))
     interface_metrics = write_interface_balance_summary(config, output_dir, temperature_metrics)
+    patch_heat_flux_metrics = (
+        write_patch_heat_flux_proxy_summary(config, output_dir, temperature_metrics)
+        if config["postprocess"].get("patch_heat_flux_proxy_summary")
+        else None
+    )
     logs = {Path(item["log"]).name: item["log"] for item in runtime["commands"]}
+    postprocess_metrics = {
+        "temperatures": temperature_metrics,
+        "interfaces": interface_metrics,
+    }
+    if patch_heat_flux_metrics is not None:
+        postprocess_metrics["patch_heat_flux_proxy"] = patch_heat_flux_metrics
     return {
         "schema_version": "openfoam_c07_metrics_v1",
         "parser": {
             "name": "openfoam_c07_log_and_field_parser",
-            "version": 1,
+            "version": 2,
             "limitations": [
-                "Interface balance is a region-mean temperature proxy in the smoke gate, not native patch heat-flux conservation.",
+                "Interface balance includes region-mean temperature and patch owner-cell heat-flux proxies, not native OpenFOAM wall heat-flux conservation.",
             ],
         },
         "case_id": config["case_id"],
@@ -261,10 +276,7 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         "runtime": runtime,
         "mesh": check_mesh_metrics,
         "solver": solver_metrics,
-        "postprocess": {
-            "temperatures": temperature_metrics,
-            "interfaces": interface_metrics,
-        },
+        "postprocess": postprocess_metrics,
         "artifacts": {
             "logs": logs,
             "metrics_json": str(output_dir / "metrics.json"),
@@ -334,6 +346,13 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     check("postprocess.temperature_bounds", _temperatures_within_bounds(metrics, lower, upper), f"bounds={[lower, upper]}")
     interfaces = metrics.get("postprocess", {}).get("interfaces", {})
     check("postprocess.interface_proxy_available", interfaces.get("available") is True, json.dumps(interfaces, ensure_ascii=False))
+    if config["postprocess"].get("patch_heat_flux_proxy_summary"):
+        patch_heat_flux = metrics.get("postprocess", {}).get("patch_heat_flux_proxy", {})
+        check(
+            "postprocess.patch_heat_flux_proxy_available",
+            patch_heat_flux.get("available") is True,
+            json.dumps(patch_heat_flux, ensure_ascii=False),
+        )
 
     for rel_path in config["radiation"].get("required_generated_files", []):
         path = output_dir / rel_path

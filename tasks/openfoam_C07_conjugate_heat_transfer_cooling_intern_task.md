@@ -1,38 +1,63 @@
 # OpenFOAM C07 intern task: 共轭传热冷却
 
-目标：在已完成的 OpenFOAM.com v2112 `chtMultiRegionSimpleFoam/multiRegionHeaterRadiation` packaged smoke baseline 上，继续把 C07 推进到可验证的 CHT integration capability。当前不能表述为已验证 benchmark；它只是 `smoke` gate 通过。
+## 目标
+
+在已经完成的 OpenFOAM.com v2112 `chtMultiRegionSimpleFoam/multiRegionHeaterRadiation` packaged integration matrix 上，把 C07 从“可执行、可扰动、可抽取 proxy 指标”继续推进到可验证的 CHT benchmark capability。
+
+当前状态仍然不是 `benchmark_validated`。原因是本地证据只有短时 `Time=2` integration matrix，interface heat-flux 仍是 Python patch-face proxy，不是 native heat-flux conservation，也没有外部参考值或 double-v 对比。
 
 ## 当前证据
 
 - capability card: `software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml`
 - runtime profile: `configs/openfoam/runtime_profiles/openfoam_com_v2112_cht.yaml`
-- default config: `configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml`
-- smoke report: `reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_baseline_smoke_2026-06-30.md`
+- baseline config: `configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml`
+- perturbation configs:
+  - `configs/openfoam/conjugate_heat_transfer_cooling/perturb_heater_temperature_high_wsl_v2112.yaml`
+  - `configs/openfoam/conjugate_heat_transfer_cooling/perturb_airflow_high_wsl_v2112.yaml`
+  - `configs/openfoam/conjugate_heat_transfer_cooling/perturb_mesh_refinement_wsl_v2112.yaml`
+- integration report: `reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_integration_matrix_2026-06-30.md`
 - solver: `/opt/OpenFOAM-v2112/platforms/linux64GccDPInt32Opt/bin/chtMultiRegionSimpleFoam`
 - tutorial: `/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation`
 - regions: fluid `bottomAir`, `topAir`; solid `heater`, `leftSolid`, `rightSolid`
 
-`cpuCabinet` 保留为失败诊断 evidence：低并行数下 `realizableKE` 与 `kEpsilon` 都在 `Time=2` 附近 FPE，不再作为默认 packaged baseline。
+`cpuCabinet` 保留为失败诊断 evidence：低并行数下 `realizableKE` 与 `kEpsilon` 都在 `Time=2` 附近复现 FPE，不再作为默认 packaged baseline。
 
-## 必须交付
+## 已闭环交付
 
-1. 建立至少三个 perturbation configs：heater fixed-temperature 升高、airflow/boundary 条件变化、mesh 或 decomposition sensitivity。
-2. 为每个 perturbation 生成 runtime `metrics.json`、`validation.json`、`region_temperature_summary.csv`、`interface_balance_summary.csv` 和 human report。
-3. 实现 patch-level heat-flux extraction 或等价守恒 proxy，替换当前 region-mean temperature difference proxy。
-4. 增加 pytest：扰动趋势通过/失败测试、radiation artifact completeness 测试、heat-flux proxy 解析测试。
-5. 更新 evidence index、capability catalog 和 asset card，只在 perturbation matrix 与 heat-flux proxy 通过后再考虑提升 `benchmark_status`。
+1. 已建立三类 perturbation configs：heater fixed-temperature 升高、topAir airflow/boundary velocity 变化、blockMesh mesh refinement。
+2. 已为 baseline 与三类 perturbation 生成本地 runtime `metrics.json`、`validation.json`、`region_temperature_summary.csv`、`interface_balance_summary.csv`、`patch_heat_flux_proxy_summary.csv`。
+3. 已实现 patch-face owner-cell series-resistance heat-flux proxy，并进入 `metrics.json` 与 runtime validation availability check。
+4. 已增加 pytest 覆盖：schema matrix configs、runner patching、runtime proxy gate、postprocess proxy extraction。
+5. 已更新 capability card、examples index 和 integration report。
+
+## 下一步必须交付
+
+1. 实现 native 或可独立复核的 patch heat-flux extraction。
+   - 首选 OpenFOAM native functionObject 或可复现的 field operation。
+   - 如果继续使用 Python，需要输出 face area、normal convention、radiative flux inclusion policy、per-interface heat-rate balance，并说明与 native 结果的偏差。
+2. 延长 CHT 运行时间或设置稳态收敛判据。
+   - 当前 `endTime=2` 只能证明 wiring 与短时非发散。
+   - 后续需要记录 residual history、temperature asymptote、heat-rate trend 是否稳定。
+3. 建立 double-v 或 reference comparison。
+   - 可选择官方 tutorial 预期、独立热阻近似、文献值，或另一个 solver/mesh 的对照。
+   - 不能只用截图或单个标量。
+4. 增加 airflow 物理指标。
+   - 当前 airflow perturbation 证明 U boundary patching 和 solver robustness。
+   - 后续应抽取流体区 `U` magnitude、inlet/outlet flow-rate proxy 或 convective heat-transfer response。
+5. 补 mesh/decomposition sensitivity。
+   - 当前 mesh refinement 只证明 cell count 改变后仍能运行。
+   - 后续需要至少两个 mesh levels 或 decomposition variants，并记录关键温度/热率指标的相对差异。
 
 ## 验收门槛
 
-- smoke：已完成。MHR baseline 在本机 WSL OpenFOAM.com v2112 到达 `Time=2`，五个 region 字段有限，radiation view-factor artifacts 和 validation artifacts 均生成。
-- targeted-regression：baseline 加三类 perturbation 均通过，并记录清晰物理趋势。
-- integration：baseline、perturbations、artifact contracts、registry default config、reports 和 evidence index 一致。
-- double-v：后续再引入外部参考或更强守恒/热通量对比；在此之前不要把 C07 宣称为外部验证能力。
+- `smoke`: baseline 到达配置终点，五个 region 字段有限，radiation artifacts 与 validation artifacts 均生成。
+- `integration`: baseline 加三类 perturbation 均通过，并记录清晰物理趋势。
+- `double-v`: native/reference heat-flux、长时收敛和外部对比通过后，才允许考虑 `benchmark_status=benchmark_validated`。
 
 ## 风险
 
-- 当前 smoke 只有 `Time=2`，不代表稳态收敛。
-- interface balance 仍是 region mean temperature proxy，不是 patch heat-flux conservation。
+- 当前 integration matrix 仍是短时 `Time=2`，不代表稳态收敛。
+- 当前 patch heat-flux 是 owner-cell temperature gradient proxy，忽略辐射贡献和湍流热扩散。
 - 本机 OpenFOAM.com v2112/WSL functionObject 写出存在 `sha1` IO 风险；当前 baseline 通过清空 `controlDict.functions` 规避。
-- `externalCoupledHeater` 带外部耦合接口，不能混入 C07 MHR perturbation matrix。
-- `heatExchanger` 在 v2112 中没有 solid region，不能作为固-流 CHT 的主基准。
+- `externalCoupledHeater` 带外部耦合接口，不应混入 C07 MHR perturbation matrix。
+- `heatExchanger` 在 v2112 中没有 solid region，不能作为固-流 CHT 主基准。

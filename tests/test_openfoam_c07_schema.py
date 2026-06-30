@@ -71,3 +71,15 @@ def test_openfoam_c07_schema_accepts_multi_region_heater_radiation_profile() -> 
     assert config["radiation"]["enabled"] is True
     assert "faceAgglomerate -region bottomAir" in config["radiation"]["preprocessing_commands"]
     assert config["heat_sources"]["heater"]["source_type"] == "fixed_temperature_boundary"
+    assert config["mesh_workflow"]["block_mesh_cells"] == [30, 10, 10]
+    assert config["postprocess"]["patch_heat_flux_proxy_summary"] is True
+
+
+def test_openfoam_c07_schema_accepts_heater_radiation_perturbation_matrix_configs() -> None:
+    paths = sorted(Path("configs/openfoam/conjugate_heat_transfer_cooling").glob("perturb_*_wsl_v2112.yaml"))
+    configs = [load_case_config(path) for path in paths]
+    roles = {config["validation"]["matrix_role"] for config in configs}
+
+    assert roles == {"heater_temperature_high", "airflow_high", "mesh_refinement"}
+    assert any("velocity_overrides_m_s" in config["fields"] for config in configs)
+    assert any(config["mesh_workflow"]["block_mesh_cells"] == [36, 12, 12] for config in configs)

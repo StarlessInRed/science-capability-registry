@@ -273,6 +273,29 @@ evidence:
   scope: Packaged OpenFOAM.com v2112 multiRegionHeaterRadiation CHT smoke completes configured preprocessing, radiation view-factor setup, solver execution to Time=2, and machine-readable metrics/validation/postprocess artifacts.
   limitations:
   - Short-horizon smoke only; not steady-state convergence, patch heat-flux conservation, or perturbation-matrix validation.
+- evidence_id: openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: integration_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_integration_matrix_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml
+  - configs/openfoam/conjugate_heat_transfer_cooling/perturb_heater_temperature_high_wsl_v2112.yaml
+  - configs/openfoam/conjugate_heat_transfer_cooling/perturb_airflow_high_wsl_v2112.yaml
+  - configs/openfoam/conjugate_heat_transfer_cooling/perturb_mesh_refinement_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runner.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runtime.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/postprocess.py
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_003/
+  - _results/openfoam/conjugate_heat_transfer_cooling/perturb_heater_temperature_high_wsl_v2112_20260630_001/
+  - _results/openfoam/conjugate_heat_transfer_cooling/perturb_airflow_high_wsl_v2112_20260630_001/
+  - _results/openfoam/conjugate_heat_transfer_cooling/perturb_mesh_refinement_wsl_v2112_20260630_001/
+  scope: Packaged OpenFOAM.com v2112 multiRegionHeaterRadiation CHT baseline plus heater-temperature, airflow, and mesh-refinement perturbation cases complete to Time=2 with metrics, validation, temperature summaries, and patch heat-flux proxy artifacts.
+  limitations:
+  - Short-horizon integration only; patch heat-flux is a Python owner-cell proxy and not native heat-flux conservation or external-reference validation.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

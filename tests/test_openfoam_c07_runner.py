@@ -62,3 +62,48 @@ def test_openfoam_c07_runner_dry_run_writes_heater_radiation_manifest() -> None:
     assert "multiRegion" not in control
     heater_change_dict = (output_dir / "case/system/heater/changeDictionaryDict").read_text(encoding="utf-8")
     assert "value           uniform 500;" in heater_change_dict
+
+
+def test_openfoam_c07_runner_dry_run_patches_heater_temperature_perturbation() -> None:
+    output_dir = Path("_results/openfoam/conjugate_heat_transfer_cooling/test_runner_mhr_heater_perturb")
+    result = run(
+        config_path=Path(
+            "configs/openfoam/conjugate_heat_transfer_cooling/perturb_heater_temperature_high_wsl_v2112.yaml"
+        ),
+        output_dir=output_dir,
+        dry_run=True,
+    )
+
+    assert result["validation"]["passed"] is True
+    assert result["validation_targets"]["matrix_role"] == "heater_temperature_high"
+    heater_change_dict = (output_dir / "case/system/heater/changeDictionaryDict").read_text(encoding="utf-8")
+    assert "value           uniform 550;" in heater_change_dict
+
+
+def test_openfoam_c07_runner_dry_run_patches_airflow_perturbation() -> None:
+    output_dir = Path("_results/openfoam/conjugate_heat_transfer_cooling/test_runner_mhr_airflow_perturb")
+    result = run(
+        config_path=Path("configs/openfoam/conjugate_heat_transfer_cooling/perturb_airflow_high_wsl_v2112.yaml"),
+        output_dir=output_dir,
+        dry_run=True,
+    )
+
+    assert result["validation"]["passed"] is True
+    assert result["validation_targets"]["matrix_role"] == "airflow_high"
+    top_air = (output_dir / "case/system/topAir/changeDictionaryDict").read_text(encoding="utf-8")
+    assert "internalField   uniform (0.2 0 0);" in top_air
+    assert "value           uniform (0.2 0 0);" in top_air
+
+
+def test_openfoam_c07_runner_dry_run_patches_mesh_refinement_perturbation() -> None:
+    output_dir = Path("_results/openfoam/conjugate_heat_transfer_cooling/test_runner_mhr_mesh_perturb")
+    result = run(
+        config_path=Path("configs/openfoam/conjugate_heat_transfer_cooling/perturb_mesh_refinement_wsl_v2112.yaml"),
+        output_dir=output_dir,
+        dry_run=True,
+    )
+
+    assert result["validation"]["passed"] is True
+    assert result["validation_targets"]["matrix_role"] == "mesh_refinement"
+    block_mesh = (output_dir / "case/system/blockMeshDict").read_text(encoding="utf-8")
+    assert "hex (0 1 2 3 4 5 6 7) (36 12 12) simpleGrading" in block_mesh
