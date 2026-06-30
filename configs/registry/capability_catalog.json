@@ -122,6 +122,19 @@
       "evidence_ids": ["openfoam_C03_benchmark_validation"]
     },
     {
+      "capability_id": "cfd.openfoam.external_aero_motorbike_rans_snappy",
+      "asset_id": "C04_external_aero_motorbike_rans_snappy",
+      "software": "OpenFOAM",
+      "domain": "CFD",
+      "asset_path": "software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml",
+      "run_schema_path": "schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json",
+      "default_config_path": "configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.openfoam.external_aero_motorbike_rans_snappy:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": ["openfoam_C04_static_readiness_2026-06-30"]
+    },
+    {
       "capability_id": "cfd.openfoam.transient_cylinder_vortex_shedding",
       "asset_id": "C05_transient_cylinder_vortex_shedding",
       "software": "OpenFOAM",

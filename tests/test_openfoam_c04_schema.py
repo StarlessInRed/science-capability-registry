@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+import yaml
+
+from science_capability_registry.openfoam.external_aero_motorbike_rans_snappy.config import (
+    load_case_config,
+    validate_case_config,
+)
+
+
+def test_openfoam_c04_configs_match_schema() -> None:
+    paths = sorted(Path("configs/openfoam/external_aero_motorbike_rans_snappy").glob("*.yaml"))
+    assert paths
+    for path in paths:
+        config = load_case_config(path)
+        assert config["capability_id"] == "cfd.openfoam.external_aero_motorbike_rans_snappy"
+        assert config["solver"]["name"] == "simpleFoam"
+        assert config["mesh"]["generator"] == "blockMesh_surfaceFeatureExtract_snappyHexMesh"
+        assert config["function_objects"]["force_coefficients"]["enabled"] is True
+        assert config["function_objects"]["y_plus"]["required"] is True
+
+
+def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
+    config["unexpected"] = True
+
+    with pytest.raises(ValueError, match="unexpected"):
+        validate_case_config(config)
+
+
+def test_openfoam_c04_schema_rejects_wrong_solver() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
+    config["solver"] = {**config["solver"], "name": "pimpleFoam"}
+
+    with pytest.raises(ValueError, match="simpleFoam"):
+        validate_case_config(config)
+
+
+def test_openfoam_c04_schema_requires_mesh_quality_thresholds() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
+    config["mesh"] = {**config["mesh"], "quality": {**config["mesh"]["quality"]}}
+    del config["mesh"]["quality"]["max_skewness"]
+
+    with pytest.raises(ValueError, match="max_skewness"):
+        validate_case_config(config)
+
+
+def test_openfoam_c04_schema_requires_force_and_yplus_contracts() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
+    config["function_objects"] = {**config["function_objects"]}
+    del config["function_objects"]["force_coefficients"]
+
+    with pytest.raises(ValueError, match="force_coefficients"):
+        validate_case_config(config)
+
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
+    config["function_objects"] = {**config["function_objects"]}
+    del config["function_objects"]["y_plus"]
+
+    with pytest.raises(ValueError, match="y_plus"):
+        validate_case_config(config)
+
+
+def test_openfoam_c04_asset_records_package_skeleton_status() -> None:
+    asset = yaml.safe_load(Path("software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml").read_text(encoding="utf-8"))
+    assert asset["benchmark_status"] == "package_skeleton_created"
+    assert asset["card_status"] == "review"

@@ -17,6 +17,7 @@ from science_capability_registry.openfoam.backward_facing_step_rans_internal_flo
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step import run as run_openfoam_c08
 from science_capability_registry.openfoam.conjugate_heat_transfer_cooling import run as run_openfoam_c07
 from science_capability_registry.openfoam.dam_break_vof_free_surface import run as run_openfoam_c06
+from science_capability_registry.openfoam.external_aero_motorbike_rans_snappy import run as run_openfoam_c04
 from science_capability_registry.openfoam.lid_driven_cavity_incompressible_laminar import run as run_openfoam_c01
 from science_capability_registry.openfoam.transient_cylinder_vortex_shedding import run as run_openfoam_c05
 
@@ -34,6 +35,7 @@ RUNNERS: dict[str, Runner] = {
     "cfd.openfoam.lid_driven_cavity_incompressible_laminar": run_openfoam_c01,
     "cfd.openfoam.potential_flow_cylinder_analytical_validation": run_openfoam_c02,
     "cfd.openfoam.backward_facing_step_rans_internal_flow": run_openfoam_c03,
+    "cfd.openfoam.external_aero_motorbike_rans_snappy": run_openfoam_c04,
     "cfd.openfoam.transient_cylinder_vortex_shedding": run_openfoam_c05,
     "cfd.openfoam.dam_break_vof_free_surface": run_openfoam_c06,
     "cfd.openfoam.conjugate_heat_transfer_cooling": run_openfoam_c07,

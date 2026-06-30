@@ -138,6 +138,24 @@ evidence:
   scope: Local OpenFOAM C03 backward-facing step benchmark validation.
   limitations:
   - Native wallShearStress/yPlus parity is blocked by local v2112 sha1 IO behavior.
+- evidence_id: openfoam_C04_static_readiness_2026-06-30
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/openfoam_C04_external_aero_motorbike_rans_snappy_static_readiness.md
+  supporting_paths:
+  - configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml
+  - configs/openfoam/external_aero_motorbike_rans_snappy/inlet_speed_scaled.yaml
+  - schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runner.py
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/
+  scope: C04 schema, config, package entrypoint, dry-run manifest, motorBike geometry preparation, forceCoeffs contract, and y+ validation contract.
+  limitations:
+  - No snappyHexMesh, checkMesh, or simpleFoam runtime metrics have been promoted in this report.
+  - No Cd/Cl, forceCoeffs tail-window, mesh-quality, or y+ runtime evidence has been validated yet.
 - evidence_id: openfoam_C06_benchmark_validation
   capability_id: cfd.openfoam.dam_break_vof_free_surface
   asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml

@@ -1,0 +1,224 @@
+capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+case_id: baseline
+description: Dry-run official simpleFoam motorBike snappyHexMesh template contract for C04.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112
+  tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.3-motorbike
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - surfaceFeatureExtract
+  - blockMesh
+  - decomposePar
+  - snappyHexMesh
+  - topoSet
+  - patchSummary
+  - mpirun
+  - foamDictionary
+  - potentialFoam
+  - checkMesh
+  - simpleFoam
+  - reconstructParMesh
+  - reconstructPar
+  - postProcess
+backend:
+  type: dry_run_only
+  timeout_s: 420
+  parallel: true
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: simpleFoam
+  mode: steady_incompressible_RANS_external_aero
+  parallel_subdomains: 6
+  decompose_dict: system/decomposeParDict.6
+  command_sequence:
+  - surfaceFeatureExtract
+  - blockMesh
+  - decomposePar -decomposeParDict system/decomposeParDict.6
+  - mpirun -np 6 snappyHexMesh -overwrite -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun -np 6 topoSet -parallel -decomposeParDict system/decomposeParDict.6
+  - for d in processor*; do rm -rf "$d/0"; cp -r 0 "$d/0"; done
+  - mpirun -np 6 patchSummary -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun -np 6 potentialFoam -writephi -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun -np 6 checkMesh -writeFields '(nonOrthoAngle)' -constant -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun -np 6 simpleFoam -parallel -decomposeParDict system/decomposeParDict.6
+  - reconstructParMesh -constant
+  - reconstructPar -latestTime
+  - postProcess -latestTime -func yPlus
+template:
+  source_path: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/motorBike
+  copy_strategy: copy_official_tutorial_then_patch
+  zero_source_dir: 0.orig
+  geometry_resource_path: /opt/OpenFOAM-v2112/tutorials/resources/geometry/motorBike.obj.gz
+  geometry_target_path: constant/triSurface/motorBike.obj.gz
+  disabled_function_objects:
+  - streamLines
+  - wallBoundedStreamLines
+  - cuttingPlane
+  - ensightWrite
+geometry:
+  object_name: motorBike
+  surface_file: motorBike.obj.gz
+  reference_length_m: 1.42
+  reference_area_m2: 0.75
+  centre_of_rotation_m: [0.72, 0.0, 0.0]
+  drag_direction: [1.0, 0.0, 0.0]
+  lift_direction: [0.0, 0.0, 1.0]
+mesh:
+  generator: blockMesh_surfaceFeatureExtract_snappyHexMesh
+  workflow:
+  - surfaceFeatureExtract
+  - blockMesh
+  - decomposePar
+  - mpirun -np 6 snappyHexMesh -overwrite -parallel
+  - mpirun -np 6 topoSet -parallel
+  - mpirun -np 6 checkMesh -parallel
+  snappy:
+    castellated_mesh: true
+    snap: true
+    add_layers: true
+    surface_refinement_level: [5, 6]
+    feature_level: 6
+    refinement_box_level: 4
+    n_surface_layers: 1
+  quality:
+    min_face_weight: 0.02
+    max_non_orthogonality: 70.0
+    max_skewness: 4.0
+    max_aspect_ratio: 100.0
+    min_cell_count: 1000
+material:
+  density_kg_m3: 1.0
+  kinematic_viscosity_m2_s: 0.000015
+  inlet_velocity_m_s: 20.0
+turbulence:
+  model: kOmegaSST
+  turbulent_kinetic_energy_m2_s2: 0.24
+  specific_dissipation_rate_1_s: 1.78
+  wall_function_y_plus_min: 30.0
+  wall_function_y_plus_max: 300.0
+fields:
+  U:
+    dimensions: "[0 1 -1 0 0 0 0]"
+    internal: "uniform $flowVelocity"
+  p:
+    dimensions: "[0 2 -2 0 0 0 0]"
+    internal: "uniform $pressure"
+  k:
+    dimensions: "[0 2 -2 0 0 0 0]"
+    internal: "uniform $turbulentKE"
+  omega:
+    dimensions: "[0 0 -1 0 0 0 0]"
+    internal: "uniform $turbulentOmega"
+  nut:
+    dimensions: "[0 2 -1 0 0 0 0]"
+    internal: "uniform 0"
+boundary_conditions:
+  inlet:
+    U: fixedValue
+    p: zeroGradient
+    k: fixedValue
+    omega: fixedValue
+  outlet:
+    U: inletOutlet
+    p: fixedValue
+    k: inletOutlet
+    omega: inletOutlet
+  lowerWall:
+    U: fixedValue
+    p: zeroGradient
+    k: kqRWallFunction
+    omega: omegaWallFunction
+  motorBikeGroup:
+    U: noSlip
+    p: zeroGradient
+    k: kqRWallFunction
+    omega: omegaWallFunction
+  frontBackUpperPatches:
+    role: setConstraintTypes_include
+numerics:
+  control:
+    end_time_iterations: 500
+    write_interval: 100
+function_objects:
+  force_coefficients:
+    enabled: true
+    source_file: system/forceCoeffs
+    patches:
+    - motorBikeGroup
+    rho_source: rhoInf
+    coefficient_definition: C = F / (0.5 * rhoInf * magUInf^2 * Aref)
+  y_plus:
+    required: true
+    source_policy: native_yPlus_or_explicit_proxy
+  disabled_visualization:
+  - streamLines
+  - wallBoundedStreamLines
+  - cuttingPlane
+  - ensightWrite
+postprocess:
+  force_extraction_source: openfoam_forceCoeffs
+  force_tail_window_iterations: 100
+  required_metrics:
+  - mesh_quality_summary
+  - final_residuals
+  - Cd_tail_mean
+  - Cl_tail_mean
+  - y_plus_min_max_mean
+outputs:
+  output_dir: _results/openfoam/external_aero_motorbike_rans_snappy/baseline
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/0/k
+  - case/0/omega
+  - case/0/nut
+  - case/constant/triSurface/motorBike.obj.gz
+  - case/system/snappyHexMeshDict
+  - case/system/forceCoeffs
+  - case/system/meshQualityDict
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - logs/log.01_surfaceFeatureExtract
+  - logs/log.04_mpirun_-np_6_snappyHexMesh_-overwrite_-parallel_-decomposeParDict_system_decomposeParDict.6
+  - logs/log.09_mpirun_-np_6_checkMesh_-writeFields_nonOrthoAngle_-constant_-parallel_-decomposeParDict_system_d
+  - logs/log.10_mpirun_-np_6_simpleFoam_-parallel_-decomposeParDict_system_decomposeParDict.6
+  - logs/log.13_postProcess_-latestTime_-func_yPlus
+  - postprocess/force_coefficients.csv
+  - postprocess/yplus_summary.csv
+validation:
+  gate: static-readiness
+  max_final_residual: 0.001
+  max_force_coefficient_std: 0.05
+  max_y_plus: 300.0
+  min_y_plus: 30.0
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/0/k
+  - case/0/omega
+  - case/0/nut
+  - case/constant/triSurface/motorBike.obj.gz
+  - case/system/snappyHexMeshDict
+  - case/system/forceCoeffs
+  - case/system/meshQualityDict
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - postprocess_commands
+  - expected_outputs
+  - validation_targets
+  - function_objects
+  matrix_role: baseline
+  expected_trend:
+    description: Static contract reference for C04 motorBike snappyHexMesh external-aero validation.

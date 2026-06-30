@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: OpenFOAM C04 motorBike external-aero RANS snappy run config.",
+  "title": "OpenFOAM C04 External Aero Motorbike RANS Snappy Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "openfoam",
+    "backend",
+    "solver",
+    "template",
+    "geometry",
+    "mesh",
+    "material",
+    "turbulence",
+    "fields",
+    "boundary_conditions",
+    "numerics",
+    "function_objects",
+    "postprocess",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.openfoam.external_aero_motorbike_rans_snappy"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "openfoam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distribution", "version", "runtime_profile", "tutorial_path", "source_url", "bashrc_path", "case_layout", "required_executables"],
+      "properties": {
+        "distribution": {"enum": ["openfoam_com", "openfoam_foundation", "openfoam_dev", "unknown"]},
+        "version": {"type": "string"},
+        "runtime_profile": {"type": "string"},
+        "tutorial_path": {"type": "string"},
+        "source_url": {"type": "string"},
+        "bashrc_path": {"type": "string"},
+        "case_layout": {"const": "single_region"},
+        "required_executables": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "wsl"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0},
+        "parallel": {"type": "boolean"},
+        "wsl_distro": {"type": "string"}
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "mode", "command_sequence", "parallel_subdomains", "decompose_dict"],
+      "properties": {
+        "name": {"const": "simpleFoam"},
+        "mode": {"const": "steady_incompressible_RANS_external_aero"},
+        "command_sequence": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "parallel_subdomains": {"type": "integer", "minimum": 1},
+        "decompose_dict": {"type": "string"}
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "copy_strategy", "zero_source_dir", "geometry_resource_path", "geometry_target_path", "disabled_function_objects"],
+      "properties": {
+        "source_path": {"type": "string"},
+        "copy_strategy": {"const": "copy_official_tutorial_then_patch"},
+        "zero_source_dir": {"const": "0.orig"},
+        "geometry_resource_path": {"type": "string"},
+        "geometry_target_path": {"type": "string"},
+        "disabled_function_objects": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_name", "surface_file", "reference_length_m", "reference_area_m2", "centre_of_rotation_m", "drag_direction", "lift_direction"],
+      "properties": {
+        "object_name": {"const": "motorBike"},
+        "surface_file": {"const": "motorBike.obj.gz"},
+        "reference_length_m": {"type": "number", "exclusiveMinimum": 0},
+        "reference_area_m2": {"type": "number", "exclusiveMinimum": 0},
+        "centre_of_rotation_m": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+        "drag_direction": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+        "lift_direction": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3}
+      }
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator", "workflow", "snappy", "quality"],
+      "properties": {
+        "generator": {"const": "blockMesh_surfaceFeatureExtract_snappyHexMesh"},
+        "workflow": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "snappy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["castellated_mesh", "snap", "add_layers", "surface_refinement_level", "feature_level", "refinement_box_level", "n_surface_layers"],
+          "properties": {
+            "castellated_mesh": {"type": "boolean"},
+            "snap": {"type": "boolean"},
+            "add_layers": {"type": "boolean"},
+            "surface_refinement_level": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2, "maxItems": 2},
+            "feature_level": {"type": "integer", "minimum": 0},
+            "refinement_box_level": {"type": "integer", "minimum": 0},
+            "n_surface_layers": {"type": "integer", "minimum": 0}
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min_face_weight", "max_non_orthogonality", "max_skewness", "max_aspect_ratio", "min_cell_count"],
+          "properties": {
+            "min_face_weight": {"type": "number", "minimum": 0},
+            "max_non_orthogonality": {"type": "number", "exclusiveMinimum": 0},
+            "max_skewness": {"type": "number", "exclusiveMinimum": 0},
+            "max_aspect_ratio": {"type": "number", "exclusiveMinimum": 0},
+            "min_cell_count": {"type": "integer", "minimum": 1}
+          }
+        }
+      }
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["density_kg_m3", "kinematic_viscosity_m2_s", "inlet_velocity_m_s"],
+      "properties": {
+        "density_kg_m3": {"type": "number", "exclusiveMinimum": 0},
+        "kinematic_viscosity_m2_s": {"type": "number", "exclusiveMinimum": 0},
+        "inlet_velocity_m_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "turbulence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "turbulent_kinetic_energy_m2_s2", "specific_dissipation_rate_1_s", "wall_function_y_plus_min", "wall_function_y_plus_max"],
+      "properties": {
+        "model": {"const": "kOmegaSST"},
+        "turbulent_kinetic_energy_m2_s2": {"type": "number", "minimum": 0},
+        "specific_dissipation_rate_1_s": {"type": "number", "exclusiveMinimum": 0},
+        "wall_function_y_plus_min": {"type": "number", "minimum": 0},
+        "wall_function_y_plus_max": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["U", "p", "k", "omega", "nut"],
+      "properties": {
+        "U": {"$ref": "#/$defs/field"},
+        "p": {"$ref": "#/$defs/field"},
+        "k": {"$ref": "#/$defs/field"},
+        "omega": {"$ref": "#/$defs/field"},
+        "nut": {"$ref": "#/$defs/field"}
+      }
+    },
+    "boundary_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inlet", "outlet", "lowerWall", "motorBikeGroup", "frontBackUpperPatches"],
+      "properties": {
+        "inlet": {"type": "object", "additionalProperties": {"type": "string"}},
+        "outlet": {"type": "object", "additionalProperties": {"type": "string"}},
+        "lowerWall": {"type": "object", "additionalProperties": {"type": "string"}},
+        "motorBikeGroup": {"type": "object", "additionalProperties": {"type": "string"}},
+        "frontBackUpperPatches": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    },
+    "numerics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control"],
+      "properties": {
+        "control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["end_time_iterations", "write_interval"],
+          "properties": {
+            "end_time_iterations": {"type": "number", "exclusiveMinimum": 0},
+            "write_interval": {"type": "integer", "minimum": 1}
+          }
+        }
+      }
+    },
+    "function_objects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["force_coefficients", "y_plus", "disabled_visualization"],
+      "properties": {
+        "force_coefficients": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "source_file", "patches", "rho_source", "coefficient_definition"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "source_file": {"const": "system/forceCoeffs"},
+            "patches": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "rho_source": {"const": "rhoInf"},
+            "coefficient_definition": {"type": "string"}
+          }
+        },
+        "y_plus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "source_policy"],
+          "properties": {
+            "required": {"type": "boolean"},
+            "source_policy": {"enum": ["native_yPlus_or_explicit_proxy"]}
+          }
+        },
+        "disabled_visualization": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "postprocess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["force_extraction_source", "force_tail_window_iterations", "required_metrics"],
+      "properties": {
+        "force_extraction_source": {"enum": ["openfoam_forceCoeffs", "python_proxy_explicitly_marked"]},
+        "force_tail_window_iterations": {"type": "integer", "minimum": 1},
+        "required_metrics": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "retain_generated_case", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "retain_generated_case": {"type": "boolean"},
+        "expected_outputs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "max_final_residual", "max_force_coefficient_std", "max_y_plus", "min_y_plus", "required_generated_files", "required_manifest_sections", "matrix_role", "expected_trend"],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "max_final_residual": {"type": "number", "exclusiveMinimum": 0},
+        "max_force_coefficient_std": {"type": "number", "minimum": 0},
+        "max_y_plus": {"type": "number", "exclusiveMinimum": 0},
+        "min_y_plus": {"type": "number", "minimum": 0},
+        "required_generated_files": {"type": "array", "items": {"type": "string"}},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
+        "matrix_role": {"enum": ["baseline", "snappy_refinement_level_changed", "inlet_speed_scaled", "yaw_or_crossflow_optional"]},
+        "compare_to": {"type": "string"},
+        "expected_trend": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["description"],
+          "properties": {"description": {"type": "string"}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimensions", "internal"],
+      "properties": {
+        "dimensions": {"type": "string"},
+        "internal": {"type": "string"}
+      }
+    }
+  }
+}

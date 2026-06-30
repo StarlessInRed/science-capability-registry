@@ -14,18 +14,33 @@ executable_bindings:
   compressible_shock_transient: rhoCentralFoam
   incompressible_laminar_pimple_transient: pimpleFoam
   incompressible_rans_steady: simpleFoam
+  external_aero_rans_steady: simpleFoam
   vof_free_surface_transient: interFoam
   mesh_block: blockMesh
   mesh_snappy: snappyHexMesh
+  mesh_feature_extract: surfaceFeatureExtract
   mesh_mirror: mirrorMesh
   mesh_check: checkMesh
+  mesh_topology_sets: topoSet
+  mesh_reconstruct: reconstructParMesh
+  field_reconstruct: reconstructPar
+  parallel_decompose: decomposePar
+  parallel_launcher: mpirun
+  dictionary_query: foamDictionary
   field_initializer: setFields
   postprocess_driver: postProcess
 required_executables:
 - blockMesh
 - snappyHexMesh
+- surfaceFeatureExtract
 - mirrorMesh
 - decomposePar
+- reconstructParMesh
+- reconstructPar
+- topoSet
+- patchSummary
+- mpirun
+- foamDictionary
 - renumberMesh
 - redistributePar
 - checkMesh
@@ -41,6 +56,7 @@ tutorial_roots:
   c01_lid_driven_cavity: /opt/OpenFOAM-v2112/tutorials/incompressible/icoFoam/cavity/cavity
   c02_potential_cylinder: /opt/OpenFOAM-v2112/tutorials/basic/potentialFoam/cylinder
   c03_pitz_daily: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/pitzDaily
+  c04_motorbike: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/motorBike
   c05_cylinder2d: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   c06_dam_break: /opt/OpenFOAM-v2112/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
   c08_forward_step: /opt/OpenFOAM-v2112/tutorials/compressible/rhoCentralFoam/forwardStep
