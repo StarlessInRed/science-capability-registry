@@ -1,0 +1,240 @@
+{
+  "capability_id": "combustion.cantera.constant_pressure_ignition",
+  "case_id": "baseline",
+  "summary": {
+    "time_point_count": 162,
+    "end_time_s": 0.001006286651398749,
+    "initial_temperature_k": 1001.0,
+    "final_temperature_k": 2665.6598489389216,
+    "temperature_rise_k": 1664.6598489389216,
+    "ignition_delay_s": 0.00031501152054322335,
+    "ignition_delay_method": "max_temperature_derivative",
+    "max_temperature_derivative_k_s": 68580309.15212761,
+    "max_temperature_derivative_time_s": 0.00031501152054322335,
+    "max_temperature_derivative_index": 51,
+    "max_temperature_step_k": 20.00000000038085,
+    "oh_peak_time_s": 0.00037294797796108705,
+    "oh_peak_mole_fraction": 0.023870730041095623,
+    "oh_peak_index": 93,
+    "initial_pressure_pa": 101325.00000000001,
+    "final_pressure_pa": 101325.00000000003,
+    "max_pressure_relative_error": 2.872324742830861e-16,
+    "species_bounds": {
+      "OH": {
+        "min": 0.0,
+        "max": 0.023870730041095623,
+        "finite": true
+      },
+      "H": {
+        "min": 0.0,
+        "max": 0.0879118867435673,
+        "finite": true
+      },
+      "H2": {
+        "min": 0.03225801640683232,
+        "max": 0.2857142857142857,
+        "finite": true
+      },
+      "O2": {
+        "min": 0.01189156926051413,
+        "max": 0.14285714285714285,
+        "finite": true
+      },
+      "H2O": {
+        "min": 0.0,
+        "max": 0.2772296618604889,
+        "finite": true
+      }
+    }
+  },
+  "validation": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "profile.present",
+        "passed": true,
+        "details": "Metrics include raw time-series profile."
+      },
+      {
+        "name": "profile.equal_lengths",
+        "passed": true,
+        "details": "Profile column lengths: {'time_s': 162, 'time_ms': 162, 'temperature_k': 162, 'pressure_pa': 162, 'internal_energy_j_kg': 162, 'enthalpy_j_kg': 162, 'X_OH': 162, 'X_H': 162, 'X_H2': 162, 'X_O2': 162, 'X_H2O': 162}."
+      },
+      {
+        "name": "profile.column.time_s",
+        "passed": true,
+        "details": "Column time_s length is 162."
+      },
+      {
+        "name": "profile.column.time_ms",
+        "passed": true,
+        "details": "Column time_ms length is 162."
+      },
+      {
+        "name": "profile.column.temperature_k",
+        "passed": true,
+        "details": "Column temperature_k length is 162."
+      },
+      {
+        "name": "profile.column.pressure_pa",
+        "passed": true,
+        "details": "Column pressure_pa length is 162."
+      },
+      {
+        "name": "profile.column.internal_energy_j_kg",
+        "passed": true,
+        "details": "Column internal_energy_j_kg length is 162."
+      },
+      {
+        "name": "profile.column.enthalpy_j_kg",
+        "passed": true,
+        "details": "Column enthalpy_j_kg length is 162."
+      },
+      {
+        "name": "profile.column.X_OH",
+        "passed": true,
+        "details": "Column X_OH length is 162."
+      },
+      {
+        "name": "profile.column.X_H",
+        "passed": true,
+        "details": "Column X_H length is 162."
+      },
+      {
+        "name": "profile.column.X_H2",
+        "passed": true,
+        "details": "Column X_H2 length is 162."
+      },
+      {
+        "name": "profile.column.X_O2",
+        "passed": true,
+        "details": "Column X_O2 length is 162."
+      },
+      {
+        "name": "profile.column.X_H2O",
+        "passed": true,
+        "details": "Column X_H2O length is 162."
+      },
+      {
+        "name": "profile.time_monotonic",
+        "passed": true,
+        "details": "time_s is strictly increasing."
+      },
+      {
+        "name": "integration.max_time_step",
+        "passed": true,
+        "details": "Maximum saved time step is 1.00931e-05 s."
+      },
+      {
+        "name": "integration.time_points",
+        "passed": true,
+        "details": "Time point count is 162."
+      },
+      {
+        "name": "integration.end_time",
+        "passed": true,
+        "details": "End time is 0.00100629 s for requested 0.001 s."
+      },
+      {
+        "name": "temperature.initial_matches_config",
+        "passed": true,
+        "details": "Initial profile temperature is 1001 K."
+      },
+      {
+        "name": "temperature.final_reference_range",
+        "passed": true,
+        "details": "Expected 2500.0 K <= final <= 3200.0 K; got 2665.66 K."
+      },
+      {
+        "name": "temperature.rise",
+        "passed": true,
+        "details": "Temperature rise is 1664.66 K."
+      },
+      {
+        "name": "ignition_delay.finite_positive",
+        "passed": true,
+        "details": "Ignition delay is 0.000315012 s."
+      },
+      {
+        "name": "ignition_delay.reference_range",
+        "passed": true,
+        "details": "Expected 1e-05 s <= tau <= 0.001 s; got 0.000315012 s."
+      },
+      {
+        "name": "temperature.max_derivative_positive",
+        "passed": true,
+        "details": "Maximum dT/dt is 6.85803e+07 K/s."
+      },
+      {
+        "name": "temperature.advance_limit",
+        "passed": true,
+        "details": "Maximum saved temperature step is 20 K."
+      },
+      {
+        "name": "pressure.constant",
+        "passed": true,
+        "details": "Maximum relative pressure error is 2.87232e-16."
+      },
+      {
+        "name": "ignition_delay.method",
+        "passed": true,
+        "details": "Summary method is max_temperature_derivative."
+      },
+      {
+        "name": "ignition_delay.not_boundary",
+        "passed": true,
+        "details": "Ignition index is 51 in 162 saved points."
+      },
+      {
+        "name": "species_bounds.OH",
+        "passed": true,
+        "details": "OH mole fraction range is [0, 0.0238707]."
+      },
+      {
+        "name": "species_bounds.H",
+        "passed": true,
+        "details": "H mole fraction range is [0, 0.0879119]."
+      },
+      {
+        "name": "species_bounds.H2",
+        "passed": true,
+        "details": "H2 mole fraction range is [0.032258, 0.285714]."
+      },
+      {
+        "name": "species_bounds.O2",
+        "passed": true,
+        "details": "O2 mole fraction range is [0.0118916, 0.142857]."
+      },
+      {
+        "name": "species_bounds.H2O",
+        "passed": true,
+        "details": "H2O mole fraction range is [0, 0.27723]."
+      },
+      {
+        "name": "artifact.ignition_profile.csv",
+        "passed": true,
+        "details": "Artifact path: E:\\Projects\\science-capability-registry\\_results\\cantera\\c01_constant_pressure_ignition\\baseline\\ignition_profile.csv"
+      },
+      {
+        "name": "artifact.ignition_temperature_species.png",
+        "passed": true,
+        "details": "Artifact path: E:\\Projects\\science-capability-registry\\_results\\cantera\\c01_constant_pressure_ignition\\baseline\\ignition_temperature_species.png"
+      },
+      {
+        "name": "artifact.ignition_run.log",
+        "passed": true,
+        "details": "Artifact path: E:\\Projects\\science-capability-registry\\_results\\cantera\\c01_constant_pressure_ignition\\baseline\\ignition_run.log"
+      },
+      {
+        "name": "artifact.metrics.json",
+        "passed": true,
+        "details": "Artifact path: E:\\Projects\\science-capability-registry\\_results\\cantera\\c01_constant_pressure_ignition\\baseline\\metrics.json"
+      },
+      {
+        "name": "artifact.validation_report.md",
+        "passed": true,
+        "details": "Artifact path: E:\\Projects\\science-capability-registry\\_results\\cantera\\c01_constant_pressure_ignition\\baseline\\validation_report.md"
+      }
+    ]
+  }
+}

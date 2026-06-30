@@ -1,0 +1,34 @@
+{
+  "benchmark_id": "cantera_c01_constant_pressure_ignition",
+  "capability_id": "combustion.cantera.constant_pressure_ignition",
+  "description": "0D constant-pressure adiabatic hydrogen ignition baseline replay benchmark.",
+  "solver": "Cantera",
+  "case_type": "IdealGasConstPressureReactor",
+  "source_asset": "software/cantera/assets/C01_constant_pressure_ignition.yaml",
+  "reference_config": "reference_config.yaml",
+  "expected_behavior": {
+    "reactor_model": "ideal_gas_constant_pressure",
+    "mechanism": "h2o2.yaml",
+    "pressure_invariance": true,
+    "ignition_delay_method": "max_temperature_derivative"
+  },
+  "metrics": [
+    "ignition_delay_s",
+    "final_temperature_k",
+    "temperature_rise_k",
+    "max_pressure_relative_error",
+    "time_point_count",
+    "profile_column_integrity"
+  ],
+  "reference_outputs": {
+    "metrics_summary": "reference_outputs/metrics_summary.json",
+    "profile_csv": "reference_outputs/ignition_profile.csv",
+    "solver_log": "reference_outputs/ignition_run.log",
+    "validation_report": "reference_outputs/validation_report.md"
+  },
+  "v4_memory_tags": {
+    "benchmark": "cantera_ignition",
+    "solver": "Cantera",
+    "reproducibility_target": "confirmed"
+  }
+}

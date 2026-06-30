@@ -1,0 +1,45 @@
+{
+  "status_rules": {
+    "required_evidence_status": "complete",
+    "required_solver_backend": "Cantera",
+    "required_convergence_status": "converged",
+    "required_validation_passed": true
+  },
+  "metric_rules": {
+    "summary_abs_tolerances": {
+      "ignition_delay_s": 1e-12,
+      "final_temperature_k": 1e-08,
+      "temperature_rise_k": 1e-08,
+      "max_temperature_derivative_k_s": 0.001,
+      "max_temperature_step_k": 1e-09,
+      "max_pressure_relative_error": 1e-18,
+      "oh_peak_mole_fraction": 1e-12
+    },
+    "summary_exact_fields": [
+      "time_point_count",
+      "ignition_delay_method"
+    ]
+  },
+  "profile_rules": {
+    "row_count_tolerance": 0,
+    "component_abs_tolerance": 1e-12,
+    "required_columns": [
+      "time_s",
+      "temperature_k",
+      "pressure_pa",
+      "X_OH",
+      "X_H",
+      "X_H2",
+      "X_O2",
+      "X_H2O"
+    ]
+  },
+  "artifact_rules": {
+    "required_evidence_artifacts": [
+      "metrics.json",
+      "ignition_profile.csv",
+      "ignition_run.log",
+      "validation_report.md"
+    ]
+  }
+}

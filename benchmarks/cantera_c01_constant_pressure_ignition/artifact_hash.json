@@ -1,0 +1,12 @@
+{
+  "frozen_reference_artifacts": {
+    "benchmark_manifest.json": "6d149b5632a26b9eb60a3d808d8ba56ea225308ac62d7bd9150c8b11749b81d9",
+    "expected_metrics.json": "48a0b63243c21a77361da04ca8ad25079966e7bf93057df4ea039dea7503c436",
+    "reference_config.yaml": "876cdbc217cd717e690da62e5b760d9de8182afa0280d78b95e5a496e711c49e",
+    "reference_outputs/ignition_profile.csv": "d96249afbf2df1b984f6d829f944f1618f0b418e3cfa6ac35dbab4ff0c48890c",
+    "reference_outputs/ignition_run.log": "0031464f5b3af8327ccc8929842a2e3f6301745361f8191c8392be1fc1f14631",
+    "reference_outputs/metrics_summary.json": "b87eb2589e79bac29d64d5738f55b7d78aaee047ddfe84ade25463f6b20c2391",
+    "reference_outputs/validation_report.md": "73b3ea5e56db7738960d2b11418fe9903969b370217ff332804b307a7d7b4c53",
+    "validation_criteria.json": "f37eb47f33dacd528920e1ad455056f6a0f1a90d92669b756a71303ff4d8ea50"
+  }
+}
