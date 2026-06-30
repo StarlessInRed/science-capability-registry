@@ -1,0 +1,85 @@
+asset_id: C01_parametric_geometry_mesh_generation
+software: Gmsh
+source_url: https://gmsh.info/doc/texinfo/gmsh.html
+domain: meshing
+capability_name: parametric geometry and mesh generation
+problem_type:
+  category: parametric CAD-to-mesh preprocessing
+  description: Generate reproducible 2D/3D finite-element or finite-volume-ready meshes from a parameterized Gmsh geometry script, including named physical groups for downstream solver boundary conditions.
+physics:
+  model_class:
+  - geometry definition and discretization preprocessing
+  - physical group tagging for solver boundary-condition mapping
+  - mesh-size control and elementary entity construction
+  governing_parameters:
+    geometry_parameters:
+    - characteristic lengths
+    - points, curves, curve loops, and surfaces
+    - extrusion or volume construction when 3D is required
+    mesh_parameters:
+    - element size fields
+    - dimensionality
+    - element order
+    - recombination or transfinite constraints when requested
+  canonical_example:
+    source_name: Gmsh official tutorial t1.geo
+    role: Minimal evidence for points, lines, curve loops, plane surfaces, physical groups, and deterministic mesh generation.
+inputs:
+  run_schema_targets:
+  - geometry_script_template
+  - scalar_geometry_parameters
+  - physical_groups
+  - mesh_dimension
+  - mesh_size_controls
+  - element_order
+  - output_format
+  - quality_thresholds
+  future_baseline_case:
+    geometry_family: parameterized 2D plate or channel obstacle
+    required_physical_groups:
+    - inlet
+    - outlet
+    - wall
+    - fluid_or_solid_domain
+outputs:
+  required_fields:
+  - generated_geo_file
+  - generated_mesh_file
+  - physical_group_map
+  - mesh_element_counts
+  - mesh_quality_summary
+  - reproducibility_manifest
+  required_artifacts:
+  - case.geo
+  - case.msh
+  - mesh_summary.json
+  - validation.json
+  - validation_report.md
+benchmark:
+  source_name: Gmsh official reference manual and tutorial t1.geo
+  source_type: official documentation and official tutorial
+  source_paths:
+  - https://gmsh.info/doc/texinfo/gmsh.html
+  - https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/tutorials/t1.geo
+  benchmark_role: Benchmark candidate for a reusable parametric mesh-generation capability that emits solver-ready mesh files with explicit physical-group contracts.
+  status_rationale: The repository has not yet implemented a Gmsh run schema, generator, metrics extraction, mesh-quality validation, or downstream solver import smoke test. This card therefore records capability evidence only.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json and remain benchmark_candidate until local mesh generation evidence exists.
+- Future schema must expose geometry parameters, physical groups, mesh dimension, mesh-size controls, element order, output format, and quality thresholds.
+- Generated mesh must include all required physical groups and must reject missing or renamed boundary groups.
+- Mesh quality summary must report element counts, minimum quality proxy, maximum skewness or equivalent quality metric, and nonfinite coordinate detection.
+- Repeated runs from the same config must produce a deterministic manifest and stable physical-group mapping.
+- Downstream solver integration must be validated by at least one import or conversion smoke test before promotion beyond benchmark_candidate.
+integration_targets:
+  package_entrypoint: science_capability_registry.gmsh.parametric_geometry_mesh_generation:run
+  input_schema: schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json
+  workflow_stage: meshing.gmsh.parametric_geometry_mesh_generation
+  runtime_target: _results/gmsh/parametric_geometry_mesh_generation/
+intern_deliverables:
+- Create a strict Gmsh C01 run schema and baseline config only after this asset boundary is accepted.
+- Implement config-first generation of a `.geo` file from explicit geometry and physical-group parameters.
+- Run Gmsh in a controlled local runtime profile and export `.msh` plus a machine-readable mesh summary.
+- Validate physical groups, element counts, coordinate finiteness, basic mesh-quality thresholds, and artifact completeness.
+- Add a downstream import smoke test or conversion path before claiming solver-ready integration.
+card_status: review
+benchmark_status: benchmark_candidate

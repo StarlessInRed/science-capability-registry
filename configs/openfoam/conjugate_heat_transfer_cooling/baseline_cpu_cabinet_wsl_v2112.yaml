@@ -31,7 +31,7 @@ solver:
   name: chtMultiRegionSimpleFoam
   mode: steady_multi_region_CHT
   command_sequence:
-  - mpirun -np 10 chtMultiRegionSimpleFoam -parallel
+  - mpirun --oversubscribe -np 10 chtMultiRegionSimpleFoam -parallel
 template:
   source_profile_key: c07_cpu_cabinet
   source_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
@@ -53,9 +53,9 @@ mesh_workflow:
   - snappyHexMesh -overwrite
   - decomposePar
   - restore0Dir -processor
-  - mpirun -np 10 splitMeshRegions -cellZones -overwrite -parallel
-  - mpirun -np 10 topoSet -region domain0 -parallel
-  - mpirun -np 10 checkMesh -allRegions -constant -parallel
+  - mpirun --oversubscribe -np 10 splitMeshRegions -cellZones -overwrite -parallel
+  - mpirun --oversubscribe -np 10 topoSet -region domain0 -parallel
+  - mpirun --oversubscribe -np 10 checkMesh -allRegions -constant -parallel
   required_generated_files:
   - case/constant/triSurface/Cabinet_withMesh.obj.gz
   - case/constant/triSurface/MRF_region.obj.gz

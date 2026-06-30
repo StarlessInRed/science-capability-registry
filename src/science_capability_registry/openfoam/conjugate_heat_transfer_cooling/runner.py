@@ -17,6 +17,7 @@ from science_capability_registry.openfoam.template_case import (
 )
 
 from .config import load_case_config, repo_relative_path, validate_case_config
+from .runtime import build_runtime_metrics, execute_wsl_runtime, validate_runtime_metrics, write_runtime_report
 from .validation import validate_manifest
 
 
@@ -219,7 +220,30 @@ def run(
     backend_type = config["backend"]["type"]
     if backend_type == "dry_run_only":
         raise ValueError("OpenFOAM C07 dry_run_only backend requires dry_run=True.")
-    raise NotImplementedError("OpenFOAM C07 runtime smoke is intentionally deferred until the dry-run contract is accepted.")
+    if backend_type != "wsl":
+        raise NotImplementedError(f"OpenFOAM C07 backend {backend_type!r} is not implemented.")
+
+    manifest["scope"] = "local WSL OpenFOAM runtime smoke for cpuCabinet multi-region CHT template case"
+    runtime = execute_wsl_runtime(config, resolved_output_dir)
+    metrics = build_runtime_metrics(config, resolved_output_dir, runtime)
+    metrics_path = resolved_output_dir / "metrics.json"
+    metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    validation = validate_runtime_metrics(metrics, config, resolved_output_dir)
+    validation_path = resolved_output_dir / "validation.json"
+    validation_path.write_text(json.dumps(validation, indent=2), encoding="utf-8")
+    write_runtime_report(config, metrics, validation, resolved_output_dir)
+    manifest["runtime"] = {
+        "backend": runtime["backend"],
+        "wsl_distro": runtime["wsl_distro"],
+        "bashrc_path": runtime["bashrc_path"],
+        "profile_env": runtime["profile_env"],
+        "commands": runtime["commands"],
+        "metrics_json": str(metrics_path),
+        "validation_json": str(validation_path),
+    }
+    manifest["validation"] = validation
+    (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    return manifest
 
 
 def run_from_config(config_path: str | Path, output_dir: str | Path | None = None) -> dict[str, Any]:

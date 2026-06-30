@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: OpenFOAM C05 transient cylinder vortex-shedding run config.",
+  "title": "OpenFOAM C05 Transient Cylinder Vortex Shedding Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "openfoam",
+    "backend",
+    "solver",
+    "template",
+    "geometry",
+    "mesh",
+    "material",
+    "fields",
+    "numerics",
+    "function_objects",
+    "postprocess",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.openfoam.transient_cylinder_vortex_shedding"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "openfoam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distribution", "version", "runtime_profile", "tutorial_path", "source_url", "bashrc_path", "case_layout", "required_executables"],
+      "properties": {
+        "distribution": {"enum": ["openfoam_com"]},
+        "version": {"type": "string"},
+        "runtime_profile": {"const": "openfoam_com_v2112"},
+        "tutorial_path": {"type": "string"},
+        "source_url": {"type": "string"},
+        "bashrc_path": {"type": "string"},
+        "case_layout": {"const": "single_region"},
+        "required_executables": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s", "parallel", "wsl_distro"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "wsl"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0},
+        "parallel": {"type": "boolean"},
+        "wsl_distro": {"type": "string"}
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "mode", "command_sequence"],
+      "properties": {
+        "name": {"const": "pimpleFoam"},
+        "mode": {"const": "transient_incompressible_laminar"},
+        "command_sequence": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "copy_strategy", "disabled_function_objects"],
+      "properties": {
+        "source_path": {"type": "string"},
+        "copy_strategy": {"const": "copy_official_tutorial_then_patch"},
+        "disabled_function_objects": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cylinder_diameter_m", "cylinder_center_m", "domain_bounds_m", "two_dimensional_thickness_m", "patch_roles"],
+      "properties": {
+        "cylinder_diameter_m": {"type": "number", "exclusiveMinimum": 0},
+        "cylinder_center_m": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "domain_bounds_m": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x_min", "x_max", "y_min", "y_max"],
+          "properties": {
+            "x_min": {"type": "number"},
+            "x_max": {"type": "number"},
+            "y_min": {"type": "number"},
+            "y_max": {"type": "number"}
+          }
+        },
+        "two_dimensional_thickness_m": {"type": "number", "exclusiveMinimum": 0},
+        "patch_roles": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator", "template_dictionaries", "front_back_patch_type", "workflow"],
+      "properties": {
+        "generator": {"const": "blockMesh_snappyHexMesh_mirrorMesh"},
+        "template_dictionaries": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "front_back_patch_type": {"const": "empty"},
+        "workflow": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["density_kg_m3", "kinematic_viscosity_m2_s", "inlet_velocity_m_s", "reynolds_number_D"],
+      "properties": {
+        "density_kg_m3": {"type": "number", "exclusiveMinimum": 0},
+        "kinematic_viscosity_m2_s": {"type": "number", "exclusiveMinimum": 0},
+        "inlet_velocity_m_s": {"type": "number", "exclusiveMinimum": 0},
+        "reynolds_number_D": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["velocity_field", "pressure_field", "initial_velocity_m_s", "initial_pressure_m2_s2"],
+      "properties": {
+        "velocity_field": {"const": "U"},
+        "pressure_field": {"const": "p"},
+        "initial_velocity_m_s": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+        "initial_pressure_m2_s2": {"type": "number"}
+      }
+    },
+    "numerics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control", "pimple"],
+      "properties": {
+        "control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["end_time_s", "delta_t_s", "write_interval_s", "max_courant"],
+          "properties": {
+            "end_time_s": {"type": "number", "exclusiveMinimum": 0},
+            "delta_t_s": {"type": "number", "exclusiveMinimum": 0},
+            "write_interval_s": {"type": "number", "exclusiveMinimum": 0},
+            "max_courant": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "pimple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["n_outer_correctors", "n_correctors", "n_non_orthogonal_correctors"],
+          "properties": {
+            "n_outer_correctors": {"type": "integer", "minimum": 1},
+            "n_correctors": {"type": "integer", "minimum": 1},
+            "n_non_orthogonal_correctors": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "function_objects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["force_coefficients"],
+      "properties": {
+        "force_coefficients": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "patches", "rho_inf_kg_m3", "lift_dir", "drag_dir"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "patches": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "rho_inf_kg_m3": {"type": "number", "exclusiveMinimum": 0},
+            "lift_dir": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+            "drag_dir": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3}
+          }
+        }
+      }
+    },
+    "postprocess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["force_coefficients", "lift_drag_time_series", "strouhal_estimate"],
+      "properties": {
+        "force_coefficients": {"type": "boolean"},
+        "lift_drag_time_series": {"type": "boolean"},
+        "strouhal_estimate": {"type": "boolean"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "retain_generated_case", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "retain_generated_case": {"type": "boolean"},
+        "expected_outputs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "max_courant", "max_final_residual", "force_coefficients_required", "strouhal_target_range", "required_generated_files", "required_manifest_sections", "matrix_role", "expected_trend"],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "max_courant": {"type": "number", "exclusiveMinimum": 0},
+        "max_final_residual": {"type": "number", "exclusiveMinimum": 0},
+        "force_coefficients_required": {"type": "boolean"},
+        "strouhal_target_range": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "required_generated_files": {"type": "array", "items": {"type": "string"}},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
+        "matrix_role": {"enum": ["baseline", "mesh_refinement", "time_step_sensitivity", "reynolds_sensitivity"]},
+        "expected_trend": {"type": "object", "additionalProperties": true, "required": ["description"], "properties": {"description": {"type": "string"}}}
+      }
+    }
+  }
+}

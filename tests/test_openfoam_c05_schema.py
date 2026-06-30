@@ -1,0 +1,57 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+import yaml
+from jsonschema import Draft202012Validator
+
+
+SCHEMA_PATH = Path("schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json")
+CONFIG_PATH = Path("configs/openfoam/transient_cylinder_vortex_shedding/baseline_cylinder2d.yaml")
+ASSET_PATH = Path("software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml")
+TASK_PATH = Path("tasks/openfoam_C05_transient_cylinder_vortex_shedding_intern_task.md")
+
+
+def _schema() -> dict:
+    return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def _config() -> dict:
+    return yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
+
+
+def test_openfoam_c05_baseline_config_matches_schema() -> None:
+    validator = Draft202012Validator(_schema())
+    errors = sorted(validator.iter_errors(_config()), key=lambda error: list(error.path))
+    assert not errors, [error.message for error in errors]
+
+
+def test_openfoam_c05_schema_rejects_untracked_top_level_key() -> None:
+    config = _config()
+    config["hidden_choice"] = True
+
+    errors = list(Draft202012Validator(_schema()).iter_errors(config))
+
+    assert errors
+    assert any("Additional properties" in error.message for error in errors)
+
+
+def test_openfoam_c05_assets_remain_benchmark_candidate() -> None:
+    asset = yaml.safe_load(ASSET_PATH.read_text(encoding="utf-8"))
+    task_text = TASK_PATH.read_text(encoding="utf-8")
+
+    assert asset["integration_targets"]["input_schema"] == SCHEMA_PATH.as_posix()
+    assert asset["benchmark_status"] == "benchmark_candidate"
+    assert "benchmark_candidate" in task_text
+
+
+def test_openfoam_c05_schema_rejects_wrong_solver() -> None:
+    config = _config()
+    config["solver"]["name"] = "simpleFoam"
+
+    errors = list(Draft202012Validator(_schema()).iter_errors(config))
+
+    assert errors
+    assert any("pimpleFoam" in error.message for error in errors)

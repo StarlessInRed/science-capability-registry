@@ -15,8 +15,8 @@ def test_openfoam_c07_runner_dry_run_writes_manifest_and_multiregion_case() -> N
 
     assert result["validation"]["passed"] is True
     assert result["runtime_profile"] == "openfoam_com_v2112_cht"
-    assert "mpirun -np 10 chtMultiRegionSimpleFoam -parallel" in result["solver_commands"]
-    assert "mpirun -np 10 splitMeshRegions -cellZones -overwrite -parallel" in result["mesh_commands"]
+    assert "mpirun --oversubscribe -np 10 chtMultiRegionSimpleFoam -parallel" in result["solver_commands"]
+    assert "mpirun --oversubscribe -np 10 splitMeshRegions -cellZones -overwrite -parallel" in result["mesh_commands"]
     assert result["interfaces"] == ["domain0_to_v_CPU", "domain0_to_v_fins", "v_CPU_to_v_fins"]
 
     assert (output_dir / "manifest.json").exists()

@@ -1,0 +1,151 @@
+index_id: science_capability_registry.evidence_index
+schema_version: 0.1.0
+index_role: runtime_evidence
+evidence:
+- evidence_id: cantera_C01_ignition_validation
+  capability_id: combustion.cantera.constant_pressure_ignition
+  asset_path: software/cantera/assets/C01_constant_pressure_ignition.yaml
+  evidence_kind: validation_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/cantera_C01_ignition_validation.md
+  supporting_paths:
+  - reports/cantera_C01_perturbation_validation.md
+  - configs/cantera/c01_constant_pressure_ignition/baseline.yaml
+  runtime_evidence_paths:
+  - _results/cantera/c01_constant_pressure_ignition/
+  scope: Local Cantera C01 ignition validation and perturbation evidence.
+  limitations:
+  - Not a CFD or spatial-transport benchmark.
+- evidence_id: cantera_C02_flame_speed_validation
+  capability_id: combustion.cantera.freely_propagating_premixed_flame
+  asset_path: software/cantera/assets/C02_freely_propagating_premixed_flame.yaml
+  evidence_kind: validation_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/cantera_C02_flame_speed_validation.md
+  supporting_paths:
+  - reports/cantera_C02_perturbation_validation.md
+  - configs/cantera/c02_freely_propagating_premixed_flame/baseline.yaml
+  runtime_evidence_paths:
+  - _results/cantera/c02_freely_propagating_premixed_flame/
+  scope: Local freely propagating premixed flame-speed validation.
+  limitations:
+  - Transport-model sensitivity is limited to configured perturbations.
+- evidence_id: cantera_C03_baseline_validation
+  capability_id: combustion.cantera.counterflow_diffusion_flame
+  asset_path: software/cantera/assets/C03_counterflow_diffusion_flame.yaml
+  evidence_kind: validation_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/cantera_C03_baseline_validation.md
+  supporting_paths:
+  - reports/cantera_C03_perturbation_validation.md
+  - configs/cantera/c03_counterflow_diffusion_flame/baseline.yaml
+  runtime_evidence_paths:
+  - _results/cantera/c03_counterflow_diffusion_flame/
+  scope: Local counterflow diffusion flame baseline and perturbation validation.
+  limitations:
+  - External flame-structure reference comparison remains pending.
+- evidence_id: cantera_C04_extinction_validation
+  capability_id: combustion.cantera.extinction_strain_rate
+  asset_path: software/cantera/assets/C04_extinction_strain_rate.yaml
+  evidence_kind: validation_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/cantera_C04_extinction_validation.md
+  supporting_paths:
+  - configs/cantera/c04_extinction_strain_rate/baseline.yaml
+  runtime_evidence_paths:
+  - _results/cantera/c04_extinction_strain_rate/
+  scope: Local extinction-strain search validation.
+  limitations:
+  - Bracketing and continuation sensitivity require wider regression before double-v claims.
+- evidence_id: cantera_C05_reaction_path_validation
+  capability_id: combustion.cantera.reaction_path_analysis
+  asset_path: software/cantera/assets/C05_reaction_path_analysis.yaml
+  evidence_kind: validation_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/cantera_C05_reaction_path_validation.md
+  supporting_paths:
+  - reports/cantera_C05_perturbation_validation.md
+  - configs/cantera/c05_reaction_path_analysis/baseline.yaml
+  runtime_evidence_paths:
+  - _results/cantera/c05_reaction_path_analysis/
+  scope: Local reaction-path graph and tabular validation.
+  limitations:
+  - Graph interpretation remains mechanism-state dependent.
+- evidence_id: cantera_C06_mechanism_reduction_validation
+  capability_id: combustion.cantera.mechanism_reduction
+  asset_path: software/cantera/assets/C06_mechanism_reduction.yaml
+  evidence_kind: validation_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/cantera_C06_mechanism_reduction_validation.md
+  supporting_paths:
+  - configs/cantera/c06_mechanism_reduction/baseline.yaml
+  runtime_evidence_paths:
+  - _results/cantera/c06_mechanism_reduction/
+  scope: Local DRGEP-style mechanism-reduction smoke validation.
+  limitations:
+  - Reduced mechanism validity is limited to configured target conditions.
+- evidence_id: openfoam_C01_benchmark_validation
+  capability_id: cfd.openfoam.lid_driven_cavity_incompressible_laminar
+  asset_path: software/openfoam/assets/C01_lid_driven_cavity_incompressible_laminar.yaml
+  evidence_kind: benchmark_validation
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/openfoam_C01_lid_driven_cavity_incompressible_laminar_benchmark_validation.md
+  supporting_paths:
+  - reports/openfoam_C01_lid_driven_cavity_incompressible_laminar_baseline_static_readiness.md
+  - reports/openfoam_C01_lid_driven_cavity_incompressible_laminar_baseline_wsl_v2112_runtime_smoke.md
+  - configs/openfoam/lid_driven_cavity_incompressible_laminar/baseline.yaml
+  runtime_evidence_paths:
+  - _results/openfoam/lid_driven_cavity_incompressible_laminar/
+  scope: Local OpenFOAM C01 benchmark validation.
+  limitations:
+  - External centerline reference remains pending before double-v.
+- evidence_id: openfoam_C03_benchmark_validation
+  capability_id: cfd.openfoam.backward_facing_step_rans_internal_flow
+  asset_path: software/openfoam/assets/C03_backward_facing_step_rans_internal_flow.yaml
+  evidence_kind: benchmark_validation
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/openfoam_C03_backward_facing_step_rans_internal_flow_benchmark_validation.md
+  supporting_paths:
+  - configs/openfoam/backward_facing_step_rans_internal_flow/baseline.yaml
+  runtime_evidence_paths:
+  - _results/openfoam/backward_facing_step_rans_internal_flow/
+  scope: Local OpenFOAM C03 backward-facing step benchmark validation.
+  limitations:
+  - Native wallShearStress/yPlus parity is blocked by local v2112 sha1 IO behavior.
+- evidence_id: openfoam_C06_benchmark_validation
+  capability_id: cfd.openfoam.dam_break_vof_free_surface
+  asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml
+  evidence_kind: benchmark_validation
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/openfoam_C06_dam_break_vof_free_surface_benchmark_validation.md
+  supporting_paths:
+  - configs/openfoam/dam_break_vof_free_surface/baseline.yaml
+  runtime_evidence_paths:
+  - _results/openfoam/dam_break_vof_free_surface/
+  scope: Local OpenFOAM C06 VOF dam-break benchmark validation.
+  limitations:
+  - Native sampling parity and full-horizon free-surface reference remain pending.
+- evidence_id: openfoam_C07_runtime_smoke_attempt_2026-06-30
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: runtime_smoke_attempt
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C07_conjugate_heat_transfer_cooling_runtime_smoke_attempt_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/conjugate_heat_transfer_cooling/baseline_cpu_cabinet_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runtime.py
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/runtime_smoke_wsl_v2112/
+  scope: Local WSL OpenFOAM.com v2112 runtime smoke attempt reached chtMultiRegionSimpleFoam but failed with a true solver FPE at Time=2.
+  limitations:
+  - Does not validate CHT physics, temperature fields, interface continuity, or perturbation trends.

@@ -225,7 +225,10 @@
               "restore0Dir -processor",
               "mpirun -np 10 splitMeshRegions -cellZones -overwrite -parallel",
               "mpirun -np 10 topoSet -region domain0 -parallel",
-              "mpirun -np 10 checkMesh -allRegions -constant -parallel"
+              "mpirun -np 10 checkMesh -allRegions -constant -parallel",
+              "mpirun --oversubscribe -np 10 splitMeshRegions -cellZones -overwrite -parallel",
+              "mpirun --oversubscribe -np 10 topoSet -region domain0 -parallel",
+              "mpirun --oversubscribe -np 10 checkMesh -allRegions -constant -parallel"
             ]
           }
         },

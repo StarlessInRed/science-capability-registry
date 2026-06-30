@@ -1,0 +1,107 @@
+asset_id: C05_transient_cylinder_vortex_shedding
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.2-flow-around-a-cylinder
+domain: CFD
+capability_name: transient cylinder vortex shedding
+problem_type:
+  category: transient incompressible laminar external flow
+  description: Use OpenFOAM.com v2112 pimpleFoam and the official cylinder2D tutorial family to simulate unsteady flow around a cylinder, extract lift/drag histories, and estimate vortex-shedding frequency or Strouhal number.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local tutorial evidence
+  solver: pimpleFoam
+  solver_family: transient incompressible PIMPLE finite-volume solver
+  model_class:
+  - incompressible laminar Navier-Stokes flow
+  - 2D cylinder wake and vortex shedding
+  - transient pressure-velocity coupling
+  governing_parameters:
+    cylinder_diameter_m: configurable
+    inlet_velocity_m_s: configurable
+    kinematic_viscosity_m2_s: configurable
+    reynolds_number_D: configurable
+    max_courant: configurable
+  benchmark_template:
+    source_tree_path: tutorials/incompressible/pimpleFoam/laminar/cylinder2D
+    local_path: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
+    solver_application: pimpleFoam
+inputs:
+  run_schema_targets:
+  - backend
+  - runtime_profile
+  - official_template_source_path
+  - cylinder_geometry
+  - inlet_velocity
+  - kinematic_viscosity
+  - Reynolds_number
+  - mesh_workflow
+  - front_back_empty_patch_contract
+  - transient_time_controls
+  - PIMPLE_controls
+  - forceCoeffs_or_force_extraction
+  - shedding_frequency_or_Strouhal_validation
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
+    solver: pimpleFoam
+    mesh_workflow:
+    - blockMesh coarse mesh
+    - snappyHexMesh
+    - blockMesh main mesh
+    - mirrorMesh
+    - decomposePar
+    - pimpleFoam
+outputs:
+  fields:
+  - U
+  - p
+  scalar_metrics:
+  - Courant_number_history
+  - final_residuals
+  - force_coefficients
+  - lift_coefficient_time_series
+  - drag_coefficient_time_series
+  - shedding_frequency_Hz
+  - Strouhal_number
+  - mesh_quality_summary
+  required_artifacts:
+  - blockMesh log
+  - snappyHexMesh log
+  - mirrorMesh log
+  - pimpleFoam solver log
+  - force coefficient time series
+  - metrics.json
+  - validation.json
+  - validation_report.md
+benchmark:
+  source_name: OpenFOAM.com pimpleFoam laminar cylinder2D tutorial
+  source_type: official tutorial and local runtime evidence source
+  tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
+  benchmark_role: Benchmark candidate for transient cylinder wake, force-coefficient extraction, and vortex-shedding trend validation.
+  status_rationale: The repository now records a run schema and baseline dry-run config, but no package runner, local solver metrics, force time-series artifact, or perturbation report has been produced. The capability must remain benchmark_candidate.
+  local_source_evidence:
+    runtime_profile: openfoam_com_v2112
+    wsl_distro: Ubuntu-24.04
+    tutorial_root: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
+    solver: pimpleFoam
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json and must remain benchmark_candidate until local runtime evidence exists.
+- Run schema must expose geometry, material, Reynolds number, mesh workflow, time controls, PIMPLE controls, force extraction, and validation thresholds as config-visible fields.
+- Dry-run manifest must prove the generated case contains U and p fields, transportProperties, turbulenceProperties, controlDict, fvSchemes, fvSolution, and mesh dictionaries.
+- Runtime smoke must complete mesh generation and pimpleFoam without FOAM FATAL errors or true floating-point exceptions.
+- Solver log must report finite residuals, bounded Courant numbers, and final time reaching the configured horizon.
+- Force coefficient extraction must produce lift and drag time series before shedding-frequency validation is attempted.
+- Strouhal target must remain provisional until a local force time series and at least one mesh/time-step sensitivity case pass.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run
+  input_schema: schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json
+  workflow_stage: cfd.openfoam.transient_cylinder_vortex_shedding
+  runtime_target: _results/openfoam/transient_cylinder_vortex_shedding/
+  runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
+intern_deliverables:
+- Implement a config-first dry-run generator for the official cylinder2D tutorial.
+- Add runtime execution only after the dry-run manifest and schema are accepted.
+- Extract lift/drag coefficients and compute a transparent Strouhal estimate from the time series.
+- Add validation for Courant bounds, residual finiteness, force artifact completeness, and provisional shedding-frequency range.
+- Keep benchmark_status at benchmark_candidate until local runtime and perturbation evidence pass.
+card_status: review
+benchmark_status: benchmark_candidate

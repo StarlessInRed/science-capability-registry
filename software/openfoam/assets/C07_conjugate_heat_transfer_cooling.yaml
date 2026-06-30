@@ -102,7 +102,7 @@ benchmark:
   source_type: official tutorial and local solver source
   tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
   benchmark_role: Benchmark candidate for reusable steady electronics-cooling CHT capability with explicit solid and fluid regions.
-  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository does not yet have a C07 run schema, case generator, runner, metrics contract, solver evidence, perturbation matrix, or validation report, so the capability must remain a benchmark candidate.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository has a C07 run schema, dry-run generator, runtime command path, log parser, and runtime smoke attempt report, but the local solver attempt fails with a true floating-point exception at Time=2 before reconstructed temperature and interface metrics are available. The capability must remain a benchmark candidate.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112_cht
     wsl_distro: Ubuntu-24.04
@@ -122,7 +122,7 @@ validation_criteria:
 - Runtime profile must declare OpenFOAM.com v2112, WSL backend, legacy CHT multi-region layout, parallel execution, chtMultiRegionSimpleFoam, and required mesh/preprocess executables.
 - Future run schema must expose regionProperties, thermophysical properties, heat source, ambient condition, mesh workflow, parallel decomposition, solver controls, and validation thresholds as config-visible fields.
 - Dry-run manifest must prove the generated case contains constant/regionProperties, per-region 0/ fields, per-region constant properties, system dictionaries, and a deterministic command sequence.
-- Mesh pipeline must complete blockMesh, surfaceFeatureExtract, snappyHexMesh, decomposePar, splitMeshRegions, topoSet, and checkMesh or equivalent mesh-quality checks before solver execution.
+- Mesh pipeline must complete blockMesh, surfaceFeatureExtract, snappyHexMesh, decomposePar, restore0Dir, splitMeshRegions, topoSet, and checkMesh or equivalent mesh-quality checks before solver execution.
 - Solver baseline must reach the configured end time or iteration count with finite fields, acceptable residuals, and no missing region solves.
 - Temperature fields must remain finite and physically bounded, and CPU/solid heat-source perturbations must increase peak solid temperature in the expected direction.
 - Interface validation must report temperature continuity and heat-flux balance proxies across solid-fluid coupled patches until a stronger native flux extraction is implemented.
