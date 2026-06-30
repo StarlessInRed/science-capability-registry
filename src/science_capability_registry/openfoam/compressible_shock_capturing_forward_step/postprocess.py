@@ -5,7 +5,6 @@ from __future__ import annotations
 import csv
 import json
 import math
-import re
 from pathlib import Path
 from typing import Any
 
@@ -14,13 +13,15 @@ from science_capability_registry.openfoam.field_io import (
     expand_uniform_scalars,
     expand_uniform_vectors,
     load_cell_geometry,
+    read_boundary,
+    read_faces,
     read_internal_scalars,
     read_internal_vectors,
+    read_label_list,
+    read_points,
 )
 
 PROFILE_COLUMNS = ["x_m", "p", "rho", "T", "Ux", "Uy", "Uz"]
-FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
-VECTOR_RE = re.compile(rf"\(\s*({FLOAT_RE})\s+({FLOAT_RE})\s+({FLOAT_RE})\s*\)")
 
 
 def _finite_number(value: Any) -> bool:
@@ -42,8 +43,17 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values)
 
 
-def locate_shock_position_from_profile(rows: list[dict[str, float]], quantity: str = "p") -> float:
+def locate_shock_position_from_profile(
+    rows: list[dict[str, float]],
+    quantity: str = "p",
+    search_window_m: tuple[float, float] | list[float] | None = None,
+) -> float:
     ordered = sorted(rows, key=lambda row: float(row["x_m"]))
+    if search_window_m is not None:
+        search_start, search_stop = float(search_window_m[0]), float(search_window_m[1])
+        if search_start >= search_stop:
+            raise ValueError("Shock search window must have increasing bounds.")
+        ordered = [row for row in ordered if search_start <= float(row["x_m"]) <= search_stop]
     if len(ordered) < 2:
         raise ValueError("At least two profile samples are required to locate a shock.")
     gradients: list[tuple[float, float]] = []
@@ -51,10 +61,12 @@ def locate_shock_position_from_profile(rows: list[dict[str, float]], quantity: s
         dx = float(right["x_m"]) - float(left["x_m"])
         if dx <= 0.0:
             continue
-        gradient = abs((float(right[quantity]) - float(left[quantity])) / dx)
+        gradient = (float(right[quantity]) - float(left[quantity])) / dx
+        if gradient <= 0.0:
+            continue
         gradients.append(((float(left["x_m"]) + float(right["x_m"])) / 2.0, gradient))
     if not gradients:
-        raise ValueError("Profile x coordinates must be strictly increasing after sorting.")
+        raise ValueError("No positive shock-candidate gradient was found in the configured search window.")
     return max(gradients, key=lambda item: item[1])[0]
 
 
@@ -239,7 +251,8 @@ def sample_shock_line_profile(config: dict[str, Any], output_dir: Path) -> list[
 def write_shock_metrics(config: dict[str, Any], output_dir: Path, profile_rows: list[dict[str, float]] | None = None) -> dict[str, Any]:
     if profile_rows is None:
         profile_rows = sample_shock_line_profile(config, output_dir)
-    shock_x = locate_shock_position_from_profile(profile_rows, config["postprocess"]["shock_quantity"])
+    shock_search_window = config["postprocess"]["shock_search_window_m"]
+    shock_x = locate_shock_position_from_profile(profile_rows, config["postprocess"]["shock_quantity"], shock_search_window)
     windows = average_state_windows(
         profile_rows,
         config["postprocess"]["upstream_window_m"],
@@ -253,6 +266,7 @@ def write_shock_metrics(config: dict[str, Any], output_dir: Path, profile_rows: 
     metrics = {
         "available": True,
         "shock_position_m": shock_x,
+        "shock_search_window_m": shock_search_window,
         "upstream": windows["upstream"],
         "downstream": windows["downstream"],
         **jumps,
@@ -264,65 +278,152 @@ def write_shock_metrics(config: dict[str, Any], output_dir: Path, profile_rows: 
     return metrics
 
 
-def _parse_vector(text: str) -> tuple[float, float, float]:
-    match = VECTOR_RE.fullmatch(str(text).strip())
-    if match is None:
-        raise ValueError(f"Expected OpenFOAM vector text, got {text!r}")
-    return (float(match.group(1)), float(match.group(2)), float(match.group(3)))
+def _add(left: tuple[float, float, float], right: tuple[float, float, float]) -> tuple[float, float, float]:
+    return (left[0] + right[0], left[1] + right[1], left[2] + right[2])
 
 
-def compute_inventory_conservation_proxy(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+def _sub(left: tuple[float, float, float], right: tuple[float, float, float]) -> tuple[float, float, float]:
+    return (left[0] - right[0], left[1] - right[1], left[2] - right[2])
+
+
+def _mul(vector: tuple[float, float, float], scalar: float) -> tuple[float, float, float]:
+    return (vector[0] * scalar, vector[1] * scalar, vector[2] * scalar)
+
+
+def _dot(left: tuple[float, float, float], right: tuple[float, float, float]) -> float:
+    return left[0] * right[0] + left[1] * right[1] + left[2] * right[2]
+
+
+def _cross(left: tuple[float, float, float], right: tuple[float, float, float]) -> tuple[float, float, float]:
+    return (
+        left[1] * right[2] - left[2] * right[1],
+        left[2] * right[0] - left[0] * right[2],
+        left[0] * right[1] - left[1] * right[0],
+    )
+
+
+def _mean_point(points: list[tuple[float, float, float]]) -> tuple[float, float, float]:
+    count = len(points)
+    return (
+        sum(point[0] for point in points) / count,
+        sum(point[1] for point in points) / count,
+        sum(point[2] for point in points) / count,
+    )
+
+
+def _face_area_vector(face_points: list[tuple[float, float, float]]) -> tuple[float, float, float]:
+    if len(face_points) < 3:
+        return (0.0, 0.0, 0.0)
+    origin = face_points[0]
+    area = (0.0, 0.0, 0.0)
+    for index in range(1, len(face_points) - 1):
+        area = _add(area, _cross(_sub(face_points[index], origin), _sub(face_points[index + 1], origin)))
+    return _mul(area, 0.5)
+
+
+def _relative_flux_imbalance(net_flux: float, gross_flux: float) -> float:
+    return abs(net_flux) / gross_flux if gross_flux > 0.0 else math.inf
+
+
+def compute_boundary_flux_conservation_proxy(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     case_dir = output_dir / "case"
     time_dir = _latest_time_dir(case_dir)
     cells = load_cell_geometry(case_dir)
-    volumes = [cell.volume for cell in cells]
+    cell_count = len(cells)
+    poly_dir = case_dir / "constant" / "polyMesh"
+    points = read_points(poly_dir / "points")
+    faces = read_faces(poly_dir / "faces")
+    owners = read_label_list(poly_dir / "owner")
+    boundary = read_boundary(poly_dir / "boundary")
     final_fields = _read_case_fields(case_dir, time_dir)
     gamma = float(config["thermophysical_properties"]["gamma"])
     cv = 1.0 / (gamma * (gamma - 1.0))
 
-    p_initial = float(config["fields"]["p"]["initial_value"])
-    t_initial = float(config["fields"]["T"]["initial_value"])
-    u_initial = _parse_vector(config["fields"]["U"]["initial_value"])
-    rho_initial = gamma * p_initial / t_initial
-    initial_specific_energy = cv * t_initial + 0.5 * sum(component * component for component in u_initial)
+    p_final = expand_uniform_scalars(final_fields["p"], cell_count)
+    t_final = expand_uniform_scalars(final_fields["T"], cell_count)
+    u_final = expand_uniform_vectors(final_fields["U"], cell_count)
+    rho_field = final_fields.get("rho")
+    rho_final = expand_uniform_scalars(rho_field, cell_count) if rho_field is not None else _rho_from_pressure_temperature(p_final, t_final, gamma)
 
-    rho_final = final_fields.get("rho")
-    if rho_final is None:
-        rho_final = _rho_from_pressure_temperature(final_fields["p"], final_fields["T"], gamma)
-    t_final = final_fields["T"]
-    u_final = final_fields["U"]
+    rows: list[dict[str, Any]] = []
+    for patch_name, patch in boundary.items():
+        if patch.get("type") == "empty":
+            continue
+        start = int(patch["startFace"])
+        stop = start + int(patch["nFaces"])
+        mass_flux = 0.0
+        energy_flux = 0.0
+        gross_mass_flux = 0.0
+        gross_energy_flux = 0.0
+        for face_index in range(start, stop):
+            owner = owners[face_index]
+            face_points = [points[item] for item in faces[face_index]]
+            face_center = _mean_point(face_points)
+            area_vector = _face_area_vector(face_points)
+            if _dot(area_vector, _sub(face_center, cells[owner].center)) < 0.0:
+                area_vector = _mul(area_vector, -1.0)
+            face_mass_flux = float(rho_final[owner]) * _dot(u_final[owner], area_vector)
+            kinetic = 0.5 * _dot(u_final[owner], u_final[owner])
+            specific_total_enthalpy_proxy = cv * float(t_final[owner]) + kinetic + float(p_final[owner]) / max(float(rho_final[owner]), 1e-30)
+            face_energy_flux = face_mass_flux * specific_total_enthalpy_proxy
+            mass_flux += face_mass_flux
+            energy_flux += face_energy_flux
+            gross_mass_flux += abs(face_mass_flux)
+            gross_energy_flux += abs(face_energy_flux)
+        rows.append(
+            {
+                "patch": patch_name,
+                "patch_type": patch.get("type", ""),
+                "face_count": int(patch["nFaces"]),
+                "mass_flux_proxy": mass_flux,
+                "energy_flux_proxy": energy_flux,
+                "gross_mass_flux_proxy": gross_mass_flux,
+                "gross_energy_flux_proxy": gross_energy_flux,
+            }
+        )
 
-    initial_mass = sum(rho_initial * volume for volume in volumes)
-    final_mass = sum(float(rho) * volume for rho, volume in zip(rho_final, volumes))
-    initial_energy = sum(rho_initial * initial_specific_energy * volume for volume in volumes)
-    final_energy = 0.0
-    for rho, temperature, velocity, volume in zip(rho_final, t_final, u_final, volumes):
-        kinetic = 0.5 * sum(component * component for component in velocity)
-        final_energy += float(rho) * (cv * float(temperature) + kinetic) * volume
+    net_mass_flux = sum(float(row["mass_flux_proxy"]) for row in rows)
+    gross_mass_flux = sum(float(row["gross_mass_flux_proxy"]) for row in rows)
+    net_energy_flux = sum(float(row["energy_flux_proxy"]) for row in rows)
+    gross_energy_flux = sum(float(row["gross_energy_flux_proxy"]) for row in rows)
+    mass_imbalance = _relative_flux_imbalance(net_mass_flux, gross_mass_flux)
+    energy_imbalance = _relative_flux_imbalance(net_energy_flux, gross_energy_flux)
+    flux_path = output_dir / "postprocess" / "boundary_flux_summary.csv"
+    _write_csv(
+        flux_path,
+        [
+            "patch",
+            "patch_type",
+            "face_count",
+            "mass_flux_proxy",
+            "energy_flux_proxy",
+            "gross_mass_flux_proxy",
+            "gross_energy_flux_proxy",
+        ],
+        rows,
+    )
 
     return {
-        "method": "open_domain_inventory_relative_change",
+        "method": "boundary_flux_owner_cell_proxy",
         "time_dir": str(time_dir),
-        "initial_mass": initial_mass,
-        "final_mass": final_mass,
-        "initial_energy_proxy": initial_energy,
-        "final_energy_proxy": final_energy,
-        "mass_conservation_error": abs(final_mass - initial_mass) / abs(initial_mass) if initial_mass else math.inf,
-        "energy_conservation_proxy": abs(final_energy - initial_energy) / abs(initial_energy) if initial_energy else math.inf,
-        "limitation": "Forward-step runtime has open inlet/outlet boundaries; this proxy measures domain inventory change, not a closed-control-volume flux balance.",
+        "included_patches": [str(row["patch"]) for row in rows],
+        "net_mass_flux_proxy": net_mass_flux,
+        "gross_mass_flux_proxy": gross_mass_flux,
+        "boundary_flux_mass_imbalance_proxy": mass_imbalance,
+        "net_energy_flux_proxy": net_energy_flux,
+        "gross_energy_flux_proxy": gross_energy_flux,
+        "boundary_flux_total_energy_imbalance_proxy": energy_imbalance,
+        "boundary_flux_path": str(flux_path),
+        "limitation": "Boundary fluxes use owner-cell values and oriented polyMesh face areas; this is a reproducible OpenFOAM-field proxy, not native rhoPhi/phi integration.",
     }
 
 
 def write_conservation_summary(
     output_dir: Path,
-    mass_error: float | None = None,
-    energy_error: float | None = None,
     details: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     summary = {
-        "available": mass_error is not None and energy_error is not None,
-        "mass_conservation_error": mass_error,
-        "energy_conservation_proxy": energy_error,
+        "available": bool(details) and details.get("method") == "boundary_flux_owner_cell_proxy",
     }
     if details:
         summary.update(details)

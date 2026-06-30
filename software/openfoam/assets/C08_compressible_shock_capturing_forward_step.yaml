@@ -70,13 +70,14 @@ outputs:
   - shock_position
   - pressure_jump_ratio
   - density_jump_ratio
-  - mass_conservation_error
-  - energy_conservation_proxy
+  - boundary_flux_mass_imbalance_proxy
+  - boundary_flux_total_energy_imbalance_proxy
   required_artifacts:
   - rhoCentralFoam log
   - field extrema summary
   - shock line sample CSV
   - conservation summary
+  - boundary flux summary CSV
   - metrics.json
   - validation.json
   - validation_report.md
@@ -85,13 +86,13 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
   benchmark_role: Benchmark candidate for compressible shock-capturing solver health, shock location, jump conditions, CFL control, and conservation.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and a local WSL v2112 runtime attempt. The runtime path completes blockMesh, checkMesh, and rhoCentralFoam to final time and now emits shock-line, shock-metric, and open-domain conservation-proxy artifacts, but CFL, pressure/density jump sanity, conservation proxy, and reference jump validation still fail.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and local WSL v2112 runtime evidence. The reduced-CFL runtime completes blockMesh, checkMesh, and rhoCentralFoam to final time, passes max-Courant control, leading-shock jump sanity, and boundary-flux owner-cell proxy checks. Benchmark promotion still requires configured reference shock targets and native or independently reviewed flux parity.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose compressible state, thermophysical model, step geometry, time controls, CFL limit, and shock validation targets.
 - Runtime validation must check rhoCentralFoam completion, max CFL, finite bounded thermodynamic fields, and absence of fatal errors; the current baseline runtime attempt completes but exceeds the configured max-CFL threshold.
 - Postprocess must extract shock position and pressure/density jumps from field samples.
-- Conservation validation must report mass and energy proxy errors.
+- Conservation validation must report boundary-flux mass and total-energy imbalance proxies; these proxies must not be presented as native OpenFOAM flux integration.
 - Benchmark promotion requires shock position and jump metrics to match configured reference tolerances.
 - Shock position extraction must use configured sample lines or gradient-based candidate cells and report the upstream/downstream averaging windows.
 - Pressure and density jumps must be compared with configured reference values or clearly marked analytical sanity bounds; missing reference keeps benchmark_status at benchmark_candidate.
@@ -105,9 +106,9 @@ integration_targets:
   runtime_target: _results/openfoam/compressible_shock_capturing_forward_step/
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
 intern_deliverables:
-- Run and review the reduced-CFL config using local WSL OpenFOAM.com v2112 until max Courant satisfies the configured threshold.
-- Redesign shock sample lines or averaging windows so pressure and density jump sanity ratios are greater than 1.0 before reference comparison.
-- Replace the current open-domain inventory-change conservation proxy with boundary-flux mass and energy balance.
+- Add configured reference targets for shock position, pressure jump, and density jump before benchmark promotion.
+- Extend C08 shock metrics with a second downstream/reflected-compression metric if that structure is needed beyond the leading-shock smoke gate.
+- Validate the boundary-flux owner-cell proxy against native OpenFOAM flux output or face-field sampling before any double-v promotion.
 - Keep benchmark_status below benchmark_validated until CFL, shock jump sanity, conservation, and configured reference shock validation pass.
 card_status: review
 benchmark_status: package_skeleton_created

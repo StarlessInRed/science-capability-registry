@@ -9,6 +9,7 @@ from science_capability_registry.openfoam.field_io import CellGeometry
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step.config import load_case_config
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step.postprocess import (
     average_state_windows,
+    compute_boundary_flux_conservation_proxy,
     compute_jump_ratios,
     locate_shock_position_from_profile,
     normal_shock_sanity_ratios,
@@ -31,6 +32,19 @@ def _profile_rows() -> list[dict[str, float]]:
 
 def test_openfoam_c08_locates_shock_from_pressure_gradient() -> None:
     shock_x = locate_shock_position_from_profile(_profile_rows(), "p")
+    assert math.isclose(shock_x, 1.2)
+
+
+def test_openfoam_c08_locates_shock_with_configured_search_window() -> None:
+    rows = [
+        {"x_m": 0.0, "p": 1.0, "rho": 1.0, "T": 1.0, "Ux": 3.0, "Uy": 0.0, "Uz": 0.0},
+        {"x_m": 0.1, "p": 8.0, "rho": 4.0, "T": 1.0, "Ux": 1.0, "Uy": 0.0, "Uz": 0.0},
+        {"x_m": 1.1, "p": 2.0, "rho": 1.5, "T": 1.0, "Ux": 2.0, "Uy": 0.0, "Uz": 0.0},
+        {"x_m": 1.3, "p": 5.0, "rho": 3.0, "T": 1.7, "Ux": 1.8, "Uy": 0.0, "Uz": 0.0},
+    ]
+
+    shock_x = locate_shock_position_from_profile(rows, "p", (1.0, 1.4))
+
     assert math.isclose(shock_x, 1.2)
 
 
@@ -88,12 +102,111 @@ def test_openfoam_c08_selects_nearest_cells_for_x_axis_profile() -> None:
 
 def test_openfoam_c08_writes_shock_and_conservation_artifacts(tmp_path: Path) -> None:
     config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
+    config["postprocess"] = {
+        **config["postprocess"],
+        "shock_search_window_m": [1.0, 1.4],
+        "upstream_window_m": [0.9, 1.1],
+        "downstream_window_m": [1.5, 1.7],
+    }
     metrics = write_shock_metrics(config, tmp_path, _profile_rows())
-    conservation = write_conservation_summary(tmp_path, 0.0, 0.0, {"method": "unit_test_proxy", "limitation": "fixture"})
+    conservation = write_conservation_summary(
+        tmp_path,
+        {
+            "method": "boundary_flux_owner_cell_proxy",
+            "boundary_flux_mass_imbalance_proxy": 0.0,
+            "boundary_flux_total_energy_imbalance_proxy": 0.0,
+            "limitation": "fixture",
+        },
+    )
 
     assert metrics["available"] is True
+    assert metrics["shock_search_window_m"] == [1.0, 1.4]
     assert Path(metrics["profile_path"]).exists()
     assert Path(metrics["path"]).exists()
     assert conservation["available"] is True
-    assert conservation["method"] == "unit_test_proxy"
+    assert conservation["method"] == "boundary_flux_owner_cell_proxy"
     assert Path(conservation["path"]).exists()
+
+
+def test_openfoam_c08_boundary_flux_proxy_reports_canonical_imbalance_keys(tmp_path: Path) -> None:
+    case_dir = tmp_path / "case"
+    poly = case_dir / "constant" / "polyMesh"
+    time_dir = case_dir / "1"
+    poly.mkdir(parents=True)
+    time_dir.mkdir(parents=True)
+    (poly / "points").write_text(
+        """
+8
+(
+(0 0 0)
+(1 0 0)
+(1 1 0)
+(0 1 0)
+(0 0 1)
+(1 0 1)
+(1 1 1)
+(0 1 1)
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "faces").write_text(
+        """
+2
+(
+4(0 4 7 3)
+4(1 2 6 5)
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "owner").write_text(
+        """
+2
+(
+0
+0
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "neighbour").write_text(
+        """
+0
+(
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "boundary").write_text(
+        """
+2
+(
+inlet
+{
+    type patch;
+    nFaces 1;
+    startFace 0;
+}
+outlet
+{
+    type patch;
+    nFaces 1;
+    startFace 1;
+}
+)
+""",
+        encoding="utf-8",
+    )
+    (time_dir / "p").write_text("internalField uniform 1;\n", encoding="utf-8")
+    (time_dir / "T").write_text("internalField uniform 1;\n", encoding="utf-8")
+    (time_dir / "rho").write_text("internalField uniform 1;\n", encoding="utf-8")
+    (time_dir / "U").write_text("internalField uniform (1 0 0);\n", encoding="utf-8")
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
+
+    summary = compute_boundary_flux_conservation_proxy(config, tmp_path)
+
+    assert summary["method"] == "boundary_flux_owner_cell_proxy"
+    assert summary["boundary_flux_mass_imbalance_proxy"] == 0.0
+    assert summary["boundary_flux_total_energy_imbalance_proxy"] == 0.0
+    assert Path(summary["boundary_flux_path"]).exists()

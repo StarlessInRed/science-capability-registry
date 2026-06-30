@@ -62,8 +62,9 @@ def test_openfoam_c08_runtime_metrics_synthetic_pass(tmp_path: Path) -> None:
             },
             "conservation": {
                 "available": True,
-                "mass_conservation_error": 0.0,
-                "energy_conservation_proxy": 0.0,
+                "method": "boundary_flux_owner_cell_proxy",
+                "boundary_flux_mass_imbalance_proxy": 0.0,
+                "boundary_flux_total_energy_imbalance_proxy": 0.0,
             },
         },
     }
@@ -95,6 +96,8 @@ def test_openfoam_c08_runtime_metrics_rejects_fatal_and_bad_fields(tmp_path: Pat
     assert "solver.max_courant" in failed
     assert "field.p.positive_finite" in failed
     assert "postprocess.shock.available" in failed
+    assert "boundary_flux.mass_imbalance_proxy" in failed
+    assert "boundary_flux.total_energy_imbalance_proxy" in failed
 
 
 def test_openfoam_c08_runtime_metrics_rejects_non_shock_jump_ratios(tmp_path: Path) -> None:
@@ -124,8 +127,9 @@ def test_openfoam_c08_runtime_metrics_rejects_non_shock_jump_ratios(tmp_path: Pa
             },
             "conservation": {
                 "available": True,
-                "mass_conservation_error": 0.0,
-                "energy_conservation_proxy": 0.0,
+                "method": "boundary_flux_owner_cell_proxy",
+                "boundary_flux_mass_imbalance_proxy": 0.0,
+                "boundary_flux_total_energy_imbalance_proxy": 0.0,
             },
         },
     }

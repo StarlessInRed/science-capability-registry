@@ -11,7 +11,7 @@ from typing import Any
 from science_capability_registry.openfoam.field_io import read_internal_scalars, read_internal_vectors
 from science_capability_registry.openfoam.template_case import execute_command_sequence
 
-from .postprocess import compute_inventory_conservation_proxy, summarize_field_extrema, write_conservation_summary, write_shock_metrics
+from .postprocess import compute_boundary_flux_conservation_proxy, summarize_field_extrema, write_conservation_summary, write_shock_metrics
 from .validation import validate_runtime_metrics
 
 FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
@@ -108,13 +108,8 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
     except (FileNotFoundError, ValueError, IndexError, ZeroDivisionError) as exc:
         shock_metrics = {"available": False, "reason": str(exc)}
     try:
-        conservation_details = compute_inventory_conservation_proxy(config, output_dir)
-        conservation = write_conservation_summary(
-            output_dir,
-            conservation_details["mass_conservation_error"],
-            conservation_details["energy_conservation_proxy"],
-            conservation_details,
-        )
+        conservation_details = compute_boundary_flux_conservation_proxy(config, output_dir)
+        conservation = write_conservation_summary(output_dir, conservation_details)
     except (FileNotFoundError, ValueError, IndexError, ZeroDivisionError) as exc:
         conservation = write_conservation_summary(output_dir, details={"reason": str(exc)})
     logs = {Path(item["log"]).name: item["log"] for item in runtime.get("commands", [])}
@@ -122,10 +117,10 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         "schema_version": "openfoam_c08_metrics_v1",
         "parser": {
             "name": "openfoam_c08_rhocentralfoam_forward_step_parser",
-            "version": 1,
+            "version": 2,
             "limitations": [
                 "Shock profile extraction uses Python cell-centre line sampling from final OpenFOAM fields.",
-                "Conservation proxy is an open-domain inventory change until boundary-flux integration is implemented.",
+                "Boundary-flux balance uses owner-cell field values and oriented polyMesh face areas, not native rhoPhi/phi integration.",
             ],
         },
         "case_id": config["case_id"],
@@ -162,7 +157,7 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
         "",
         "## Scope",
         "",
-        "This report covers local rhoCentralFoam execution, solver-log parsing, field sanity, shock metrics, and conservation proxy checks when runtime field samples are available.",
+        "This report covers local rhoCentralFoam execution, solver-log parsing, field sanity, shock metrics, and boundary-flux proxy checks when runtime field samples are available.",
     ]
     (output_dir / "validation_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

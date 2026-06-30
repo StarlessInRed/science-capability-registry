@@ -64,7 +64,7 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "generated_files": generated_files,
         "mesh_commands": ["blockMesh", "checkMesh"],
         "solver_commands": config["solver"]["command_sequence"],
-        "postprocess_commands": ["python:write_shock_metrics", "python:write_conservation_summary"],
+        "postprocess_commands": ["python:write_shock_metrics", "python:compute_boundary_flux_conservation_proxy"],
         "expected_outputs": config["outputs"]["expected_outputs"],
         "validation_targets": config["validation"],
         "scope": "dry-run manifest and generated case files; no OpenFOAM solver execution",

@@ -46,7 +46,9 @@ def validate_manifest(
     _check(checks, "field.U.present", "U" in fields and fields["U"]["dimensions"] == "[0 1 -1 0 0 0 0]", json.dumps(fields.get("U", {}), ensure_ascii=False))
     _check(checks, "field.p.present", "p" in fields and fields["p"]["dimensions"] == "[1 -1 -2 0 0 0 0]", json.dumps(fields.get("p", {}), ensure_ascii=False))
     _check(checks, "field.T.present", "T" in fields and fields["T"]["dimensions"] == "[0 0 0 1 0 0 0]", json.dumps(fields.get("T", {}), ensure_ascii=False))
+    shock_search_window = config["postprocess"]["shock_search_window_m"]
     _check(checks, "postprocess.sample_lines", bool(config["postprocess"]["sample_lines"]), json.dumps(config["postprocess"], ensure_ascii=False))
+    _check(checks, "postprocess.shock_search_window_ordered", shock_search_window[0] < shock_search_window[1], json.dumps(config["postprocess"], ensure_ascii=False))
     _check(checks, "postprocess.windows_ordered", config["postprocess"]["upstream_window_m"][1] < config["postprocess"]["downstream_window_m"][0], json.dumps(config["postprocess"], ensure_ascii=False))
     _check(checks, "numerics.max_courant_matches_validation", float(config["numerics"]["control"]["max_courant"]) <= float(config["validation"]["max_courant"]), json.dumps(config["numerics"]["control"], ensure_ascii=False))
 
@@ -123,18 +125,20 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
 
     _check(
         checks,
-        "conservation.mass",
+        "boundary_flux.mass_imbalance_proxy",
         conservation.get("available") is True
-        and _is_finite(conservation.get("mass_conservation_error"))
-        and abs(float(conservation["mass_conservation_error"])) <= float(config["validation"]["max_mass_conservation_error"]),
+        and conservation.get("method") == "boundary_flux_owner_cell_proxy"
+        and _is_finite(conservation.get("boundary_flux_mass_imbalance_proxy"))
+        and abs(float(conservation["boundary_flux_mass_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_mass_imbalance_proxy"]),
         json.dumps(conservation, ensure_ascii=False),
     )
     _check(
         checks,
-        "conservation.energy_proxy",
+        "boundary_flux.total_energy_imbalance_proxy",
         conservation.get("available") is True
-        and _is_finite(conservation.get("energy_conservation_proxy"))
-        and abs(float(conservation["energy_conservation_proxy"])) <= float(config["validation"]["max_energy_proxy_error"]),
+        and conservation.get("method") == "boundary_flux_owner_cell_proxy"
+        and _is_finite(conservation.get("boundary_flux_total_energy_imbalance_proxy"))
+        and abs(float(conservation["boundary_flux_total_energy_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_total_energy_imbalance_proxy"]),
         json.dumps(conservation, ensure_ascii=False),
     )
 
@@ -147,6 +151,6 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
-        "scope": "local OpenFOAM C08 runtime, field sanity, shock metrics, and conservation proxy",
+        "scope": "local OpenFOAM C08 runtime, field sanity, shock metrics, and boundary-flux proxy",
         "checks": checks,
     }

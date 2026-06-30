@@ -401,11 +401,31 @@ evidence:
   - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/validation.py
   runtime_evidence_paths:
   - _results/openfoam/compressible_shock_capturing_forward_step/baseline_runtime_smoke_wsl_v2112/
-  scope: Local WSL OpenFOAM.com v2112 C08 runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4; Python postprocess now emits shock-line, shock-metric, and open-domain inventory proxy artifacts, but CFL, shock jump sanity, and conservation proxy gates fail.
+  scope: Local WSL OpenFOAM.com v2112 C08 runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4; Python postprocess now emits shock-line, shock-metric, and boundary-flux owner-cell proxy artifacts, but a fresh reduced-CFL flux-proxy runtime still needs to pass.
   limitations:
   - Initial max Courant exceeds the configured threshold.
-  - Current centerline shock windows produce pressure and density jump ratios below 1.0, so the shock metric is not physically acceptable.
-  - Conservation evidence is still an open-domain inventory proxy; boundary-flux mass and energy balance is not implemented.
+  - The old centerline shock windows produced pressure and density jump ratios below 1.0; updated configs use a leading-shock search window and require a fresh runtime artifact.
+  - Boundary-flux evidence is an owner-cell proxy; native OpenFOAM flux parity is still pending.
+- evidence_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01
+  capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
+  asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml
+  - schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/runtime.py
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/postprocess.py
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced_runtime_smoke_wsl_v2112_margin/
+  scope: Local WSL OpenFOAM.com v2112 C08 reduced-CFL runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4 and passes max-Courant, leading-shock jump sanity, field sanity, artifact completeness, and boundary-flux owner-cell proxy checks.
+  limitations:
+  - Boundary-flux evidence is an owner-cell Python proxy, not native OpenFOAM rhoPhi/phi parity.
+  - Shock reference targets remain configured-reference placeholders; benchmark promotion still requires external or accepted reference values.
+  - Only the leading-shock smoke metric is validated; downstream/reflected-compression metrics remain future work if required.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

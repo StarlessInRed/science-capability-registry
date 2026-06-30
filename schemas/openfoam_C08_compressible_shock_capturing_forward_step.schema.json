@@ -186,7 +186,7 @@
     "postprocess": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["method", "shock_quantity", "sample_lines", "upstream_window_m", "downstream_window_m"],
+      "required": ["method", "shock_quantity", "sample_lines", "shock_search_window_m", "upstream_window_m", "downstream_window_m"],
       "properties": {
         "method": {"const": "python_pressure_density_gradient"},
         "shock_quantity": {"enum": ["p", "rho"]},
@@ -195,6 +195,7 @@
           "items": {"type": "object", "additionalProperties": false, "required": ["id", "axis", "fixed_coordinate_m"], "properties": {"id": {"type": "string"}, "axis": {"enum": ["x", "y"]}, "fixed_coordinate_m": {"type": "number"}}},
           "minItems": 1
         },
+        "shock_search_window_m": {"$ref": "#/$defs/window"},
         "upstream_window_m": {"$ref": "#/$defs/window"},
         "downstream_window_m": {"$ref": "#/$defs/window"}
       }
@@ -224,7 +225,7 @@
     "validation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["gate", "max_courant", "minimum_final_time_s", "min_pressure", "min_temperature", "min_density", "max_shock_position_abs_error_m", "max_jump_ratio_rel_error", "max_mass_conservation_error", "max_energy_proxy_error", "required_generated_files", "required_manifest_sections", "matrix_role", "expected_trend"],
+      "required": ["gate", "max_courant", "minimum_final_time_s", "min_pressure", "min_temperature", "min_density", "max_shock_position_abs_error_m", "max_jump_ratio_rel_error", "max_boundary_flux_mass_imbalance_proxy", "max_boundary_flux_total_energy_imbalance_proxy", "required_generated_files", "required_manifest_sections", "matrix_role", "expected_trend"],
       "properties": {
         "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
         "max_courant": {"type": "number", "exclusiveMinimum": 0},
@@ -234,8 +235,8 @@
         "min_density": {"type": "number"},
         "max_shock_position_abs_error_m": {"type": "number", "exclusiveMinimum": 0},
         "max_jump_ratio_rel_error": {"type": "number", "exclusiveMinimum": 0},
-        "max_mass_conservation_error": {"type": "number", "minimum": 0},
-        "max_energy_proxy_error": {"type": "number", "minimum": 0},
+        "max_boundary_flux_mass_imbalance_proxy": {"type": "number", "minimum": 0},
+        "max_boundary_flux_total_energy_imbalance_proxy": {"type": "number", "minimum": 0},
         "required_generated_files": {"type": "array", "items": {"type": "string"}},
         "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
         "matrix_role": {"enum": ["baseline", "cfl_reduced", "mesh_refinement", "inlet_mach_changed"]},

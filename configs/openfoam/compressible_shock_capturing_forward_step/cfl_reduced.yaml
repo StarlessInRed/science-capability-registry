@@ -103,10 +103,10 @@ numerics:
   control:
     start_time_s: 0.0
     end_time_s: 4.0
-    delta_t_s: 0.001
+    delta_t_s: 0.0002
     write_interval_s: 0.1
     adjust_time_step: true
-    max_courant: 0.1
+    max_courant: 0.09
     max_delta_t_s: 1.0
   shock_capturing:
     flux_scheme: rhoCentralFoam tutorial central-upwind flux
@@ -118,8 +118,9 @@ postprocess:
   - id: centerline
     axis: x
     fixed_coordinate_m: 0.5
-  upstream_window_m: [1.0, 1.2]
-  downstream_window_m: [1.4, 1.6]
+  shock_search_window_m: [0.35, 0.50]
+  upstream_window_m: [0.30, 0.40]
+  downstream_window_m: [0.44, 0.55]
 shock_reference:
   reference_policy: configured_reference_required_for_promotion
   normal_shock_relations_role: sanity_bounds_only
@@ -148,8 +149,9 @@ outputs:
   - postprocess/shock_line_samples.csv
   - postprocess/shock_metrics.json
   - postprocess/conservation_summary.json
+  - postprocess/boundary_flux_summary.csv
 validation:
-  gate: static-readiness
+  gate: smoke
   max_courant: 0.1
   minimum_final_time_s: 4.0
   min_pressure: 0.0
@@ -157,8 +159,8 @@ validation:
   min_density: 0.0
   max_shock_position_abs_error_m: 0.1
   max_jump_ratio_rel_error: 0.2
-  max_mass_conservation_error: 0.02
-  max_energy_proxy_error: 0.05
+  max_boundary_flux_mass_imbalance_proxy: 0.03
+  max_boundary_flux_total_energy_imbalance_proxy: 0.02
   required_generated_files:
   - case/0/U
   - case/0/p

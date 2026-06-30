@@ -19,7 +19,10 @@ def test_openfoam_c08_configs_match_schema() -> None:
         assert config["capability_id"] == "cfd.openfoam.compressible_shock_capturing_forward_step"
         assert config["solver"]["name"] == "rhoCentralFoam"
         assert config["fields"]["rho"]["source"] == "derived_from_thermophysical_state"
-        assert config["validation"]["gate"] == "static-readiness"
+        if path.name == "baseline.yaml":
+            assert config["validation"]["gate"] == "static-readiness"
+        if path.name == "cfl_reduced.yaml":
+            assert config["validation"]["gate"] == "smoke"
 
 
 def test_openfoam_c08_schema_rejects_unknown_top_level_key() -> None:
@@ -43,6 +46,17 @@ def test_openfoam_c08_schema_rejects_invalid_gate_name() -> None:
     config["validation"] = {**config["validation"], "gate": "shock-smoke"}
 
     with pytest.raises(ValueError, match="shock-smoke"):
+        validate_case_config(config)
+
+
+def test_openfoam_c08_schema_rejects_legacy_conservation_threshold_keys() -> None:
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
+    config["validation"] = {
+        **config["validation"],
+        "max_mass_conservation_error": 0.02,
+    }
+
+    with pytest.raises(ValueError, match="max_mass_conservation_error"):
         validate_case_config(config)
 
 
