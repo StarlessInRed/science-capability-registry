@@ -85,7 +85,7 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
   benchmark_role: Benchmark candidate for compressible shock-capturing solver health, shock location, jump conditions, CFL control, and conservation.
-  status_rationale: Official tutorial evidence is identified, but this repository does not yet contain a C08 run schema, config, package runner, local metrics, or validation report. It must remain benchmark_candidate until runtime and shock validation evidence exists.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, and static-readiness tests. It remains below benchmark_validated until local rhoCentralFoam runtime metrics and reference shock validation evidence exist.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose compressible state, thermophysical model, step geometry, time controls, CFL limit, and shock validation targets.
@@ -105,10 +105,9 @@ integration_targets:
   runtime_target: _results/openfoam/compressible_shock_capturing_forward_step/
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
 intern_deliverables:
-- Create a config-first C08 run schema and baseline rhoCentralFoam forwardStep config.
-- Implement dry-run manifest generation for fields, thermophysical properties, time controls, and shock outputs.
+- Extend the C08 package from static-readiness to local WSL runtime smoke using rhoCentralFoam forwardStep.
+- Implement runtime field sampling for shock position, pressure/density jumps, CFL, and conservation postprocess.
 - Add runtime execution after solver health and field-boundedness gates are defined.
-- Implement shock position, pressure/density jump, CFL, and conservation postprocess.
-- Keep benchmark_status at benchmark_candidate until local runtime and reference shock validation pass.
+- Keep benchmark_status below benchmark_validated until local runtime and reference shock validation pass.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

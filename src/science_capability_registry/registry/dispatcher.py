@@ -14,6 +14,7 @@ from science_capability_registry.cantera.c06_mechanism_reduction import run as r
 from science_capability_registry.gmsh.parametric_geometry_mesh_generation import run as run_gmsh_c01
 from science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation import run as run_openfoam_c02
 from science_capability_registry.openfoam.backward_facing_step_rans_internal_flow import run as run_openfoam_c03
+from science_capability_registry.openfoam.compressible_shock_capturing_forward_step import run as run_openfoam_c08
 from science_capability_registry.openfoam.conjugate_heat_transfer_cooling import run as run_openfoam_c07
 from science_capability_registry.openfoam.dam_break_vof_free_surface import run as run_openfoam_c06
 from science_capability_registry.openfoam.lid_driven_cavity_incompressible_laminar import run as run_openfoam_c01
@@ -36,6 +37,7 @@ RUNNERS: dict[str, Runner] = {
     "cfd.openfoam.transient_cylinder_vortex_shedding": run_openfoam_c05,
     "cfd.openfoam.dam_break_vof_free_surface": run_openfoam_c06,
     "cfd.openfoam.conjugate_heat_transfer_cooling": run_openfoam_c07,
+    "cfd.openfoam.compressible_shock_capturing_forward_step": run_openfoam_c08,
     "meshing.gmsh.parametric_geometry_mesh_generation": run_gmsh_c01,
 }
 

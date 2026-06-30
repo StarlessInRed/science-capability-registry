@@ -54,8 +54,8 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     catalog = load_catalog()
     _validate_json(catalog, Path("schemas/capability_registry.schema.json"))
 
-    assert len(catalog["capabilities"]) == 13
-    assert len(catalog_entries_by_id(catalog)) == 13
+    assert len(catalog["capabilities"]) == 14
+    assert len(catalog_entries_by_id(catalog)) == 14
     for entry in catalog["capabilities"]:
         assert repo_path(entry["asset_path"]).exists()
 

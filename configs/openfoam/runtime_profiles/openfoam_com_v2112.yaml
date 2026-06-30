@@ -11,6 +11,7 @@ backend:
 executable_bindings:
   incompressible_laminar_transient: icoFoam
   potential_flow_initialization: potentialFoam
+  compressible_shock_transient: rhoCentralFoam
   incompressible_laminar_pimple_transient: pimpleFoam
   incompressible_rans_steady: simpleFoam
   vof_free_surface_transient: interFoam
@@ -30,6 +31,7 @@ required_executables:
 - checkMesh
 - icoFoam
 - potentialFoam
+- rhoCentralFoam
 - pimpleFoam
 - simpleFoam
 - interFoam
@@ -41,6 +43,7 @@ tutorial_roots:
   c03_pitz_daily: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/pitzDaily
   c05_cylinder2d: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   c06_dam_break: /opt/OpenFOAM-v2112/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
+  c08_forward_step: /opt/OpenFOAM-v2112/tutorials/compressible/rhoCentralFoam/forwardStep
 known_limitations:
 - Evidence collected on this host is OpenFOAM.com v2112 under WSL Ubuntu-24.04.
 - FunctionObject and sampling writes can hit sha1 IO errors in this local WSL v2112 profile, including ext4 `/tmp` probe paths.

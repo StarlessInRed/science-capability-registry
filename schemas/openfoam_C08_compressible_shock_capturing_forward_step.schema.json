@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: OpenFOAM C08 rhoCentralFoam forward-step shock-capturing run config.",
+  "title": "OpenFOAM C08 Compressible Shock Capturing Forward Step Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "openfoam",
+    "backend",
+    "solver",
+    "template",
+    "geometry",
+    "mesh",
+    "thermophysical_properties",
+    "fields",
+    "boundary_conditions",
+    "numerics",
+    "postprocess",
+    "shock_reference",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.openfoam.compressible_shock_capturing_forward_step"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "openfoam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distribution", "version", "runtime_profile", "tutorial_path", "source_url", "bashrc_path", "case_layout", "required_executables"],
+      "properties": {
+        "distribution": {"enum": ["openfoam_com", "openfoam_foundation", "openfoam_dev", "unknown"]},
+        "version": {"type": "string"},
+        "runtime_profile": {"type": "string"},
+        "tutorial_path": {"type": "string"},
+        "source_url": {"type": "string"},
+        "bashrc_path": {"type": "string"},
+        "case_layout": {"const": "single_region"},
+        "required_executables": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "wsl"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0},
+        "parallel": {"type": "boolean"},
+        "wsl_distro": {"type": "string"}
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "mode", "command_sequence"],
+      "properties": {
+        "name": {"const": "rhoCentralFoam"},
+        "mode": {"const": "transient_compressible_shock_capturing"},
+        "command_sequence": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "copy_strategy", "disabled_function_objects"],
+      "properties": {
+        "source_path": {"type": "string"},
+        "copy_strategy": {"const": "copy_official_tutorial_then_patch"},
+        "disabled_function_objects": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain_length_m", "domain_height_m", "step_start_x_m", "step_height_m", "two_dimensional_thickness_m"],
+      "properties": {
+        "domain_length_m": {"type": "number", "exclusiveMinimum": 0},
+        "domain_height_m": {"type": "number", "exclusiveMinimum": 0},
+        "step_start_x_m": {"type": "number", "minimum": 0},
+        "step_height_m": {"type": "number", "exclusiveMinimum": 0},
+        "two_dimensional_thickness_m": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator", "block_cell_counts", "patch_roles", "refinement_scale"],
+      "properties": {
+        "generator": {"const": "blockMesh"},
+        "block_cell_counts": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 1},
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "minItems": 3
+        },
+        "patch_roles": {"type": "object", "additionalProperties": {"type": "string"}},
+        "refinement_scale": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "thermophysical_properties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["thermo_model", "equation_of_state", "energy_model", "transport_model", "gamma", "mach_number", "speed_of_sound_reference_m_s"],
+      "properties": {
+        "thermo_model": {"const": "hePsiThermo"},
+        "equation_of_state": {"const": "perfectGas"},
+        "energy_model": {"const": "sensibleInternalEnergy"},
+        "transport_model": {"const": "const"},
+        "gamma": {"type": "number", "exclusiveMinimum": 1},
+        "mach_number": {"type": "number", "exclusiveMinimum": 0},
+        "speed_of_sound_reference_m_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["U", "p", "T", "rho"],
+      "properties": {
+        "U": {"$ref": "#/$defs/field"},
+        "p": {"$ref": "#/$defs/field"},
+        "T": {"$ref": "#/$defs/field"},
+        "rho": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dimensions", "source", "runtime_output"],
+          "properties": {
+            "dimensions": {"type": "string"},
+            "source": {"const": "derived_from_thermophysical_state"},
+            "runtime_output": {"const": true}
+          }
+        }
+      }
+    },
+    "boundary_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inlet", "outlet", "bottom", "top", "obstacle", "defaultFaces"],
+      "properties": {
+        "inlet": {"type": "object", "additionalProperties": {"type": "string"}},
+        "outlet": {"type": "object", "additionalProperties": {"type": "string"}},
+        "bottom": {"type": "object", "additionalProperties": {"type": "string"}},
+        "top": {"type": "object", "additionalProperties": {"type": "string"}},
+        "obstacle": {"type": "object", "additionalProperties": {"type": "string"}},
+        "defaultFaces": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    },
+    "numerics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control", "shock_capturing"],
+      "properties": {
+        "control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start_time_s", "end_time_s", "delta_t_s", "write_interval_s", "adjust_time_step", "max_courant", "max_delta_t_s"],
+          "properties": {
+            "start_time_s": {"type": "number", "minimum": 0},
+            "end_time_s": {"type": "number", "exclusiveMinimum": 0},
+            "delta_t_s": {"type": "number", "exclusiveMinimum": 0},
+            "write_interval_s": {"type": "number", "exclusiveMinimum": 0},
+            "adjust_time_step": {"type": "boolean"},
+            "max_courant": {"type": "number", "exclusiveMinimum": 0},
+            "max_delta_t_s": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "shock_capturing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flux_scheme", "limiter_policy"],
+          "properties": {
+            "flux_scheme": {"type": "string"},
+            "limiter_policy": {"type": "string"}
+          }
+        }
+      }
+    },
+    "postprocess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "shock_quantity", "sample_lines", "upstream_window_m", "downstream_window_m"],
+      "properties": {
+        "method": {"const": "python_pressure_density_gradient"},
+        "shock_quantity": {"enum": ["p", "rho"]},
+        "sample_lines": {
+          "type": "array",
+          "items": {"type": "object", "additionalProperties": false, "required": ["id", "axis", "fixed_coordinate_m"], "properties": {"id": {"type": "string"}, "axis": {"enum": ["x", "y"]}, "fixed_coordinate_m": {"type": "number"}}},
+          "minItems": 1
+        },
+        "upstream_window_m": {"$ref": "#/$defs/window"},
+        "downstream_window_m": {"$ref": "#/$defs/window"}
+      }
+    },
+    "shock_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_policy", "normal_shock_relations_role", "shock_position_reference_m", "pressure_jump_ratio_reference", "density_jump_ratio_reference"],
+      "properties": {
+        "reference_policy": {"enum": ["configured_reference_required_for_promotion", "accepted_baseline_samples"]},
+        "normal_shock_relations_role": {"const": "sanity_bounds_only"},
+        "shock_position_reference_m": {"type": ["number", "null"]},
+        "pressure_jump_ratio_reference": {"type": ["number", "null"]},
+        "density_jump_ratio_reference": {"type": ["number", "null"]}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "retain_generated_case", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "retain_generated_case": {"type": "boolean"},
+        "expected_outputs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "max_courant", "minimum_final_time_s", "min_pressure", "min_temperature", "min_density", "max_shock_position_abs_error_m", "max_jump_ratio_rel_error", "max_mass_conservation_error", "max_energy_proxy_error", "required_generated_files", "required_manifest_sections", "matrix_role", "expected_trend"],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "max_courant": {"type": "number", "exclusiveMinimum": 0},
+        "minimum_final_time_s": {"type": "number", "minimum": 0},
+        "min_pressure": {"type": "number"},
+        "min_temperature": {"type": "number"},
+        "min_density": {"type": "number"},
+        "max_shock_position_abs_error_m": {"type": "number", "exclusiveMinimum": 0},
+        "max_jump_ratio_rel_error": {"type": "number", "exclusiveMinimum": 0},
+        "max_mass_conservation_error": {"type": "number", "minimum": 0},
+        "max_energy_proxy_error": {"type": "number", "minimum": 0},
+        "required_generated_files": {"type": "array", "items": {"type": "string"}},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
+        "matrix_role": {"enum": ["baseline", "cfl_reduced", "mesh_refinement", "inlet_mach_changed"]},
+        "compare_to": {"type": "string"},
+        "expected_trend": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["description"],
+          "properties": {"description": {"type": "string"}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimensions", "internal", "initial_value"],
+      "properties": {
+        "dimensions": {"type": "string"},
+        "internal": {"type": "string"},
+        "initial_value": {"type": ["string", "number"]}
+      }
+    },
+    "window": {
+      "type": "array",
+      "items": {"type": "number"},
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

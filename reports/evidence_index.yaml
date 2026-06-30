@@ -332,6 +332,24 @@ evidence:
   scope: Packaged OpenFOAM.com v2112 multiRegionHeaterRadiation CHT baseline plus heater-temperature, airflow, and mesh-refinement perturbation cases complete to Time=2 with metrics, validation, temperature summaries, and patch heat-flux proxy artifacts.
   limitations:
   - Short-horizon integration only; patch heat-flux is a Python owner-cell proxy and not native heat-flux conservation or external-reference validation.
+- evidence_id: openfoam_C08_static_readiness_2026-06-30
+  capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
+  asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/openfoam_C08_compressible_shock_capturing_forward_step_static_readiness.md
+  supporting_paths:
+  - configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml
+  - configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml
+  - schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/runner.py
+  runtime_evidence_paths:
+  - _results/openfoam/compressible_shock_capturing_forward_step/
+  scope: C08 schema, config, package entrypoint, dry-run manifest, and shock metric unit-test readiness.
+  limitations:
+  - No rhoCentralFoam runtime metrics have been promoted in this report.
+  - No shock position, pressure/density jump, CFL, or conservation runtime evidence has been validated yet.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml
