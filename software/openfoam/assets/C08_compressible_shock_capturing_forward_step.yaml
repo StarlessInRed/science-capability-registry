@@ -1,0 +1,114 @@
+asset_id: C08_compressible_shock_capturing_forward_step
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-compressible-rhoCentralFoam.html
+domain: CFD
+capability_name: compressible shock capturing forward step
+problem_type:
+  category: transient compressible inviscid or turbulent shock-capturing flow
+  description: Use OpenFOAM.com v2112 rhoCentralFoam forwardStep tutorial evidence to validate compressible shock-capturing behavior through shock position, pressure and density jumps, CFL control, and conservation checks.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local tutorial evidence
+  solver: rhoCentralFoam
+  solver_family: transient density-based compressible finite-volume solver
+  model_class:
+  - compressible Euler or Navier-Stokes shock capturing
+  - high-speed flow over a forward step
+  - transient CFL-controlled density, pressure, and velocity evolution
+  governing_parameters:
+    mach_number: configurable
+    inlet_pressure_pa: configurable
+    inlet_temperature_k: configurable
+    thermophysical_model: configurable
+    max_cfl: configurable
+  benchmark_template:
+    source_tree_path: tutorials/compressible/rhoCentralFoam/forwardStep
+    local_path: /opt/OpenFOAM-v2112/tutorials/compressible/rhoCentralFoam/forwardStep
+    solver_application: rhoCentralFoam
+inputs:
+  run_schema_targets:
+  - runtime_profile
+  - official_template_source_path
+  - forward_step_geometry
+  - inlet_mach_or_state
+  - thermophysical_properties
+  - time_controls
+  - max_cfl
+  - shock_position_targets
+  - conservation_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
+    solver: rhoCentralFoam
+  shock_reference:
+    reference_policy: configured benchmark table or accepted baseline samples; analytical normal-shock relations may be used only as sanity bounds for local normal Mach estimates
+    required_sample_sets:
+    - streamwise_centerline_or_user_configured_line
+    - vertical_lines_upstream_and_downstream_of_step
+    - shock_front_candidate_cells_from_pressure_or_density_gradient
+    extraction_method: locate pressure or density gradient maxima, then compute upstream/downstream state averages across configured windows
+    required_tolerance_fields:
+    - shock_position_absolute_tolerance
+    - shock_position_relative_tolerance
+    - pressure_jump_relative_tolerance
+    - density_jump_relative_tolerance
+    - max_cfl
+    - conservation_error_threshold
+  perturbation_matrix_targets:
+  - baseline
+  - cfl_reduced
+  - mesh_refined
+  - inlet_mach_changed
+outputs:
+  fields:
+  - U
+  - p
+  - T
+  - rho
+  scalar_metrics:
+  - max_cfl
+  - final_residuals
+  - shock_position
+  - pressure_jump_ratio
+  - density_jump_ratio
+  - mass_conservation_error
+  - energy_conservation_proxy
+  required_artifacts:
+  - rhoCentralFoam log
+  - field extrema summary
+  - shock line sample CSV
+  - conservation summary
+  - metrics.json
+  - validation.json
+  - validation_report.md
+benchmark:
+  source_name: OpenFOAM.com rhoCentralFoam forwardStep tutorial
+  source_type: official tutorial and local source evidence
+  tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
+  benchmark_role: Benchmark candidate for compressible shock-capturing solver health, shock location, jump conditions, CFL control, and conservation.
+  status_rationale: Official tutorial evidence is identified, but this repository does not yet contain a C08 run schema, config, package runner, local metrics, or validation report. It must remain benchmark_candidate until runtime and shock validation evidence exists.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- Run schema must expose compressible state, thermophysical model, step geometry, time controls, CFL limit, and shock validation targets.
+- Runtime validation must check rhoCentralFoam completion, max CFL, finite bounded thermodynamic fields, and absence of fatal errors.
+- Postprocess must extract shock position and pressure/density jumps from field samples.
+- Conservation validation must report mass and energy proxy errors.
+- Benchmark promotion requires shock position and jump metrics to match configured reference tolerances.
+- Shock position extraction must use configured sample lines or gradient-based candidate cells and report the upstream/downstream averaging windows.
+- Pressure and density jumps must be compared with configured reference values or clearly marked analytical sanity bounds; missing reference keeps benchmark_status at benchmark_candidate.
+- CFL perturbation must show stable shock metrics under a reduced max-CFL setting before promotion.
+- Mesh-refinement perturbation must report shock-position shift and numerical-diffusion trend.
+- Inlet-Mach perturbation must produce directionally consistent pressure and density jump changes or be rejected as physically unexplained.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.compressible_shock_capturing_forward_step:run
+  input_schema: schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json
+  workflow_stage: cfd.openfoam.compressible_shock_capturing_forward_step
+  runtime_target: _results/openfoam/compressible_shock_capturing_forward_step/
+  runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
+intern_deliverables:
+- Create a config-first C08 run schema and baseline rhoCentralFoam forwardStep config.
+- Implement dry-run manifest generation for fields, thermophysical properties, time controls, and shock outputs.
+- Add runtime execution after solver health and field-boundedness gates are defined.
+- Implement shock position, pressure/density jump, CFL, and conservation postprocess.
+- Keep benchmark_status at benchmark_candidate until local runtime and reference shock validation pass.
+card_status: review
+benchmark_status: benchmark_candidate

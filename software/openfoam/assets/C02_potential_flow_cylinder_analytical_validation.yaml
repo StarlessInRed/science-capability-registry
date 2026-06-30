@@ -1,0 +1,109 @@
+asset_id: C02_potential_flow_cylinder_analytical_validation
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-basic-potentialFoam.html
+domain: CFD
+capability_name: potential flow cylinder analytical validation
+problem_type:
+  category: inviscid or potential-flow analytical validation
+  description: Use OpenFOAM.com v2112 potentialFoam cylinder tutorial evidence to solve a cylinder potential-flow case and compare velocity, pressure, and surface pressure coefficient against an analytical inviscid reference.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local tutorial evidence
+  solver: potentialFoam
+  solver_family: potential or inviscid flow initialization solver
+  model_class:
+  - irrotational incompressible potential flow
+  - cylinder external flow with analytical reference
+  governing_parameters:
+    inlet_velocity_m_s: configurable
+    cylinder_radius_m: configurable
+    density_kg_m3: configurable
+    mesh_resolution: configurable
+  benchmark_template:
+    source_tree_path: tutorials/basic/potentialFoam/cylinder
+    local_path: /opt/OpenFOAM-v2112/tutorials/basic/potentialFoam/cylinder
+    solver_application: potentialFoam
+inputs:
+  run_schema_targets:
+  - runtime_profile
+  - official_template_source_path
+  - cylinder_geometry
+  - inlet_velocity
+  - mesh_resolution
+  - potential_flow_boundary_conditions
+  - analytical_reference_parameters
+  - cp_error_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/basic/potentialFoam/cylinder
+    solver: potentialFoam
+    expected_boundary_roles:
+      inlet: velocity_inlet
+      outlet: pressure_outlet
+      cylinder: slip_or_wall_reference_surface
+  analytical_reference:
+    coordinate_system: cylinder-centered polar coordinates
+    radius_symbol: a
+    freestream_speed_symbol: U_inf
+    velocity_formula:
+      radial: U_inf * (1 - a^2 / r^2) * cos(theta)
+      tangential: -U_inf * (1 + a^2 / r^2) * sin(theta)
+    surface_cp_formula: Cp(theta) = 1 - 4 * sin(theta)^2
+    pressure_formula: p - p_ref = 0.5 * rho * (U_inf^2 - |U|^2)
+    required_sample_sets:
+    - cylinder_surface_or_nearest_face_centres
+    - radial_lines_upstream_downstream_and_cross_stream
+    - field_sample_points_excluding_singularity_and_boundary_buffer
+  perturbation_matrix_targets:
+  - baseline
+  - mesh_refined
+  - inlet_speed_scaled
+  - farfield_domain_expanded
+outputs:
+  fields:
+  - U
+  - p
+  scalar_metrics:
+  - velocity_l2_error
+  - pressure_l2_error
+  - cp_linf_error
+  - cp_l2_error
+  - solver_residuals
+  required_artifacts:
+  - generated case manifest
+  - solver log
+  - surface Cp CSV
+  - analytical comparison CSV
+  - metrics.json
+  - validation.json
+  - validation_report.md
+benchmark:
+  source_name: OpenFOAM.com potentialFoam cylinder tutorial
+  source_type: official tutorial plus analytical potential-flow reference target
+  tutorial_path: $FOAM_TUTORIALS/basic/potentialFoam/cylinder
+  benchmark_role: Benchmark candidate for analytical validation of potential-flow velocity, pressure, and Cp around a cylinder.
+  status_rationale: Official tutorial evidence and analytical validation target are identified, but this repository does not yet contain a run schema, config, package runner, local metrics, or validation report for C02.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- Run schema must expose cylinder geometry, inlet speed, mesh resolution, analytical reference parameters, and error thresholds.
+- Runtime must complete potentialFoam without fatal errors and produce U and p fields.
+- Postprocess must compute analytical velocity, pressure, and Cp references at comparable sample locations.
+- Validation must reject cases whose Cp or field errors exceed configured tolerances.
+- Mesh refinement should reduce analytical error before the capability can move beyond benchmark_candidate.
+- Cp validation must use Cp(theta) = 1 - 4 sin(theta)^2 on the cylinder surface or nearest available face-centre samples.
+- Pressure validation must use Bernoulli normalization with an explicit p_ref, rho, and U_inf from the run config.
+- Inlet-speed perturbation should preserve normalized Cp within tolerance while velocity and pressure magnitudes scale consistently.
+- Farfield-domain perturbation should reduce boundary-induced analytical error or document the residual domain effect.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation:run
+  input_schema: schemas/openfoam_C02_potential_flow_cylinder_analytical_validation.schema.json
+  workflow_stage: cfd.openfoam.potential_flow_cylinder_analytical_validation
+  runtime_target: _results/openfoam/potential_flow_cylinder_analytical_validation/
+  runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
+intern_deliverables:
+- Create a config-first run schema and baseline config for the official potentialFoam cylinder tutorial.
+- Implement dry-run case generation and manifest validation before enabling runtime.
+- Implement analytical velocity, pressure, and Cp comparison postprocess.
+- Add mesh refinement trend validation for analytical error reduction.
+- Keep benchmark_status at benchmark_candidate until local runtime and analytical validation evidence pass.
+card_status: review
+benchmark_status: benchmark_candidate

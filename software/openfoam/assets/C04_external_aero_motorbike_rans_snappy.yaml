@@ -1,0 +1,123 @@
+asset_id: C04_external_aero_motorbike_rans_snappy
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.3-motorbike
+domain: CFD
+capability_name: external aero motorbike RANS snappy
+problem_type:
+  category: steady incompressible RANS external aerodynamics
+  description: Use OpenFOAM.com v2112 simpleFoam motorBike tutorial evidence to build an external-aero capability with snappyHexMesh, wall functions, forceCoeffs, mesh quality checks, and y+ validation.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local tutorial evidence
+  solver: simpleFoam
+  solver_family: steady incompressible RANS finite-volume solver
+  model_class:
+  - incompressible turbulent external flow
+  - RANS wall-function boundary-layer treatment
+  - snappyHexMesh geometry-based meshing
+  governing_parameters:
+    inlet_velocity_m_s: configurable
+    kinematic_viscosity_m2_s: configurable
+    turbulence_model: configurable
+    refinement_levels: configurable
+    force_reference_area_m2: configurable
+  benchmark_template:
+    source_tree_path: tutorials/incompressible/simpleFoam/motorBike
+    local_path: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/motorBike
+    solver_application: simpleFoam
+inputs:
+  run_schema_targets:
+  - runtime_profile
+  - official_template_source_path
+  - motorbike_geometry
+  - snappyHexMesh_refinement
+  - inlet_velocity
+  - turbulence_model
+  - wall_functions
+  - forceCoeffs_reference_values
+  - y_plus_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
+    solver: simpleFoam
+    mesh_workflow:
+    - blockMesh
+    - surfaceFeatureExtract
+    - snappyHexMesh
+    - checkMesh
+    - simpleFoam
+  force_normalization:
+    drag_axis: streamwise force component from configured coordinate system
+    lift_axis: vertical force component from configured coordinate system
+    coefficient_definition: C = F / (0.5 * rho * U_ref^2 * A_ref)
+    required_config_fields:
+    - rho
+    - U_ref
+    - A_ref
+    - drag_direction
+    - lift_direction
+    - centre_of_rotation
+    - averaging_window
+  perturbation_matrix_targets:
+  - baseline
+  - snappy_refinement_level_changed
+  - inlet_speed_scaled
+  - yaw_or_crossflow_optional
+  convergence_targets:
+    force_window: tail-iteration mean and standard deviation
+    residual_window: final residual and monotonicity or plateau explanation
+    y_plus_window: min max mean and wall-function acceptable band
+outputs:
+  fields:
+  - U
+  - p
+  - k
+  - omega
+  - nut
+  scalar_metrics:
+  - mesh_quality_summary
+  - final_residuals
+  - Cd
+  - Cl
+  - y_plus_min_max_mean
+  - forceCoeffs_history
+  required_artifacts:
+  - mesh logs
+  - checkMesh log
+  - simpleFoam log
+  - forceCoeffs CSV
+  - yPlus summary
+  - metrics.json
+  - validation.json
+  - validation_report.md
+benchmark:
+  source_name: OpenFOAM.com simpleFoam motorBike tutorial
+  source_type: official tutorial and local source evidence
+  tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
+  benchmark_role: Benchmark candidate for external aerodynamics, snappyHexMesh quality, forces, and wall-function checks.
+  status_rationale: Official tutorial evidence is identified, but this repository does not yet contain a C04 run schema, config, package runner, local metrics, or validation report. It must remain benchmark_candidate until runtime evidence exists.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- Run schema must expose geometry, snappyHexMesh refinement, turbulence model, force reference area, wall-function settings, and y+ thresholds.
+- Mesh validation must check checkMesh status, non-orthogonality, skewness, aspect ratio, patch completeness, and cell count.
+- Runtime validation must check simpleFoam return code, residual thresholds, and absence of fatal errors.
+- Force validation must extract Cd/Cl from native forceCoeffs or an explicitly marked proxy source.
+- y+ validation must report min/max/mean and reject out-of-range wall-function evidence.
+- Force coefficients must be normalized with explicit rho, U_ref, A_ref, drag direction, lift direction, and averaging window from config.
+- Cd/Cl validation must report tail-window mean, standard deviation, and convergence or plateau evidence, not only the final row.
+- Mesh-refinement perturbation must compare Cd/Cl, y+, and mesh-quality changes and state whether the trend is physically acceptable.
+- Inlet-speed perturbation should keep normalized Cd/Cl in a configured tolerance band for the same turbulence/model setup or explain Reynolds-number sensitivity.
+- Optional yaw or crossflow perturbation should produce a directionally consistent side-force or lift response before treating the capability as external-aero validated.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.external_aero_motorbike_rans_snappy:run
+  input_schema: schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json
+  workflow_stage: cfd.openfoam.external_aero_motorbike_rans_snappy
+  runtime_target: _results/openfoam/external_aero_motorbike_rans_snappy/
+  runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
+intern_deliverables:
+- Create a config-first C04 run schema and baseline motorBike config.
+- Implement dry-run manifest generation for mesh, solver, force, and y+ requirements.
+- Add runtime execution only after mesh quality gates are accepted.
+- Implement Cd/Cl extraction, y+ summary, residual parsing, and artifact completeness validation.
+- Keep benchmark_status at benchmark_candidate until local runtime and force/y+ evidence pass.
+card_status: review
+benchmark_status: benchmark_candidate
