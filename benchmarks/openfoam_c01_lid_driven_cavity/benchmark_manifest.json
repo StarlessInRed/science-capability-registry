@@ -1,0 +1,75 @@
+{
+  "schema_version": "benchmark_freeze_manifest_v1",
+  "benchmark_id": "openfoam_c01_lid_driven_cavity",
+  "capability_id": "cfd.openfoam.lid_driven_cavity_incompressible_laminar",
+  "benchmark_status": "frozen_canonical",
+  "freeze_version": 1,
+  "description": "OpenFOAM C01 2D lid-driven cavity incompressible laminar baseline frozen from local WSL OpenFOAM.com v2112 evidence.",
+  "source_evidence": {
+    "case_id": "baseline_wsl_v2112",
+    "source_config": "configs/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112.yaml",
+    "source_result_root": "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112",
+    "runtime_profile": "openfoam_com_v2112",
+    "openfoam_distribution": "openfoam_com",
+    "openfoam_version": "v2112",
+    "wsl_distro": "Ubuntu-24.04"
+  },
+  "physics_definition": {
+    "model": "incompressible Navier-Stokes",
+    "regime": "laminar cavity flow",
+    "reynolds_number": 10,
+    "primary_behavior": "single recirculating cavity vortex with stable centerline velocity profiles"
+  },
+  "solver_binding": {
+    "backend": "OpenFOAM",
+    "solver": "icoFoam",
+    "mode": "transient_incompressible_laminar",
+    "command_sequence": [
+      "blockMesh",
+      "checkMesh",
+      "icoFoam"
+    ]
+  },
+  "reference_files": {
+    "expected_metrics": "expected_metrics.json",
+    "residual_reference": "residual_reference.json",
+    "validation_criteria": "validation_criteria.json",
+    "artifact_hash": "artifact_hash.json",
+    "reference_case_dir": "reference_case",
+    "postprocess_reference_dir": "postprocess_reference"
+  },
+  "comparison_policy": {
+    "schema_version": "openfoam_c01_validation_criteria_v1",
+    "benchmark_id": "openfoam_c01_lid_driven_cavity",
+    "status_rules": {
+      "required_evidence_status": "complete",
+      "required_solver_backend": "OpenFOAM",
+      "required_convergence_status": "converged",
+      "required_validation_json_passed": true
+    },
+    "residual_rules": {
+      "required_residual_count": 400,
+      "final_window_size": 8,
+      "max_final_residual": 0.001,
+      "log10_mae_tolerance": 1e-06
+    },
+    "postprocess_rules": {
+      "required_profiles": [
+        "vertical_centerline_Ux",
+        "horizontal_centerline_Uy"
+      ],
+      "component_abs_tolerance": 1e-09,
+      "row_count_tolerance": 0
+    },
+    "artifact_rules": {
+      "require_reference_hash_match": true,
+      "require_evidence_artifact_existence": true,
+      "hash_algorithm": "sha256"
+    }
+  },
+  "v4_memory_tags": {
+    "benchmark": "cavity_flow",
+    "solver": "OpenFOAM",
+    "reproducibility_target": "confirmed"
+  }
+}

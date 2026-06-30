@@ -1,0 +1,81 @@
+{
+  "schema_version": "openfoam_c01_expected_metrics_v1",
+  "benchmark_id": "openfoam_c01_lid_driven_cavity",
+  "source_case_id": "baseline_wsl_v2112",
+  "runtime_profile": "openfoam_com_v2112",
+  "openfoam_version": "v2112",
+  "solver": {
+    "name": "icoFoam",
+    "mode": "transient_incompressible_laminar",
+    "command_sequence": [
+      "blockMesh",
+      "checkMesh",
+      "icoFoam"
+    ]
+  },
+  "mesh": {
+    "cell_count": 400,
+    "mesh_ok": true
+  },
+  "solver_health": {
+    "started": true,
+    "fatal_error_detected": false,
+    "final_time_s": 0.5,
+    "time_step_count": 100,
+    "max_courant_number": 0.852134,
+    "residual_count": 400,
+    "final_residual_window_size": 8,
+    "final_residual_window_max": 9.59103e-07,
+    "last_continuity": {
+      "sum_local": 9.66354e-09,
+      "global": 1.13175e-18,
+      "cumulative": 1.21735e-17
+    }
+  },
+  "postprocess": {
+    "field_stats": {
+      "cell_count": 400,
+      "max_speed_m_s": 0.8526671462436952
+    },
+    "profiles": {
+      "vertical_centerline_Ux": {
+        "path": "postprocess_reference/centerline_vertical_Ux.csv",
+        "line_id": "vertical_centerline_Ux",
+        "time_s": 0.5,
+        "sample_count": 21,
+        "target": "x = L/2",
+        "primary_component": "Ux_m_s",
+        "stats": {
+          "row_count": 21,
+          "finite": true,
+          "coordinate_monotonic": true,
+          "Ux_m_s_min": -0.202608,
+          "Ux_m_s_max": 1.0,
+          "Ux_m_s_range": 1.2026080000000001,
+          "max_abs_dUx_m_s_dy_m": 83.93109999999992
+        }
+      },
+      "horizontal_centerline_Uy": {
+        "path": "postprocess_reference/centerline_horizontal_Uy.csv",
+        "line_id": "horizontal_centerline_Uy",
+        "time_s": 0.5,
+        "sample_count": 21,
+        "target": "y = L/2",
+        "primary_component": "Uy_m_s",
+        "stats": {
+          "row_count": 21,
+          "finite": true,
+          "coordinate_monotonic": true,
+          "Uy_m_s_min": -0.184855,
+          "Uy_m_s_max": 0.177732,
+          "Uy_m_s_range": 0.362587,
+          "max_abs_dUy_m_s_dx_m": 23.033499999999982
+        }
+      }
+    }
+  },
+  "validation_source": {
+    "passed": true,
+    "gate": "smoke"
+  }
+}

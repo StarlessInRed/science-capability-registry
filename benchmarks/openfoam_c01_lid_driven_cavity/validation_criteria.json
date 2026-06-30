@@ -1,0 +1,29 @@
+{
+  "schema_version": "openfoam_c01_validation_criteria_v1",
+  "benchmark_id": "openfoam_c01_lid_driven_cavity",
+  "status_rules": {
+    "required_evidence_status": "complete",
+    "required_solver_backend": "OpenFOAM",
+    "required_convergence_status": "converged",
+    "required_validation_json_passed": true
+  },
+  "residual_rules": {
+    "required_residual_count": 400,
+    "final_window_size": 8,
+    "max_final_residual": 0.001,
+    "log10_mae_tolerance": 1e-06
+  },
+  "postprocess_rules": {
+    "required_profiles": [
+      "vertical_centerline_Ux",
+      "horizontal_centerline_Uy"
+    ],
+    "component_abs_tolerance": 1e-09,
+    "row_count_tolerance": 0
+  },
+  "artifact_rules": {
+    "require_reference_hash_match": true,
+    "require_evidence_artifact_existence": true,
+    "hash_algorithm": "sha256"
+  }
+}
