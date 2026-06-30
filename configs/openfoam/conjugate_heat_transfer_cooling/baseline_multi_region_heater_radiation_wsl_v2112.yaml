@@ -1,0 +1,272 @@
+capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+case_id: baseline_multi_region_heater_radiation_wsl_v2112
+description: Packaged short-horizon OpenFOAM.com v2112 multiRegionHeaterRadiation CHT smoke baseline with radiation view-factor preprocessing.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112_cht
+  tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
+  source_url: https://www.openfoam.com/documentation/user-guide/a-reference/a.1-standard-solvers
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: legacy_cht_multi_region
+  required_executables:
+  - blockMesh
+  - topoSet
+  - splitMeshRegions
+  - changeDictionary
+  - checkMesh
+  - faceAgglomerate
+  - viewFactorsGen
+  - chtMultiRegionSimpleFoam
+backend:
+  type: dry_run_only
+  timeout_s: 1200
+  parallel: false
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: chtMultiRegionSimpleFoam
+  mode: steady_multi_region_CHT
+  command_sequence:
+  - chtMultiRegionSimpleFoam
+template:
+  source_profile_key: c07_multi_region_heater_radiation
+  source_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
+  copy_strategy: copy_official_tutorial_then_patch
+  disabled_function_objects:
+  - "system/controlDict functions block is emptied because local OpenFOAM.com v2112 WSL functionObject writes trigger a sha1 IO failure before the smoke endpoint."
+regions:
+  fluid:
+  - bottomAir
+  - topAir
+  solid:
+  - heater
+  - leftSolid
+  - rightSolid
+mesh_workflow:
+  geometry_resource: builtin_blockMesh_and_topoSet
+  command_sequence:
+  - ./Allrun.pre
+  - checkMesh -allRegions -constant
+  required_generated_files:
+  - case/0.orig/T
+  - case/0.orig/U
+  - case/constant/regionProperties
+  - case/system/controlDict
+  - case/system/topoSetDict
+  - case/system/decomposeParDict
+  - case/system/bottomAir/changeDictionaryDict
+  - case/system/topAir/changeDictionaryDict
+  - case/system/heater/changeDictionaryDict
+parallel:
+  launcher: mpirun
+  number_of_subdomains: 4
+  method: scotch
+  region_subdomains:
+    bottomAir: 4
+    topAir: 4
+    heater: 4
+    leftSolid: 4
+    rightSolid: 4
+materials:
+  bottomAir:
+    thermo_type: heRhoThermo
+    mol_weight: 28.9
+    cp_J_kg_K: 1000
+    dynamic_viscosity_Pa_s: 1.8e-05
+    prandtl: 0.7
+  topAir:
+    thermo_type: heRhoThermo
+    mol_weight: 28.9
+    cp_J_kg_K: 1000
+    dynamic_viscosity_Pa_s: 1.8e-05
+    prandtl: 0.7
+  heater:
+    thermo_type: heSolidThermo
+    density_kg_m3: 8000
+    cp_J_kg_K: 450
+    thermal_conductivity_W_m_K: 80
+  leftSolid:
+    thermo_type: heSolidThermo
+    density_kg_m3: 8000
+    cp_J_kg_K: 450
+    thermal_conductivity_W_m_K: 80
+  rightSolid:
+    thermo_type: heSolidThermo
+    density_kg_m3: 8000
+    cp_J_kg_K: 450
+    thermal_conductivity_W_m_K: 80
+fields:
+  initial_temperature_K: 300
+  required_by_region:
+    bottomAir:
+    - T
+    - U
+    - p
+    - p_rgh
+    - k
+    - epsilon
+    - qr
+    - G
+    - IDefault
+    topAir:
+    - T
+    - U
+    - p
+    - p_rgh
+    - k
+    - epsilon
+    - qr
+    - G
+    - IDefault
+    heater:
+    - T
+    - p
+    leftSolid:
+    - T
+    - p
+    rightSolid:
+    - T
+    - p
+interfaces:
+- name: bottomAir_to_heater
+  owner_region: bottomAir
+  neighbour_region: heater
+  owner_patch: bottomAir_to_heater
+  neighbour_patch: heater_to_bottomAir
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+- name: topAir_to_heater
+  owner_region: topAir
+  neighbour_region: heater
+  owner_patch: topAir_to_heater
+  neighbour_patch: heater_to_topAir
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+- name: heater_to_leftSolid
+  owner_region: heater
+  neighbour_region: leftSolid
+  owner_patch: heater_to_leftSolid
+  neighbour_patch: leftSolid_to_heater
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+- name: heater_to_rightSolid
+  owner_region: heater
+  neighbour_region: rightSolid
+  owner_patch: heater_to_rightSolid
+  neighbour_patch: rightSolid_to_heater
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+heat_sources:
+  heater:
+    source_type: fixed_temperature_boundary
+    field: T
+    boundary_patch: minY
+    temperature_K: 500
+radiation:
+  enabled: true
+  view_factor_regions:
+  - bottomAir
+  - topAir
+  preprocessing_commands:
+  - faceAgglomerate -region bottomAir
+  - viewFactorsGen -region bottomAir
+  - faceAgglomerate -region topAir
+  - viewFactorsGen -region topAir
+  required_generated_files:
+  - case/0/bottomAir/facesAgglomeration
+  - case/0/bottomAir/viewFactorField
+  - case/constant/bottomAir/F
+  - case/constant/bottomAir/finalAgglom
+  - case/constant/bottomAir/globalFaceFaces
+  - case/constant/topAir/F
+  - case/constant/topAir/finalAgglom
+  - case/constant/topAir/globalFaceFaces
+  - case/0/topAir/facesAgglomeration
+  - case/0/topAir/viewFactorField
+numerics:
+  control:
+    end_time_iterations: 2
+    delta_t: 1
+    write_interval: 1
+    write_format: ascii
+postprocess:
+  region_temperature_summary: true
+  interface_balance_summary: true
+  command_sequence:
+  - python:write_region_temperature_summary
+  - python:write_interface_balance_summary
+  method_note: Smoke gate extracts region T min/max/mean and an interface region-mean temperature proxy; patch heat-flux conservation is not claimed.
+outputs:
+  output_dir: _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/bottomAir/T
+  - case/0/bottomAir/U
+  - case/0/bottomAir/qr
+  - case/0/topAir/T
+  - case/0/topAir/U
+  - case/0/topAir/qr
+  - case/0/heater/T
+  - case/0/leftSolid/T
+  - case/0/rightSolid/T
+  - case/constant/regionProperties
+  - case/constant/bottomAir/thermophysicalProperties
+  - case/constant/bottomAir/radiationProperties
+  - case/constant/bottomAir/viewFactorsDict
+  - case/constant/topAir/thermophysicalProperties
+  - case/constant/topAir/radiationProperties
+  - case/constant/topAir/viewFactorsDict
+  - case/constant/heater/thermophysicalProperties
+  - case/constant/heater/radiationProperties
+  - case/constant/leftSolid/thermophysicalProperties
+  - case/constant/leftSolid/radiationProperties
+  - case/constant/rightSolid/thermophysicalProperties
+  - case/constant/rightSolid/radiationProperties
+  - case/system/controlDict
+  - case/system/topoSetDict
+  - case/system/decomposeParDict
+  - case/system/bottomAir/changeDictionaryDict
+  - case/system/topAir/changeDictionaryDict
+  - case/system/heater/changeDictionaryDict
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - postprocess/region_temperature_summary.csv
+  - postprocess/interface_balance_summary.csv
+validation:
+  gate: smoke
+  temperature_min_K: 250
+  temperature_max_K: 500.1
+  max_interface_temperature_jump_K: 250
+  max_interface_heat_flux_relative_mismatch: 1
+  max_final_residual: 0.1
+  required_generated_files:
+  - case/0.orig/T
+  - case/0.orig/U
+  - case/constant/regionProperties
+  - case/system/controlDict
+  - case/system/topoSetDict
+  - case/system/decomposeParDict
+  - case/system/bottomAir/changeDictionaryDict
+  - case/system/topAir/changeDictionaryDict
+  - case/system/heater/changeDictionaryDict
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - runtime_profile
+  - backend
+  - regions
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - radiation_commands
+  - postprocess_commands
+  - expected_outputs
+  - validation_targets
+  required_interface_pairs:
+  - bottomAir_to_heater
+  - topAir_to_heater
+  - heater_to_leftSolid
+  - heater_to_rightSolid
+  matrix_role: baseline
+  expected_trend:
+    description: Short-horizon radiation CHT smoke should reach Time=2 with finite region temperatures and a hotter heater/bottomAir response than the ambient topAir field.
+    primary_metric: max_temperature_by_region
+    direction: heater_and_bottomAir_hotter_than_topAir

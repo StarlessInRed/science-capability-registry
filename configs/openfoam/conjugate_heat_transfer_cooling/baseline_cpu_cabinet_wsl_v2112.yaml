@@ -126,6 +126,11 @@ heat_sources:
     source_type: scalarSemiImplicitSource
     field: h
     power_W: 100
+radiation:
+  enabled: false
+  view_factor_regions: []
+  preprocessing_commands: []
+  required_generated_files: []
 numerics:
   control:
     end_time_iterations: 200
@@ -137,6 +142,11 @@ numerics:
 postprocess:
   region_temperature_summary: true
   interface_balance_summary: true
+  command_sequence:
+  - reconstructParMesh -allRegions -constant
+  - reconstructPar -allRegions
+  - python:write_region_temperature_summary
+  - python:write_interface_balance_summary
   method_note: Static-readiness dry-run records planned CHT postprocess outputs; runtime field parsing is deferred to smoke.
 outputs:
   output_dir: _results/openfoam/conjugate_heat_transfer_cooling/baseline_cpu_cabinet_wsl_v2112

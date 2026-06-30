@@ -19,6 +19,14 @@ def _config() -> dict:
     )
 
 
+def _mhr_config() -> dict:
+    return yaml.safe_load(
+        Path(
+            "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml"
+        ).read_text(encoding="utf-8")
+    )
+
+
 def test_parse_chtmultiregion_log_extracts_regions_residuals_and_completion() -> None:
     log_text = """
 Time = 199
@@ -44,6 +52,30 @@ Time = 200
     assert parsed["regions_seen"] == ["domain0", "v_CPU", "v_fins"]
     assert parsed["last_residuals"]["v_CPU"]["T"]["final"] == 8e-06
     assert parsed["last_continuity"]["region"] == "domain0"
+
+
+def test_parse_chtmultiregion_log_extracts_heater_radiation_regions() -> None:
+    log_text = """
+Time = 2
+Solving for fluid region bottomAir
+DILUPBiCGStab:  Solving for h, Initial residual = 0.9624945, Final residual = 0.08369737, No Iterations 1
+time step continuity errors : sum local = 0.1656838, global = -6.938969e-18, cumulative = -0.05802718
+Solving for fluid region topAir
+DILUPBiCGStab:  Solving for h, Initial residual = 0.3950533, Final residual = 0.01300888, No Iterations 1
+Solving for solid region heater
+DICPCG:  Solving for h, Initial residual = 0.1877447, Final residual = 0.01465519, No Iterations 1
+Solving for solid region leftSolid
+DICPCG:  Solving for h, Initial residual = 0.687802, Final residual = 0.05339896, No Iterations 1
+Solving for solid region rightSolid
+DICPCG:  Solving for h, Initial residual = 0.633732, Final residual = 0.04837411, No Iterations 1
+End
+"""
+
+    parsed = parse_chtmultiregion_log(log_text)
+
+    assert parsed["final_time"] == 2.0
+    assert parsed["regions_seen"] == ["bottomAir", "heater", "leftSolid", "rightSolid", "topAir"]
+    assert parsed["last_residuals"]["bottomAir"]["h"]["final"] == 0.08369737
 
 
 def test_parse_chtmultiregion_log_detects_real_fatal_error_but_not_fpe_trap_notice() -> None:
@@ -76,28 +108,36 @@ Mesh OK.
 
 
 def _minimal_metrics(config: dict, *, residual: float = 1.0e-5, max_temperature: float = 360.0) -> dict:
+    regions = [*config["regions"]["fluid"], *config["regions"]["solid"]]
+    temperature_rows = []
+    for index, region in enumerate(regions):
+        temperature_rows.append(
+            {
+                "region": region,
+                "available": True,
+                "finite": True,
+                "min_T_K": 300.0,
+                "max_T_K": max_temperature if index == 0 else min(340.0 + index, max_temperature),
+            }
+        )
     return {
         "runtime": {"commands": [{"command": command, "returncode": 0} for command in [
             *config["mesh_workflow"]["command_sequence"],
+            *config["radiation"]["preprocessing_commands"],
             *config["solver"]["command_sequence"],
-            "reconstructParMesh -allRegions -constant",
-            "reconstructPar -allRegions",
+            *[command for command in config["postprocess"]["command_sequence"] if not command.startswith("python:")],
         ]]},
         "mesh": {"mesh_ok": True},
         "solver": {
             "started": True,
             "fatal_error_detected": False,
             "final_time": float(config["numerics"]["control"]["end_time_iterations"]),
-            "regions_seen": ["domain0", "v_CPU", "v_fins"],
-            "last_residuals": {"domain0": {"T": {"final": residual}}},
+            "regions_seen": regions,
+            "last_residuals": {regions[0]: {"T": {"final": residual}}},
         },
         "postprocess": {
             "temperatures": {
-                "regions": [
-                    {"region": "domain0", "available": True, "finite": True, "min_T_K": 300.0, "max_T_K": 330.0},
-                    {"region": "v_CPU", "available": True, "finite": True, "min_T_K": 310.0, "max_T_K": max_temperature},
-                    {"region": "v_fins", "available": True, "finite": True, "min_T_K": 305.0, "max_T_K": 340.0},
-                ]
+                "regions": temperature_rows
             },
             "interfaces": {"available": True, "interfaces": [{"interface": "domain0_to_v_CPU", "mean_abs_delta_T_K": 12.0}]},
         },
@@ -140,3 +180,19 @@ def test_openfoam_c07_runtime_validation_rejects_temperature_out_of_bounds(tmp_p
     assert validation["passed"] is False
     failed = {check["name"] for check in validation["checks"] if not check["passed"]}
     assert "postprocess.temperature_bounds" in failed
+
+
+def test_openfoam_c07_runtime_validation_accepts_heater_radiation_smoke_metrics(tmp_path: Path) -> None:
+    config = _mhr_config()
+    metrics = _minimal_metrics(config, residual=8.0e-2, max_temperature=500.0)
+    for rel_path in [*config["outputs"]["expected_outputs"], *config["radiation"]["required_generated_files"]]:
+        if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
+            continue
+        path = tmp_path / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("ok\n", encoding="utf-8")
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert validation["passed"] is True
+    assert validation["gate"] == "smoke"

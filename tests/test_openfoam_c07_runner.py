@@ -34,3 +34,31 @@ def test_openfoam_c07_runner_dry_run_writes_manifest_and_multiregion_case() -> N
 
     fv_options = (output_dir / "case/system/v_CPU/fvOptions").read_text(encoding="utf-8")
     assert "h           ( 100 0 );" in fv_options
+
+
+def test_openfoam_c07_runner_dry_run_writes_heater_radiation_manifest() -> None:
+    output_dir = Path("_results/openfoam/conjugate_heat_transfer_cooling/test_runner_mhr")
+    result = run(
+        config_path=Path(
+            "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml"
+        ),
+        output_dir=output_dir,
+        dry_run=True,
+    )
+
+    assert result["validation"]["passed"] is True
+    assert result["template"]["source_profile_key"] == "c07_multi_region_heater_radiation"
+    assert result["regions"]["fluid"] == ["bottomAir", "topAir"]
+    assert result["regions"]["solid"] == ["heater", "leftSolid", "rightSolid"]
+    assert "faceAgglomerate -region bottomAir" in result["radiation_commands"]
+    assert "viewFactorsGen -region topAir" in result["radiation_commands"]
+    assert "chtMultiRegionSimpleFoam" in result["solver_commands"]
+
+    assert (output_dir / "manifest.json").exists()
+    assert (output_dir / "case/constant/regionProperties").exists()
+    assert (output_dir / "case/0.orig/T").exists()
+    assert (output_dir / "case/system/heater/changeDictionaryDict").exists()
+    control = (output_dir / "case/system/controlDict").read_text(encoding="utf-8")
+    assert "multiRegion" not in control
+    heater_change_dict = (output_dir / "case/system/heater/changeDictionaryDict").read_text(encoding="utf-8")
+    assert "value           uniform 500;" in heater_change_dict

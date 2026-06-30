@@ -34,8 +34,34 @@ def _replace_heat_source_power(text: str, power_w: float) -> str:
     return re.sub(r"(h\s*)\(\s*[-+]?\d+(?:\.\d*)?(?:[eE][-+]?\d+)?\s+0\s*\)(\s*;)", rf"\g<1>( {power_w:g} 0 )\2", text, count=1)
 
 
+def _replace_fixed_boundary_temperature(text: str, patch_name: str, temperature_k: float) -> str:
+    pattern = rf"({re.escape(patch_name)}\s*\{{[^{{}}]*?type\s+fixedValue;\s*value\s+uniform\s+)[^;]+;"
+    replacement = rf"\g<1>{temperature_k:g};"
+    updated, count = re.subn(pattern, replacement, text, count=1, flags=re.DOTALL)
+    if count != 1:
+        raise ValueError(f"Could not patch fixed-temperature boundary {patch_name!r}.")
+    return updated
+
+
 def _remove_probe_function_object(text: str) -> str:
     return re.sub(r"\nfunctions\s*\{.*?#include\s+\"probes\".*?\}\s*", "\n", text, flags=re.DOTALL)
+
+
+def _empty_dictionary_block(text: str, keyword: str) -> str:
+    match = re.search(rf"\b{re.escape(keyword)}\s*\{{", text)
+    if match is None:
+        return text
+    brace_start = text.find("{", match.start())
+    depth = 0
+    for index in range(brace_start, len(text)):
+        char = text[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[: match.start()] + f"{keyword}\n{{\n}}\n" + text[index + 1 :]
+    raise ValueError(f"Could not find closing brace for OpenFOAM dictionary block {keyword!r}.")
 
 
 def _write_text(path: Path, text: str) -> None:
@@ -43,6 +69,8 @@ def _write_text(path: Path, text: str) -> None:
 
 
 def _copy_geometry_resource(config: dict[str, Any], output_dir: Path, distro: str, timeout_s: float) -> None:
+    if "geometry_resource_path" not in config["template"]:
+        return
     case_dir_linux = map_windows_path_to_wsl(output_dir / "case", distro, timeout_s)
     source = config["template"]["geometry_resource_path"]
     target = f"{case_dir_linux}/constant/triSurface"
@@ -54,7 +82,7 @@ def _copy_geometry_resource(config: dict[str, Any], output_dir: Path, distro: st
     result = run_wsl(distro, script, timeout_s)
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
-        raise RuntimeError(f"Failed to copy cpuCabinet geometry resource: {detail}")
+        raise RuntimeError(f"Failed to copy OpenFOAM C07 geometry resource: {detail}")
 
 
 def _materialize_initial_fields(case_dir: Path) -> None:
@@ -72,6 +100,8 @@ def _patch_control_dict(case_dir: Path, config: dict[str, Any]) -> None:
     text = path.read_text(encoding="utf-8")
     control = config["numerics"]["control"]
     text = _remove_probe_function_object(text)
+    if config["template"].get("disabled_function_objects"):
+        text = _empty_dictionary_block(text, "functions")
     text = _replace_assignment(text, "endTime", f"{control['end_time_iterations']:g}")
     text = _replace_assignment(text, "deltaT", f"{control['delta_t']:g}")
     text = _replace_assignment(text, "writeInterval", f"{control['write_interval']:g}")
@@ -88,6 +118,11 @@ def _patch_decompose_dicts(case_dir: Path, config: dict[str, Any]) -> None:
 
     for region, subdomains in config["parallel"]["region_subdomains"].items():
         path = case_dir / "system" / region / "decomposeParDict"
+        try:
+            if not path.exists() or path.is_symlink():
+                continue
+        except OSError:
+            continue
         text = path.read_text(encoding="utf-8")
         text = _replace_assignment(text, "numberOfSubdomains", str(subdomains), count=0)
         _write_text(path, text)
@@ -108,7 +143,19 @@ def _patch_heat_source(case_dir: Path, config: dict[str, Any]) -> None:
     _write_text(path, text)
 
 
+def _patch_fixed_temperature_sources(case_dir: Path, config: dict[str, Any]) -> None:
+    for region, source in config["heat_sources"].items():
+        if source["source_type"] != "fixed_temperature_boundary":
+            continue
+        path = case_dir / "system" / region / "changeDictionaryDict"
+        text = path.read_text(encoding="utf-8")
+        text = _replace_fixed_boundary_temperature(text, str(source["boundary_patch"]), float(source["temperature_K"]))
+        _write_text(path, text)
+
+
 def _patch_mrf(case_dir: Path, config: dict[str, Any]) -> None:
+    if "mrf" not in config["numerics"]:
+        return
     path = case_dir / "constant" / "domain0" / "MRFProperties"
     text = path.read_text(encoding="utf-8")
     text = _replace_assignment(text, "omega", f"{config['numerics']['mrf']['omega_rad_s']:g}")
@@ -116,14 +163,15 @@ def _patch_mrf(case_dir: Path, config: dict[str, Any]) -> None:
 
 
 def _patch_fluid_material(case_dir: Path, config: dict[str, Any]) -> None:
-    material = config["materials"]["domain0"]
-    path = case_dir / "constant" / "domain0" / "thermophysicalProperties"
-    text = path.read_text(encoding="utf-8")
-    text = _replace_assignment(text, "molWeight", f"{material['mol_weight']:g}")
-    text = _replace_assignment(text, "Cp", f"{material['cp_J_kg_K']:g}")
-    text = _replace_assignment(text, "mu", f"{material['dynamic_viscosity_Pa_s']:g}")
-    text = _replace_assignment(text, "Pr", f"{material['prandtl']:g}")
-    _write_text(path, text)
+    for region in config["regions"]["fluid"]:
+        material = config["materials"][region]
+        path = case_dir / "constant" / region / "thermophysicalProperties"
+        text = path.read_text(encoding="utf-8")
+        text = _replace_assignment(text, "molWeight", f"{material['mol_weight']:g}")
+        text = _replace_assignment(text, "Cp", f"{material['cp_J_kg_K']:g}")
+        text = _replace_assignment(text, "mu", f"{material['dynamic_viscosity_Pa_s']:g}")
+        text = _replace_assignment(text, "Pr", f"{material['prandtl']:g}")
+        _write_text(path, text)
 
 
 def _patch_solid_materials(case_dir: Path, config: dict[str, Any]) -> None:
@@ -139,18 +187,32 @@ def _patch_solid_materials(case_dir: Path, config: dict[str, Any]) -> None:
 
 def _patch_case_files(output_dir: Path, config: dict[str, Any]) -> None:
     case_dir = output_dir / "case"
-    _materialize_initial_fields(case_dir)
     _patch_control_dict(case_dir, config)
     _patch_decompose_dicts(case_dir, config)
-    _patch_temperature_fields(case_dir, config)
-    _patch_heat_source(case_dir, config)
-    _patch_mrf(case_dir, config)
     _patch_fluid_material(case_dir, config)
     _patch_solid_materials(case_dir, config)
+    source_profile_key = config["template"]["source_profile_key"]
+    if source_profile_key == "c07_cpu_cabinet":
+        _materialize_initial_fields(case_dir)
+        _patch_temperature_fields(case_dir, config)
+        _patch_heat_source(case_dir, config)
+        _patch_mrf(case_dir, config)
+    elif source_profile_key == "c07_multi_region_heater_radiation":
+        _patch_fixed_temperature_sources(case_dir, config)
+    else:
+        raise ValueError(f"Unsupported C07 template source_profile_key: {source_profile_key!r}")
 
 
 def _generated_files(output_dir: Path) -> list[str]:
-    return [path.relative_to(output_dir).as_posix() for path in sorted((output_dir / "case").rglob("*")) if path.is_file()]
+    generated = []
+    for path in sorted((output_dir / "case").rglob("*")):
+        try:
+            is_file = path.is_file()
+        except OSError:
+            continue
+        if is_file:
+            generated.append(path.relative_to(output_dir).as_posix())
+    return generated
 
 
 def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: list[str]) -> dict[str, Any]:
@@ -169,16 +231,12 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "interfaces": [item["name"] for item in config["interfaces"]],
         "generated_files": generated_files,
         "mesh_commands": config["mesh_workflow"]["command_sequence"],
+        "radiation_commands": config["radiation"]["preprocessing_commands"],
         "solver_commands": config["solver"]["command_sequence"],
-        "postprocess_commands": [
-            "reconstructParMesh -allRegions -constant",
-            "reconstructPar -allRegions",
-            "python:write_region_temperature_summary",
-            "python:write_interface_balance_summary",
-        ],
+        "postprocess_commands": config["postprocess"]["command_sequence"],
         "expected_outputs": config["outputs"]["expected_outputs"],
         "validation_targets": config["validation"],
-        "scope": "dry-run manifest and generated cpuCabinet multi-region CHT case files; no OpenFOAM solver execution",
+        "scope": f"dry-run manifest and generated {config['template']['source_profile_key']} multi-region CHT case files; no OpenFOAM solver execution",
     }
 
 
@@ -223,7 +281,7 @@ def run(
     if backend_type != "wsl":
         raise NotImplementedError(f"OpenFOAM C07 backend {backend_type!r} is not implemented.")
 
-    manifest["scope"] = "local WSL OpenFOAM runtime smoke for cpuCabinet multi-region CHT template case"
+    manifest["scope"] = f"local WSL OpenFOAM runtime smoke for {config['template']['source_profile_key']} multi-region CHT template case"
     runtime = execute_wsl_runtime(config, resolved_output_dir)
     metrics = build_runtime_metrics(config, resolved_output_dir, runtime)
     metrics_path = resolved_output_dir / "metrics.json"

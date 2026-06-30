@@ -59,8 +59,12 @@ def test_openfoam_runtime_profile_v2112_cht_bindings() -> None:
     assert profile["executable_bindings"]["cht_steady"] == "chtMultiRegionSimpleFoam"
     assert profile["executable_bindings"]["parallel_launcher"] == "mpirun"
     assert "splitMeshRegions" in profile["required_executables"]
+    assert "changeDictionary" in profile["required_executables"]
+    assert "faceAgglomerate" in profile["required_executables"]
+    assert "viewFactorsGen" in profile["required_executables"]
     assert "mpirun" in profile["required_executables"]
     assert "c07_cpu_cabinet" in profile["tutorial_roots"]
+    assert "c07_multi_region_heater_radiation" in profile["tutorial_roots"]
 
 
 def test_openfoam_runtime_profile_rejects_private_keys() -> None:

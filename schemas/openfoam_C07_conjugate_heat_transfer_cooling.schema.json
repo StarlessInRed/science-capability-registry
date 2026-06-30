@@ -20,6 +20,7 @@
     "fields",
     "interfaces",
     "heat_sources",
+    "radiation",
     "numerics",
     "postprocess",
     "outputs",
@@ -61,7 +62,10 @@
           "const": "openfoam_com_v2112_cht"
         },
         "tutorial_path": {
-          "const": "$FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet"
+          "enum": [
+            "$FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet",
+            "$FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation"
+          ]
         },
         "source_url": {
           "type": "string",
@@ -74,12 +78,7 @@
           "const": "legacy_cht_multi_region"
         },
         "required_executables": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+          "$ref": "#/$defs/non_empty_string_array"
         }
       }
     },
@@ -104,7 +103,7 @@
           "exclusiveMinimum": 0
         },
         "parallel": {
-          "const": true
+          "type": "boolean"
         },
         "wsl_distro": {
           "const": "Ubuntu-24.04"
@@ -127,12 +126,7 @@
           "const": "steady_multi_region_CHT"
         },
         "command_sequence": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+          "$ref": "#/$defs/non_empty_string_array"
         }
       }
     },
@@ -142,19 +136,25 @@
       "required": [
         "source_profile_key",
         "source_path",
-        "geometry_resource_path",
         "copy_strategy",
         "disabled_function_objects"
       ],
       "properties": {
         "source_profile_key": {
-          "const": "c07_cpu_cabinet"
+          "enum": [
+            "c07_cpu_cabinet",
+            "c07_multi_region_heater_radiation"
+          ]
         },
         "source_path": {
-          "const": "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet"
+          "enum": [
+            "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet",
+            "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation"
+          ]
         },
         "geometry_resource_path": {
-          "const": "/opt/OpenFOAM-v2112/tutorials/resources/geometry/cpuCabinet"
+          "type": "string",
+          "minLength": 1
         },
         "copy_strategy": {
           "const": "copy_official_tutorial_then_patch"
@@ -177,27 +177,10 @@
       ],
       "properties": {
         "fluid": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "const": "domain0"
-            }
-          ],
-          "minItems": 1,
-          "maxItems": 1
+          "$ref": "#/$defs/non_empty_string_array"
         },
         "solid": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "const": "v_CPU"
-            },
-            {
-              "const": "v_fins"
-            }
-          ],
-          "minItems": 2,
-          "maxItems": 2
+          "$ref": "#/$defs/non_empty_string_array"
         }
       }
     },
@@ -211,34 +194,14 @@
       ],
       "properties": {
         "geometry_resource": {
-          "const": "$FOAM_TUTORIALS/resources/geometry/cpuCabinet"
+          "type": "string",
+          "minLength": 1
         },
         "command_sequence": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "enum": [
-              "blockMesh",
-              "surfaceFeatureExtract",
-              "snappyHexMesh -overwrite",
-              "decomposePar",
-              "restore0Dir -processor",
-              "mpirun -np 10 splitMeshRegions -cellZones -overwrite -parallel",
-              "mpirun -np 10 topoSet -region domain0 -parallel",
-              "mpirun -np 10 checkMesh -allRegions -constant -parallel",
-              "mpirun --oversubscribe -np 10 splitMeshRegions -cellZones -overwrite -parallel",
-              "mpirun --oversubscribe -np 10 topoSet -region domain0 -parallel",
-              "mpirun --oversubscribe -np 10 checkMesh -allRegions -constant -parallel"
-            ]
-          }
+          "$ref": "#/$defs/non_empty_string_array"
         },
         "required_generated_files": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+          "$ref": "#/$defs/non_empty_string_array"
         }
       }
     },
@@ -256,51 +219,34 @@
           "const": "mpirun"
         },
         "number_of_subdomains": {
-          "const": 10
+          "type": "integer",
+          "minimum": 1
         },
         "method": {
-          "const": "scotch"
+          "type": "string",
+          "minLength": 1
         },
         "region_subdomains": {
           "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "domain0",
-            "v_CPU",
-            "v_fins"
-          ],
-          "properties": {
-            "domain0": {
-              "const": 4
-            },
-            "v_CPU": {
-              "const": 4
-            },
-            "v_fins": {
-              "const": 4
-            }
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
           }
         }
       }
     },
     "materials": {
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "domain0",
-        "v_CPU",
-        "v_fins"
-      ],
-      "properties": {
-        "domain0": {
-          "$ref": "#/$defs/fluid_material"
-        },
-        "v_CPU": {
-          "$ref": "#/$defs/solid_material"
-        },
-        "v_fins": {
-          "$ref": "#/$defs/solid_material"
-        }
+      "minProperties": 1,
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/fluid_material"
+          },
+          {
+            "$ref": "#/$defs/solid_material"
+          }
+        ]
       }
     },
     "fields": {
@@ -317,29 +263,16 @@
         },
         "required_by_region": {
           "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "domain0",
-            "v_CPU",
-            "v_fins"
-          ],
-          "properties": {
-            "domain0": {
-              "$ref": "#/$defs/non_empty_string_array"
-            },
-            "v_CPU": {
-              "$ref": "#/$defs/non_empty_string_array"
-            },
-            "v_fins": {
-              "$ref": "#/$defs/non_empty_string_array"
-            }
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/non_empty_string_array"
           }
         }
       }
     },
     "interfaces": {
       "type": "array",
-      "minItems": 3,
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -357,18 +290,12 @@
             "minLength": 1
           },
           "owner_region": {
-            "enum": [
-              "domain0",
-              "v_CPU",
-              "v_fins"
-            ]
+            "type": "string",
+            "minLength": 1
           },
           "neighbour_region": {
-            "enum": [
-              "domain0",
-              "v_CPU",
-              "v_fins"
-            ]
+            "type": "string",
+            "minLength": 1
           },
           "owner_patch": {
             "type": "string",
@@ -386,30 +313,43 @@
     },
     "heat_sources": {
       "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/heat_source"
+      }
+    },
+    "radiation": {
+      "type": "object",
       "additionalProperties": false,
       "required": [
-        "v_CPU"
+        "enabled",
+        "view_factor_regions",
+        "preprocessing_commands",
+        "required_generated_files"
       ],
       "properties": {
-        "v_CPU": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "source_type",
-            "field",
-            "power_W"
-          ],
-          "properties": {
-            "source_type": {
-              "const": "scalarSemiImplicitSource"
-            },
-            "field": {
-              "const": "h"
-            },
-            "power_W": {
-              "type": "number",
-              "exclusiveMinimum": 0
-            }
+        "enabled": {
+          "type": "boolean"
+        },
+        "view_factor_regions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "preprocessing_commands": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required_generated_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
           }
         }
       }
@@ -418,8 +358,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "control",
-        "mrf"
+        "control"
       ],
       "properties": {
         "control": {
@@ -470,6 +409,7 @@
       "required": [
         "region_temperature_summary",
         "interface_balance_summary",
+        "command_sequence",
         "method_note"
       ],
       "properties": {
@@ -478,6 +418,13 @@
         },
         "interface_balance_summary": {
           "type": "boolean"
+        },
+        "command_sequence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "method_note": {
           "type": "string",
@@ -566,6 +513,7 @@
           "enum": [
             "baseline",
             "heat_power_high",
+            "heater_temperature_high",
             "airflow_high",
             "ambient_temperature_high",
             "mesh_refinement",
@@ -663,6 +611,61 @@
           "exclusiveMinimum": 0
         }
       }
+    },
+    "heat_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_type",
+        "field"
+      ],
+      "properties": {
+        "source_type": {
+          "enum": [
+            "scalarSemiImplicitSource",
+            "fixed_temperature_boundary"
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "power_W": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "temperature_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "boundary_patch": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "power_W"
+          ],
+          "properties": {
+            "source_type": {
+              "const": "scalarSemiImplicitSource"
+            }
+          }
+        },
+        {
+          "required": [
+            "temperature_K",
+            "boundary_patch"
+          ],
+          "properties": {
+            "source_type": {
+              "const": "fixed_temperature_boundary"
+            }
+          }
+        }
+      ]
     }
   }
 }

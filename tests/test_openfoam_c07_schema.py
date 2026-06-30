@@ -12,6 +12,9 @@ from science_capability_registry.openfoam.conjugate_heat_transfer_cooling.config
 
 
 CONFIG_PATH = Path("configs/openfoam/conjugate_heat_transfer_cooling/baseline_cpu_cabinet_wsl_v2112.yaml")
+MHR_CONFIG_PATH = Path(
+    "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml"
+)
 
 
 def _baseline_config() -> dict:
@@ -21,14 +24,17 @@ def _baseline_config() -> dict:
 def test_openfoam_c07_configs_match_schema() -> None:
     paths = sorted(Path("configs/openfoam/conjugate_heat_transfer_cooling").glob("*.yaml"))
     assert paths
+    profiles = set()
     for path in paths:
         config = load_case_config(path)
         assert config["capability_id"] == "cfd.openfoam.conjugate_heat_transfer_cooling"
         assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2112_cht"
         assert config["openfoam"]["case_layout"] == "legacy_cht_multi_region"
         assert config["solver"]["name"] == "chtMultiRegionSimpleFoam"
-        assert config["regions"]["fluid"] == ["domain0"]
-        assert config["regions"]["solid"] == ["v_CPU", "v_fins"]
+        assert config["regions"]["fluid"]
+        assert config["regions"]["solid"]
+        profiles.add(config["template"]["source_profile_key"])
+    assert {"c07_cpu_cabinet", "c07_multi_region_heater_radiation"}.issubset(profiles)
 
 
 def test_openfoam_c07_schema_rejects_unknown_top_level_key() -> None:
@@ -50,7 +56,18 @@ def test_openfoam_c07_schema_rejects_single_region_profile() -> None:
 
 def test_openfoam_c07_schema_rejects_missing_solid_region() -> None:
     config = _baseline_config()
-    config["regions"]["solid"] = ["v_CPU"]
+    config["regions"]["solid"] = []
 
     with pytest.raises(ValueError, match="regions.solid"):
         validate_case_config(config)
+
+
+def test_openfoam_c07_schema_accepts_multi_region_heater_radiation_profile() -> None:
+    config = load_case_config(MHR_CONFIG_PATH)
+
+    assert config["template"]["source_profile_key"] == "c07_multi_region_heater_radiation"
+    assert config["regions"]["fluid"] == ["bottomAir", "topAir"]
+    assert config["regions"]["solid"] == ["heater", "leftSolid", "rightSolid"]
+    assert config["radiation"]["enabled"] is True
+    assert "faceAgglomerate -region bottomAir" in config["radiation"]["preprocessing_commands"]
+    assert config["heat_sources"]["heater"]["source_type"] == "fixed_temperature_boundary"

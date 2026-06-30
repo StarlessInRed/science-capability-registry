@@ -110,7 +110,11 @@ def copy_template_case(
         raise RuntimeError(f"Failed to copy OpenFOAM template case: {detail}")
     written: list[str] = []
     for path in sorted(case_dir.rglob("*")):
-        if path.is_file():
+        try:
+            is_file = path.is_file()
+        except OSError:
+            continue
+        if is_file:
             written.append(path.relative_to(output_root).as_posix())
     return written
 

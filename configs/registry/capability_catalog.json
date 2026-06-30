@@ -145,7 +145,7 @@
       "domain": "multiphysics",
       "asset_path": "software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml",
       "run_schema_path": "schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json",
-      "default_config_path": "configs/openfoam/conjugate_heat_transfer_cooling/baseline_cpu_cabinet_wsl_v2112.yaml",
+      "default_config_path": "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run",
       "card_status": "review",
       "benchmark_status": "benchmark_candidate",
@@ -154,7 +154,8 @@
         "openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30",
         "openfoam_C07_low_rank_runtime_diagnostics_2026-06-30",
         "openfoam_C07_kEpsilon_closure_diagnostic_2026-06-30",
-        "openfoam_C07_multiRegionHeaterRadiation_short_smoke_2026-06-30"
+        "openfoam_C07_multiRegionHeaterRadiation_short_smoke_2026-06-30",
+        "openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30"
       ]
     },
     {

@@ -17,6 +17,14 @@ def _baseline_config() -> dict:
     )
 
 
+def _mhr_config() -> dict:
+    return yaml.safe_load(
+        Path(
+            "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml"
+        ).read_text(encoding="utf-8")
+    )
+
+
 def _manifest(config: dict) -> dict:
     return {
         "source_config": "baseline_cpu_cabinet_wsl_v2112.yaml",
@@ -27,6 +35,7 @@ def _manifest(config: dict) -> dict:
         "solver": {"name": "chtMultiRegionSimpleFoam"},
         "generated_files": list(config["validation"]["required_generated_files"]),
         "mesh_commands": list(config["mesh_workflow"]["command_sequence"]),
+        "radiation_commands": list(config["radiation"]["preprocessing_commands"]),
         "solver_commands": list(config["solver"]["command_sequence"]),
         "postprocess_commands": ["python:write_region_temperature_summary"],
         "expected_outputs": [],
@@ -58,3 +67,15 @@ def test_openfoam_c07_validation_rejects_missing_interface_pair() -> None:
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "interface_pair.planned.domain0_to_v_fins" in failed
     assert "interface_pair.planned.v_CPU_to_v_fins" in failed
+
+
+def test_openfoam_c07_validation_rejects_missing_radiation_command() -> None:
+    config = _mhr_config()
+    manifest = _manifest(config)
+    manifest["radiation_commands"] = ["faceAgglomerate -region bottomAir"]
+
+    result = validate_manifest(manifest, config)
+
+    assert result["passed"] is False
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "radiation_command.planned.viewFactorsGen -region topAir" in failed

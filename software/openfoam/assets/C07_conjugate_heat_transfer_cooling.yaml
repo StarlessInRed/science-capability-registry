@@ -5,7 +5,7 @@ domain: multiphysics
 capability_name: conjugate heat transfer cooling
 problem_type:
   category: steady multi-region solid-fluid conjugate heat transfer
-  description: Use OpenFOAM.com v2112 chtMultiRegionSimpleFoam and the official cpuCabinet tutorial family to model electronics-style cooling where buoyant/turbulent air regions exchange heat with solid CPU and fin regions.
+  description: Use OpenFOAM.com v2112 chtMultiRegionSimpleFoam and the official multiRegionHeaterRadiation tutorial to model buoyant air regions exchanging heat with solid regions through conjugate heat-transfer and radiation view-factor preprocessing.
 physics:
   openfoam_distribution: openfoam_com
   openfoam_version: v2112 local solver and tutorial evidence
@@ -18,21 +18,25 @@ physics:
   - SIMPLE-style steady iteration across region-specific equations
   governing_parameters:
     fluid_regions:
-    - domain0
+    - bottomAir
+    - topAir
     solid_regions:
-    - v_CPU
-    - v_fins
-    baseline_end_time_iterations: 200
-    baseline_parallel_subdomains: 10
+    - heater
+    - leftSolid
+    - rightSolid
+    baseline_end_time_iterations: 2
+    baseline_parallel_subdomains: 4
   benchmark_template:
-    source_tree_path: tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
-    local_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    source_tree_path: tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
+    local_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
     region_properties:
       fluid:
-      - domain0
+      - bottomAir
+      - topAir
       solid:
-      - v_CPU
-      - v_fins
+      - heater
+      - leftSolid
+      - rightSolid
   local_runtime_profile: openfoam_com_v2112_cht on WSL Ubuntu-24.04
 inputs:
   run_schema_targets:
@@ -43,24 +47,22 @@ inputs:
   - fluid_thermophysical_properties
   - solid_thermophysical_properties
   - inlet_or_fan_flow_condition
-  - heat_source_power
+  - fixed_temperature_or_heat_source
   - ambient_temperature
   - turbulence_model
   - mesh_workflow
-  - parallel_decomposition
+  - radiation_view_factor_preprocessing
   - steady_iteration_controls
   - validation_thresholds
   baseline_case:
-    tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
     solver: chtMultiRegionSimpleFoam
     mesh_workflow:
-    - blockMesh
-    - surfaceFeatureExtract
-    - snappyHexMesh
-    - decomposePar
-    - splitMeshRegions
-    - topoSet
-    execution_mode: parallel
+    - ./Allrun.pre
+    - checkMesh -allRegions -constant
+    - faceAgglomerate
+    - viewFactorsGen
+    execution_mode: serial smoke
 outputs:
   fields:
   - T
@@ -69,45 +71,42 @@ outputs:
   - p_rgh
   - k
   - epsilon
-  - alphat
-  - mut
+  - qr
+  - G
+  - IDefault
   scalar_metrics:
   - final_region_residuals
   - region_continuity_errors
   - max_temperature_by_region
   - min_temperature_by_region
-  - cpu_peak_temperature
-  - fin_average_temperature
+  - heater_peak_temperature
+  - air_region_temperature_response
   - interface_temperature_jump_proxy
   - interface_heat_flux_balance_proxy
   - mesh_quality_summary
   - parallel_reconstruction_status
   required_artifacts:
-  - blockMesh log
-  - surfaceFeatureExtract log
-  - snappyHexMesh log
-  - decomposePar log
-  - splitMeshRegions log
-  - topoSet log
+  - Allrun.pre log
+  - checkMesh log
+  - faceAgglomerate logs
+  - viewFactorsGen logs
   - chtMultiRegionSimpleFoam solver log
-  - reconstructParMesh log
-  - reconstructPar log
   - metrics.json
   - validation.json
   - validation_report.md
   - region_temperature_summary.csv
   - interface_balance_summary.csv
 benchmark:
-  source_name: OpenFOAM.com v2112 chtMultiRegionSimpleFoam cpuCabinet tutorial
+  source_name: OpenFOAM.com v2112 chtMultiRegionSimpleFoam multiRegionHeaterRadiation tutorial
   source_type: official tutorial and local solver source
-  tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
-  benchmark_role: Benchmark candidate for reusable steady electronics-cooling CHT capability with explicit solid and fluid regions.
-  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository has a C07 run schema, dry-run generator, runtime command path, log parser, runtime smoke attempt report, official cpuCabinet debug report, low-rank np=2 diagnostic report, kEpsilon closure diagnostic, and alternate multiRegionHeaterRadiation short smoke. Unmodified official cpuCabinet Allrun is blocked by local MPI slots; official unpatched oversubscribe is blocked by v2112 sha1 IO; after minimal probe mitigation and lowering decomposition to np=2, cpuCabinet still reproduces Time=2 floating-point exceptions under both realizableKE and kEpsilon. multiRegionHeaterRadiation reaches Time=2 and End, so it is now the stronger C07 baseline candidate. The capability must remain a benchmark candidate.
+  tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
+  benchmark_role: Packaged smoke baseline candidate for reusable multi-region CHT capability with explicit solid/fluid regions and radiation view-factor preprocessing.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, the failing cpuCabinet tutorial, and the passing multiRegionHeaterRadiation tutorial. cpuCabinet remains diagnostic evidence because low-rank np=2 runs under both realizableKE and kEpsilon reproduce Time=2 floating-point exceptions. multiRegionHeaterRadiation now has a first-class run schema/config, dry-run manifest, runtime command path, log parser, radiation artifact checks, metrics.json, validation.json, region temperature CSV, interface proxy CSV, and a packaged smoke report that reaches Time=2 with validation.passed=true. The capability remains benchmark_candidate because the evidence is short-horizon smoke, not steady convergence, patch heat-flux conservation, or perturbation-matrix validation.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112_cht
     wsl_distro: Ubuntu-24.04
     solver_binary: /opt/OpenFOAM-v2112/platforms/linux64GccDPInt32Opt/bin/chtMultiRegionSimpleFoam
-    tutorial_root: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    tutorial_root: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
     source_file: /opt/OpenFOAM-v2112/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C
   runtime_evidence:
   - report: reports/openfoam_C07_conjugate_heat_transfer_cooling_low_rank_diagnostics_2026-06-30.md
@@ -122,6 +121,10 @@ benchmark:
     scope: multiRegionHeaterRadiation short CHT runtime smoke
     status: passed
     result_root: _results/openfoam/conjugate_heat_transfer_cooling/multiRegionHeaterRadiation_short_wsl_v2112_20260630_001/
+  - report: reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_baseline_smoke_2026-06-30.md
+    scope: packaged multiRegionHeaterRadiation CHT runtime smoke
+    status: passed
+    result_root: _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_002/
   alternate_tutorials:
   - tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
   - tutorials/heatTransfer/chtMultiRegionSimpleFoam/externalCoupledHeater
@@ -133,14 +136,15 @@ benchmark:
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json and must not use the retired top-level status field.
 - Runtime profile must declare OpenFOAM.com v2112, WSL backend, legacy CHT multi-region layout, parallel execution, chtMultiRegionSimpleFoam, and required mesh/preprocess executables.
-- Future run schema must expose regionProperties, thermophysical properties, heat source, ambient condition, mesh workflow, parallel decomposition, solver controls, and validation thresholds as config-visible fields.
+- Run schema must expose regionProperties, thermophysical properties, heat source or fixed-temperature driver, ambient condition, mesh workflow, radiation preprocessing, solver controls, and validation thresholds as config-visible fields.
 - Dry-run manifest must prove the generated case contains constant/regionProperties, per-region 0/ fields, per-region constant properties, system dictionaries, and a deterministic command sequence.
-- Mesh pipeline must complete blockMesh, surfaceFeatureExtract, snappyHexMesh, decomposePar, restore0Dir, splitMeshRegions, topoSet, and checkMesh or equivalent mesh-quality checks before solver execution.
+- Mesh/radiation pipeline must complete the configured `Allrun.pre`, checkMesh, faceAgglomerate, and viewFactorsGen steps before solver execution.
 - Solver baseline must reach the configured end time or iteration count with finite fields, acceptable residuals, and no missing region solves.
-- Temperature fields must remain finite and physically bounded, and CPU/solid heat-source perturbations must increase peak solid temperature in the expected direction.
+- Temperature fields must remain finite and physically bounded, and heater thermal-driver perturbations must increase peak solid/fluid response in the expected direction.
 - Interface validation must report temperature continuity and heat-flux balance proxies across solid-fluid coupled patches until a stronger native flux extraction is implemented.
 - Integration benchmark must include baseline plus at least three perturbations covering heat source power, airflow or inlet condition, and mesh/decomposition sensitivity before promotion beyond benchmark_candidate.
 - Current runtime debug evidence classifies the cpuCabinet blocker as a reproducible local v2112/tutorial solver path failure after sha1 mitigation and closure comparison, not a validated CHT baseline.
+- Current packaged MHR smoke closes the executable-baseline gap but is not a steady-state or heat-flux-conservation validation.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run
   input_schema: schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json
@@ -148,11 +152,10 @@ integration_targets:
   runtime_target: _results/openfoam/conjugate_heat_transfer_cooling/
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112_cht.yaml
 intern_deliverables:
-- Create a strict C07 run schema and baseline config for the cpuCabinet tutorial without hiding physics choices in CLI flags.
-- Implement a config-first dry-run generator that copies the official template and validates all multi-region files before solver execution.
-- Implement the OpenFOAM.com v2112 CHT runtime path only after the dry-run contract is stable.
-- Produce metrics.json, validation.json, region temperature CSVs, interface balance CSVs, and validation_report.md under _results/openfoam/conjugate_heat_transfer_cooling/.
-- Add pytest coverage for schema rejection, dry-run manifest completeness, runtime profile resolution, log parsing, metrics validation, and perturbation trend checks.
-- Keep benchmark_status at benchmark_candidate until local solver evidence and perturbation reports pass.
+- Extend the strict C07 run schema/config family from the packaged MHR baseline to perturbation cases without hiding physics choices in CLI flags.
+- Keep cpuCabinet as failed diagnostic evidence unless a separate stable runtime path is proven.
+- Implement heater thermal-driver, airflow/boundary, and mesh/decomposition perturbation configs.
+- Upgrade interface balance from region-mean temperature proxy to patch-level heat-flux extraction.
+- Keep benchmark_status at benchmark_candidate until packaged MHR baseline plus perturbation reports pass.
 card_status: review
 benchmark_status: benchmark_candidate

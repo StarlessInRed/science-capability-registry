@@ -256,6 +256,23 @@ evidence:
   scope: OpenFOAM.com v2112 multiRegionHeaterRadiation tutorial completes short-horizon multi-region CHT solve to Time=2 with finite region temperatures.
   limitations:
   - This is an alternate tutorial smoke only; interface heat-flux balance, perturbation trends, and report generation remain pending.
+- evidence_id: openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_baseline_smoke_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runner.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runtime.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/postprocess.py
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_002/
+  scope: Packaged OpenFOAM.com v2112 multiRegionHeaterRadiation CHT smoke completes configured preprocessing, radiation view-factor setup, solver execution to Time=2, and machine-readable metrics/validation/postprocess artifacts.
+  limitations:
+  - Short-horizon smoke only; not steady-state convergence, patch heat-flux conservation, or perturbation-matrix validation.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

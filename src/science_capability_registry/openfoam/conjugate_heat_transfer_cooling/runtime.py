@@ -113,7 +113,12 @@ def parse_chtmultiregion_log(log_text: str) -> dict[str, Any]:
 def parse_check_mesh_log(log_text: str) -> dict[str, Any]:
     """Parse the minimum multi-region checkMesh signal."""
 
-    regions_seen = sorted(set(re.findall(r"Create mesh for time = .*? region ([A-Za-z0-9_]+)", log_text)))
+    regions_seen = sorted(
+        set(
+            re.findall(r"Create mesh for time = .*? region ([A-Za-z0-9_]+)", log_text)
+            + re.findall(r"Create mesh\s+([A-Za-z0-9_]+)\s+for time =", log_text)
+        )
+    )
     return {
         "ran": bool(log_text.strip()),
         "mesh_ok": bool(CHECK_MESH_OK_RE.search(log_text)) and not _fatal_error(log_text),
@@ -134,6 +139,7 @@ def _last_float(pattern: str, text: str) -> float | None:
 
 def _command_slug(command: str) -> str:
     for token in [
+        "Allrun.pre",
         "blockMesh",
         "surfaceFeatureExtract",
         "snappyHexMesh",
@@ -142,6 +148,8 @@ def _command_slug(command: str) -> str:
         "splitMeshRegions",
         "topoSet",
         "checkMesh",
+        "faceAgglomerate",
+        "viewFactorsGen",
         "chtMultiRegionSimpleFoam",
         "reconstructParMesh",
         "reconstructPar",
@@ -166,9 +174,9 @@ def _shell_command(command: str, bashrc_path: str) -> str:
 def _runtime_commands(config: dict[str, Any]) -> list[str]:
     return [
         *config["mesh_workflow"]["command_sequence"],
+        *config["radiation"]["preprocessing_commands"],
         *config["solver"]["command_sequence"],
-        "reconstructParMesh -allRegions -constant",
-        "reconstructPar -allRegions",
+        *[command for command in config["postprocess"]["command_sequence"] if not command.startswith("python:")],
     ]
 
 
@@ -326,6 +334,10 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     check("postprocess.temperature_bounds", _temperatures_within_bounds(metrics, lower, upper), f"bounds={[lower, upper]}")
     interfaces = metrics.get("postprocess", {}).get("interfaces", {})
     check("postprocess.interface_proxy_available", interfaces.get("available") is True, json.dumps(interfaces, ensure_ascii=False))
+
+    for rel_path in config["radiation"].get("required_generated_files", []):
+        path = output_dir / rel_path
+        check(f"artifact.radiation.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
 
     for rel_path in config["outputs"].get("expected_outputs", []):
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
