@@ -133,6 +133,7 @@ evidence:
   primary_evidence_path: reports/openfoam_C02_potential_flow_cylinder_analytical_validation_runtime_smoke_attempt_2026-06-30.md
   supporting_paths:
   - configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/baseline_wsl_v2112.yaml
   - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/runtime.py
   - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/postprocess.py
   - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/validation.py
@@ -400,10 +401,11 @@ evidence:
   - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/validation.py
   runtime_evidence_paths:
   - _results/openfoam/compressible_shock_capturing_forward_step/baseline_runtime_smoke_wsl_v2112/
-  scope: Local WSL OpenFOAM.com v2112 C08 runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4, but fails CFL, shock sampling, and conservation gates.
+  scope: Local WSL OpenFOAM.com v2112 C08 runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4; Python postprocess now emits shock-line, shock-metric, and open-domain inventory proxy artifacts, but CFL, shock jump sanity, and conservation proxy gates fail.
   limitations:
   - Initial max Courant exceeds the configured threshold.
-  - Shock-line samples, shock metrics, and conservation metrics remain unavailable.
+  - Current centerline shock windows produce pressure and density jump ratios below 1.0, so the shock metric is not physically acceptable.
+  - Conservation evidence is still an open-domain inventory proxy; boundary-flux mass and energy balance is not implemented.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

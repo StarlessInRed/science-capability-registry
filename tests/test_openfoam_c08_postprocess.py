@@ -5,12 +5,14 @@ from pathlib import Path
 
 import pytest
 
+from science_capability_registry.openfoam.field_io import CellGeometry
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step.config import load_case_config
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step.postprocess import (
     average_state_windows,
     compute_jump_ratios,
     locate_shock_position_from_profile,
     normal_shock_sanity_ratios,
+    select_x_axis_profile_rows,
     summarize_field_extrema,
     write_conservation_summary,
     write_shock_metrics,
@@ -63,13 +65,35 @@ def test_openfoam_c08_field_extrema_catches_nonfinite_and_negative_values() -> N
     assert summary["U"]["available"] is True
 
 
+def test_openfoam_c08_selects_nearest_cells_for_x_axis_profile() -> None:
+    cells = [
+        CellGeometry(index=0, center=(0.0, 0.4, 0.0), volume=1.0),
+        CellGeometry(index=1, center=(0.0, 0.51, 0.0), volume=1.0),
+        CellGeometry(index=2, center=(1.0, 0.49, 0.0), volume=1.0),
+        CellGeometry(index=3, center=(1.0, 0.8, 0.0), volume=1.0),
+    ]
+
+    rows = select_x_axis_profile_rows(
+        cells,
+        p_values=[1.0, 2.0, 3.0, 4.0],
+        rho_values=[1.1, 2.1, 3.1, 4.1],
+        t_values=[1.2, 2.2, 3.2, 4.2],
+        u_values=[(1.0, 0.0, 0.0), (2.0, 0.0, 0.0), (3.0, 0.0, 0.0), (4.0, 0.0, 0.0)],
+        fixed_y_m=0.5,
+    )
+
+    assert [row["x_m"] for row in rows] == [0.0, 1.0]
+    assert [row["p"] for row in rows] == [2.0, 3.0]
+
+
 def test_openfoam_c08_writes_shock_and_conservation_artifacts(tmp_path: Path) -> None:
     config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
     metrics = write_shock_metrics(config, tmp_path, _profile_rows())
-    conservation = write_conservation_summary(tmp_path, 0.0, 0.0)
+    conservation = write_conservation_summary(tmp_path, 0.0, 0.0, {"method": "unit_test_proxy", "limitation": "fixture"})
 
     assert metrics["available"] is True
     assert Path(metrics["profile_path"]).exists()
     assert Path(metrics["path"]).exists()
     assert conservation["available"] is True
+    assert conservation["method"] == "unit_test_proxy"
     assert Path(conservation["path"]).exists()

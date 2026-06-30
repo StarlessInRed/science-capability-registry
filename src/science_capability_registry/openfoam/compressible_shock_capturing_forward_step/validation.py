@@ -93,6 +93,18 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     _check(checks, "field.U.finite", u_field.get("available") is True and u_field.get("finite") is True, json.dumps(u_field, ensure_ascii=False))
 
     _check(checks, "postprocess.shock.available", shock.get("available") is True, json.dumps(shock, ensure_ascii=False))
+    _check(
+        checks,
+        "postprocess.pressure_jump_ratio_sanity",
+        _is_finite(shock.get("pressure_jump_ratio")) and float(shock["pressure_jump_ratio"]) > 1.0,
+        f"value={shock.get('pressure_jump_ratio')}",
+    )
+    _check(
+        checks,
+        "postprocess.density_jump_ratio_sanity",
+        _is_finite(shock.get("density_jump_ratio")) and float(shock["density_jump_ratio"]) > 1.0,
+        f"value={shock.get('density_jump_ratio')}",
+    )
     shock_ref = reference.get("shock_position_reference_m")
     if shock_ref is not None:
         shock_error = abs(float(shock.get("shock_position_m", math.nan)) - float(shock_ref)) if _is_finite(shock.get("shock_position_m")) else math.inf

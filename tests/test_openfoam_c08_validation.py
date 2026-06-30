@@ -95,3 +95,42 @@ def test_openfoam_c08_runtime_metrics_rejects_fatal_and_bad_fields(tmp_path: Pat
     assert "solver.max_courant" in failed
     assert "field.p.positive_finite" in failed
     assert "postprocess.shock.available" in failed
+
+
+def test_openfoam_c08_runtime_metrics_rejects_non_shock_jump_ratios(tmp_path: Path) -> None:
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
+    config["outputs"]["expected_outputs"] = []
+    metrics = {
+        "runtime": {
+            "commands": [
+                {"command": "blockMesh", "returncode": 0},
+                {"command": "checkMesh", "returncode": 0},
+                {"command": "rhoCentralFoam", "returncode": 0},
+            ]
+        },
+        "solver": {"started": True, "fatal_error_detected": False, "max_courant": 0.1, "final_time_s": 4.0},
+        "postprocess": {
+            "field_extrema": {
+                "p": {"available": True, "finite": True, "min": 0.5, "max": 5.0},
+                "T": {"available": True, "finite": True, "min": 0.5, "max": 2.0},
+                "rho": {"available": True, "finite": True, "min": 0.5, "max": 4.0},
+                "U": {"available": True, "finite": True, "min": 0.0, "max": 3.0},
+            },
+            "shock": {
+                "available": True,
+                "shock_position_m": 1.2,
+                "pressure_jump_ratio": 0.9,
+                "density_jump_ratio": 0.8,
+            },
+            "conservation": {
+                "available": True,
+                "mass_conservation_error": 0.0,
+                "energy_conservation_proxy": 0.0,
+            },
+        },
+    }
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+    failed = {item["name"] for item in validation["checks"] if not item["passed"]}
+    assert "postprocess.pressure_jump_ratio_sanity" in failed
+    assert "postprocess.density_jump_ratio_sanity" in failed

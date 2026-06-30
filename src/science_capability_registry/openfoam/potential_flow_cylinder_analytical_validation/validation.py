@@ -29,7 +29,7 @@ def validate_manifest(
     solver = manifest.get("solver", {})
     generated_files = set(manifest.get("generated_files", []))
 
-    _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", f"backend={backend.get('type')!r}")
+    _check(checks, "backend.supported", backend.get("type") in {"dry_run_only", "wsl"}, f"backend={backend.get('type')!r}")
     _check(checks, "solver.potentialFoam", solver.get("name") == "potentialFoam", json.dumps(solver, ensure_ascii=False))
     _check(checks, "template.official_cylinder", "potentialFoam/cylinder" in config["template"]["source_path"], config["template"]["source_path"])
     _check(checks, "geometry.positive_radius", float(config["geometry"]["cylinder_radius_m"]) > 0.0, str(config["geometry"]["cylinder_radius_m"]))

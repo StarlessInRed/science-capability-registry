@@ -85,7 +85,7 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
   benchmark_role: Benchmark candidate for compressible shock-capturing solver health, shock location, jump conditions, CFL control, and conservation.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and a local WSL v2112 runtime attempt. The runtime path completes blockMesh, checkMesh, and rhoCentralFoam to final time, but CFL, shock sampling, conservation, and reference jump validation remain incomplete.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and a local WSL v2112 runtime attempt. The runtime path completes blockMesh, checkMesh, and rhoCentralFoam to final time and now emits shock-line, shock-metric, and open-domain conservation-proxy artifacts, but CFL, pressure/density jump sanity, conservation proxy, and reference jump validation still fail.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose compressible state, thermophysical model, step geometry, time controls, CFL limit, and shock validation targets.
@@ -105,9 +105,9 @@ integration_targets:
   runtime_target: _results/openfoam/compressible_shock_capturing_forward_step/
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
 intern_deliverables:
-- Extend the C08 package from static-readiness to local WSL runtime smoke using rhoCentralFoam forwardStep.
-- Implement runtime field sampling for shock position, pressure/density jumps, CFL, and conservation postprocess.
-- Add runtime execution after solver health and field-boundedness gates are defined.
-- Keep benchmark_status below benchmark_validated until local runtime shock sampling, conservation, CFL, and reference shock validation pass.
+- Run and review the reduced-CFL config using local WSL OpenFOAM.com v2112 until max Courant satisfies the configured threshold.
+- Redesign shock sample lines or averaging windows so pressure and density jump sanity ratios are greater than 1.0 before reference comparison.
+- Replace the current open-domain inventory-change conservation proxy with boundary-flux mass and energy balance.
+- Keep benchmark_status below benchmark_validated until CFL, shock jump sanity, conservation, and configured reference shock validation pass.
 card_status: review
 benchmark_status: package_skeleton_created

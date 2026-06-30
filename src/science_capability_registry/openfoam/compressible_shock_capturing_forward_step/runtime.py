@@ -11,7 +11,7 @@ from typing import Any
 from science_capability_registry.openfoam.field_io import read_internal_scalars, read_internal_vectors
 from science_capability_registry.openfoam.template_case import execute_command_sequence
 
-from .postprocess import summarize_field_extrema, write_conservation_summary, write_shock_metrics
+from .postprocess import compute_inventory_conservation_proxy, summarize_field_extrema, write_conservation_summary, write_shock_metrics
 from .validation import validate_runtime_metrics
 
 FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
@@ -107,7 +107,16 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         shock_metrics = write_shock_metrics(config, output_dir)
     except (FileNotFoundError, ValueError, IndexError, ZeroDivisionError) as exc:
         shock_metrics = {"available": False, "reason": str(exc)}
-    conservation = write_conservation_summary(output_dir)
+    try:
+        conservation_details = compute_inventory_conservation_proxy(config, output_dir)
+        conservation = write_conservation_summary(
+            output_dir,
+            conservation_details["mass_conservation_error"],
+            conservation_details["energy_conservation_proxy"],
+            conservation_details,
+        )
+    except (FileNotFoundError, ValueError, IndexError, ZeroDivisionError) as exc:
+        conservation = write_conservation_summary(output_dir, details={"reason": str(exc)})
     logs = {Path(item["log"]).name: item["log"] for item in runtime.get("commands", [])}
     return {
         "schema_version": "openfoam_c08_metrics_v1",
@@ -115,7 +124,8 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
             "name": "openfoam_c08_rhocentralfoam_forward_step_parser",
             "version": 1,
             "limitations": [
-                "Shock profile extraction needs runtime field sampling; before that the package validates dry-run contracts and parses solver logs only.",
+                "Shock profile extraction uses Python cell-centre line sampling from final OpenFOAM fields.",
+                "Conservation proxy is an open-domain inventory change until boundary-flux integration is implemented.",
             ],
         },
         "case_id": config["case_id"],

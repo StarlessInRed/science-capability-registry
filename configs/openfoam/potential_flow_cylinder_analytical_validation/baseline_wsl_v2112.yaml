@@ -1,0 +1,148 @@
+capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
+case_id: baseline_wsl_v2112
+description: WSL OpenFOAM.com v2112 smoke contract for C02 potentialFoam cylinder analytical validation.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112
+  tutorial_path: $FOAM_TUTORIALS/basic/potentialFoam/cylinder
+  source_url: https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-basic-potentialFoam.html
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - blockMesh
+  - checkMesh
+  - potentialFoam
+backend:
+  type: wsl
+  timeout_s: 420
+  parallel: false
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: potentialFoam
+  mode: steady_potential_flow
+  command_sequence:
+  - blockMesh
+  - checkMesh
+  - potentialFoam -writePhi -writephi -writep
+template:
+  source_path: /opt/OpenFOAM-v2112/tutorials/basic/potentialFoam/cylinder
+  copy_strategy: copy_official_tutorial_then_patch
+  zero_source_dir: 0.orig
+  disabled_function_objects:
+  - "coded error functionObject: disabled for package skeleton because local v2112 dynamic-code/functionObject writes are not required for Python analytical validation."
+geometry:
+  cylinder_center_m:
+  - 0.0
+  - 0.0
+  - 0.0
+  cylinder_radius_m: 0.5
+  outer_radius_m: 1.0
+  domain_half_width_m: 2.0
+  two_dimensional_thickness_m: 1.0
+mesh:
+  generator: blockMesh
+  n_radial: 10
+  n_quarter: 10
+  n_outer_x: 20
+  n_outer_y: 20
+  n_z: 1
+material:
+  density_kg_m3: 1.0
+  inlet_velocity_m_s: 1.0
+  p_reference_kinematic_m2_s2: 0.0
+fields:
+  U:
+    dimensions: "[0 1 -1 0 0 0 0]"
+    internal: "uniform (0 0 0)"
+    boundaries:
+      left: uniformFixedValue
+      right: zeroGradient
+      up: symmetryPlane
+      down: symmetryPlane
+      cylinder: symmetry
+      defaultFaces: empty
+  p:
+    dimensions: "[0 2 -2 0 0 0 0]"
+    internal: "uniform 0"
+    boundaries:
+      left: zeroGradient
+      right: fixedValue
+      up: symmetryPlane
+      down: symmetryPlane
+      cylinder: symmetry
+      defaultFaces: empty
+numerics:
+  control:
+    end_time: 1
+    write_interval: 1
+  potential_flow:
+    n_non_orthogonal_correctors: 3
+    phi_tolerance: 0.000001
+postprocess:
+  method: python_analytical_potential_flow
+  sample_sets:
+  - cell_centres_excluding_near_cylinder_and_farfield_buffer
+  - cylinder_patch_owner_cells
+  surface_patch: cylinder
+analytical_reference:
+  coordinate_system: cylinder_centered_polar
+  velocity_formula: "U = U_inf * (e_x - (a/r)^2 * (cos(2theta)e_x + sin(2theta)e_y))"
+  surface_cp_formula: "Cp(theta) = 1 - 4*sin(theta)^2"
+  pressure_formula: "p_kinematic = p_ref + 0.5*(U_inf^2 - |U|^2)"
+  exclude_radius_factor: 1.05
+  boundary_buffer_m: 0.05
+function_objects:
+  coded_error:
+    enabled: false
+    reason: "Use package Python analytical comparison instead of the tutorial coded error functionObject for smoke evidence."
+  stream_function:
+    enabled: false
+    reason: "Stream-function plotting is not required for numeric C02 validation evidence."
+outputs:
+  output_dir: _results/openfoam/potential_flow_cylinder_analytical_validation/baseline_wsl_v2112
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - logs/log.01_blockMesh
+  - logs/log.02_checkMesh
+  - logs/log.03_potentialFoam_-writePhi_-writephi_-writep
+  - postprocess/field_analytical_comparison.csv
+  - postprocess/cylinder_cp_comparison.csv
+  - postprocess/analytical_error_summary.json
+validation:
+  gate: smoke
+  max_velocity_l2_error: 0.15
+  max_velocity_linf_error: 0.5
+  max_pressure_l2_error: 0.2
+  max_cp_linf_error: 0.6
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - expected_outputs
+  - validation_targets
+  - analytical_reference
+  - function_objects
+  matrix_role: baseline
+  expected_trend:
+    description: WSL smoke contract for C02 potential-flow cylinder analytical comparison; thresholds remain analytical-validation targets, not relaxed smoke tolerances.

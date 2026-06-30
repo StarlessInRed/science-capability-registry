@@ -5,10 +5,22 @@ from __future__ import annotations
 import csv
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
 
+from science_capability_registry.openfoam.field_io import (
+    CellGeometry,
+    expand_uniform_scalars,
+    expand_uniform_vectors,
+    load_cell_geometry,
+    read_internal_scalars,
+    read_internal_vectors,
+)
+
 PROFILE_COLUMNS = ["x_m", "p", "rho", "T", "Ux", "Uy", "Uz"]
+FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+VECTOR_RE = re.compile(rf"\(\s*({FLOAT_RE})\s+({FLOAT_RE})\s+({FLOAT_RE})\s*\)")
 
 
 def _finite_number(value: Any) -> bool:
@@ -118,9 +130,115 @@ def summarize_field_extrema(fields: dict[str, list[float] | list[tuple[float, fl
     return summary
 
 
+def _numeric_time(path: Path) -> float | None:
+    try:
+        return float(path.name)
+    except ValueError:
+        return None
+
+
+def _latest_time_dir(case_dir: Path) -> Path:
+    candidates = []
+    for path in case_dir.iterdir():
+        if not path.is_dir():
+            continue
+        time_value = _numeric_time(path)
+        if time_value is not None and (path / "p").exists() and (path / "T").exists() and (path / "U").exists():
+            candidates.append((time_value, path))
+    if not candidates:
+        raise FileNotFoundError(f"No solved OpenFOAM time directories found under {case_dir}")
+    return max(candidates, key=lambda item: item[0])[1]
+
+
+def _read_case_fields(case_dir: Path, time_dir: Path) -> dict[str, list[float] | list[tuple[float, float, float]]]:
+    cells = load_cell_geometry(case_dir)
+    fields: dict[str, list[float] | list[tuple[float, float, float]]] = {
+        "p": expand_uniform_scalars(read_internal_scalars(time_dir / "p"), len(cells)),
+        "T": expand_uniform_scalars(read_internal_scalars(time_dir / "T"), len(cells)),
+        "U": expand_uniform_vectors(read_internal_vectors(time_dir / "U"), len(cells)),
+    }
+    rho_path = time_dir / "rho"
+    if rho_path.exists():
+        fields["rho"] = expand_uniform_scalars(read_internal_scalars(rho_path), len(cells))
+    return fields
+
+
+def _rho_from_pressure_temperature(p_values: list[float], t_values: list[float], gamma: float) -> list[float]:
+    if gamma <= 1.0:
+        raise ValueError("Specific heat ratio gamma must be greater than one.")
+    rho_values = []
+    for pressure, temperature in zip(p_values, t_values):
+        if temperature <= 0.0:
+            raise ValueError("Temperature must be positive when deriving density.")
+        rho_values.append(gamma * pressure / temperature)
+    return rho_values
+
+
+def _configured_sample_line(config: dict[str, Any]) -> dict[str, Any]:
+    lines = config.get("postprocess", {}).get("sample_lines", [])
+    if not lines:
+        raise ValueError("C08 postprocess.sample_lines must contain at least one line.")
+    line = lines[0]
+    if line.get("axis") != "x":
+        raise NotImplementedError("C08 runtime field sampling currently supports x-axis sample lines only.")
+    return line
+
+
+def select_x_axis_profile_rows(
+    cells: list[CellGeometry],
+    p_values: list[float],
+    rho_values: list[float],
+    t_values: list[float],
+    u_values: list[tuple[float, float, float]],
+    fixed_y_m: float,
+) -> list[dict[str, float]]:
+    selected_by_x: dict[float, tuple[float, int]] = {}
+    for cell in cells:
+        x_key = round(float(cell.center[0]), 9)
+        distance = abs(float(cell.center[1]) - fixed_y_m)
+        current = selected_by_x.get(x_key)
+        if current is None or distance < current[0]:
+            selected_by_x[x_key] = (distance, cell.index)
+
+    rows: list[dict[str, float]] = []
+    for _, cell_index in sorted(selected_by_x.values(), key=lambda item: cells[item[1]].center[0]):
+        velocity = u_values[cell_index]
+        rows.append(
+            {
+                "x_m": float(cells[cell_index].center[0]),
+                "p": float(p_values[cell_index]),
+                "rho": float(rho_values[cell_index]),
+                "T": float(t_values[cell_index]),
+                "Ux": float(velocity[0]),
+                "Uy": float(velocity[1]),
+                "Uz": float(velocity[2]),
+            }
+        )
+    if len(rows) < 2:
+        raise ValueError("C08 shock line sampling produced fewer than two samples.")
+    return rows
+
+
+def sample_shock_line_profile(config: dict[str, Any], output_dir: Path) -> list[dict[str, float]]:
+    case_dir = output_dir / "case"
+    time_dir = _latest_time_dir(case_dir)
+    cells = load_cell_geometry(case_dir)
+    fields = _read_case_fields(case_dir, time_dir)
+    p_values = fields["p"]
+    t_values = fields["T"]
+    u_values = fields["U"]
+    rho_values = fields.get("rho")
+    if rho_values is None:
+        gamma = float(config["thermophysical_properties"]["gamma"])
+        rho_values = _rho_from_pressure_temperature(p_values, t_values, gamma)
+
+    line = _configured_sample_line(config)
+    return select_x_axis_profile_rows(cells, p_values, rho_values, t_values, u_values, float(line["fixed_coordinate_m"]))
+
+
 def write_shock_metrics(config: dict[str, Any], output_dir: Path, profile_rows: list[dict[str, float]] | None = None) -> dict[str, Any]:
     if profile_rows is None:
-        raise FileNotFoundError("C08 runtime profile sampling is not available yet; provide profile rows or add field sampling.")
+        profile_rows = sample_shock_line_profile(config, output_dir)
     shock_x = locate_shock_position_from_profile(profile_rows, config["postprocess"]["shock_quantity"])
     windows = average_state_windows(
         profile_rows,
@@ -146,12 +264,68 @@ def write_shock_metrics(config: dict[str, Any], output_dir: Path, profile_rows: 
     return metrics
 
 
-def write_conservation_summary(output_dir: Path, mass_error: float | None = None, energy_error: float | None = None) -> dict[str, Any]:
+def _parse_vector(text: str) -> tuple[float, float, float]:
+    match = VECTOR_RE.fullmatch(str(text).strip())
+    if match is None:
+        raise ValueError(f"Expected OpenFOAM vector text, got {text!r}")
+    return (float(match.group(1)), float(match.group(2)), float(match.group(3)))
+
+
+def compute_inventory_conservation_proxy(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    case_dir = output_dir / "case"
+    time_dir = _latest_time_dir(case_dir)
+    cells = load_cell_geometry(case_dir)
+    volumes = [cell.volume for cell in cells]
+    final_fields = _read_case_fields(case_dir, time_dir)
+    gamma = float(config["thermophysical_properties"]["gamma"])
+    cv = 1.0 / (gamma * (gamma - 1.0))
+
+    p_initial = float(config["fields"]["p"]["initial_value"])
+    t_initial = float(config["fields"]["T"]["initial_value"])
+    u_initial = _parse_vector(config["fields"]["U"]["initial_value"])
+    rho_initial = gamma * p_initial / t_initial
+    initial_specific_energy = cv * t_initial + 0.5 * sum(component * component for component in u_initial)
+
+    rho_final = final_fields.get("rho")
+    if rho_final is None:
+        rho_final = _rho_from_pressure_temperature(final_fields["p"], final_fields["T"], gamma)
+    t_final = final_fields["T"]
+    u_final = final_fields["U"]
+
+    initial_mass = sum(rho_initial * volume for volume in volumes)
+    final_mass = sum(float(rho) * volume for rho, volume in zip(rho_final, volumes))
+    initial_energy = sum(rho_initial * initial_specific_energy * volume for volume in volumes)
+    final_energy = 0.0
+    for rho, temperature, velocity, volume in zip(rho_final, t_final, u_final, volumes):
+        kinetic = 0.5 * sum(component * component for component in velocity)
+        final_energy += float(rho) * (cv * float(temperature) + kinetic) * volume
+
+    return {
+        "method": "open_domain_inventory_relative_change",
+        "time_dir": str(time_dir),
+        "initial_mass": initial_mass,
+        "final_mass": final_mass,
+        "initial_energy_proxy": initial_energy,
+        "final_energy_proxy": final_energy,
+        "mass_conservation_error": abs(final_mass - initial_mass) / abs(initial_mass) if initial_mass else math.inf,
+        "energy_conservation_proxy": abs(final_energy - initial_energy) / abs(initial_energy) if initial_energy else math.inf,
+        "limitation": "Forward-step runtime has open inlet/outlet boundaries; this proxy measures domain inventory change, not a closed-control-volume flux balance.",
+    }
+
+
+def write_conservation_summary(
+    output_dir: Path,
+    mass_error: float | None = None,
+    energy_error: float | None = None,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     summary = {
         "available": mass_error is not None and energy_error is not None,
         "mass_conservation_error": mass_error,
         "energy_conservation_proxy": energy_error,
     }
+    if details:
+        summary.update(details)
     path = output_dir / "postprocess" / "conservation_summary.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
