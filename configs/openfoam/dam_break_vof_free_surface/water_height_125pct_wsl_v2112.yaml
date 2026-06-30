@@ -1,0 +1,124 @@
+capability_id: cfd.openfoam.dam_break_vof_free_surface
+case_id: water_height_125pct_wsl_v2112
+description: C06 damBreak with initial water-column height increased by 25 percent.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112
+  tutorial_path: $FOAM_TUTORIALS/multiphase/interFoam/laminar/damBreak/damBreak
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/4-multiphase-flow/4.1-breaking-of-a-dam
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - blockMesh
+  - setFields
+  - checkMesh
+  - interFoam
+backend:
+  type: wsl
+  timeout_s: 420
+  parallel: false
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: interFoam
+  mode: transient_VOF_free_surface
+  command_sequence:
+  - blockMesh
+  - setFields
+  - checkMesh
+  - interFoam
+template:
+  source_path: /opt/OpenFOAM-v2112/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
+  copy_strategy: copy_official_tutorial_then_patch
+  disabled_function_objects:
+  - "sampling: disabled because this local OpenFOAM.com v2112 WSL profile triggers sha1 IO errors, including ext4 probe paths; Python alpha postprocess is used instead."
+geometry:
+  domain_length_m: 0.584
+  domain_height_m: 0.584
+  thickness_m: 0.0146
+mesh:
+  generator: blockMesh
+  cell_count_scale: 1
+physics:
+  gravity_m_s2: 9.81
+  water_density_kg_m3: 1000
+  air_density_kg_m3: 1
+  surface_tension_N_m: 0.07
+initial_conditions:
+  water_column_width_m: 0.1461
+  water_column_height_m: 0.365
+numerics:
+  control:
+    end_time_s: 0.1
+    delta_t_s: 0.001
+    write_interval_s: 0.05
+    max_co: 0.75
+    max_alpha_co: 0.75
+postprocess:
+  alpha_threshold: 0.5
+  gauge_x_m:
+  - 0.073
+  - 0.146
+  - 0.292
+  method_note: Python parser extracts alpha bounds, water volume, front position, gauge interface height, and final free-surface profile.
+outputs:
+  output_dir: _results/openfoam/dam_break_vof_free_surface/water_height_125pct_wsl_v2112
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/alpha.water
+  - case/0/p_rgh
+  - case/constant/g
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - case/system/setFieldsDict
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - logs/log.blockMesh
+  - logs/log.setFields
+  - logs/log.checkMesh
+  - logs/log.interFoam
+  - postprocess/front_position_history.csv
+  - postprocess/water_volume_history.csv
+  - postprocess/alpha_bounds_history.csv
+  - postprocess/gauge_interface_height_history.csv
+  - postprocess/free_surface_profile_final.csv
+validation:
+  gate: smoke
+  max_courant_number: 1.05
+  max_alpha_courant_number: 1.05
+  alpha_min_tolerance: -1.0e-06
+  alpha_max_tolerance: 1.0e-06
+  max_water_volume_relative_error: 0.03
+  required_generated_files:
+  - case/0/U
+  - case/0/alpha.water
+  - case/0/p_rgh
+  - case/constant/g
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - case/system/setFieldsDict
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - expected_outputs
+  - validation_targets
+  - runtime
+  matrix_role: water_height_125pct
+  compare_to: baseline_wsl_v2112
+  expected_trend:
+    description: Higher water column should increase water volume and not slow front propagation.

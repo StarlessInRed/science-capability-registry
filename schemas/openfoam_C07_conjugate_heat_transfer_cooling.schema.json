@@ -1,0 +1,665 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: OpenFOAM C07 conjugate heat-transfer cooling run config.",
+  "title": "OpenFOAM C07 Conjugate Heat Transfer Cooling Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "openfoam",
+    "backend",
+    "solver",
+    "template",
+    "regions",
+    "mesh_workflow",
+    "parallel",
+    "materials",
+    "fields",
+    "interfaces",
+    "heat_sources",
+    "numerics",
+    "postprocess",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {
+      "const": "cfd.openfoam.conjugate_heat_transfer_cooling"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "openfoam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "distribution",
+        "version",
+        "runtime_profile",
+        "tutorial_path",
+        "source_url",
+        "bashrc_path",
+        "case_layout",
+        "required_executables"
+      ],
+      "properties": {
+        "distribution": {
+          "const": "openfoam_com"
+        },
+        "version": {
+          "const": "v2112"
+        },
+        "runtime_profile": {
+          "const": "openfoam_com_v2112_cht"
+        },
+        "tutorial_path": {
+          "const": "$FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet"
+        },
+        "source_url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bashrc_path": {
+          "const": "/opt/OpenFOAM-v2112/etc/bashrc"
+        },
+        "case_layout": {
+          "const": "legacy_cht_multi_region"
+        },
+        "required_executables": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "timeout_s",
+        "parallel",
+        "wsl_distro"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "dry_run_only",
+            "wsl"
+          ]
+        },
+        "timeout_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "parallel": {
+          "const": true
+        },
+        "wsl_distro": {
+          "const": "Ubuntu-24.04"
+        }
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "mode",
+        "command_sequence"
+      ],
+      "properties": {
+        "name": {
+          "const": "chtMultiRegionSimpleFoam"
+        },
+        "mode": {
+          "const": "steady_multi_region_CHT"
+        },
+        "command_sequence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_profile_key",
+        "source_path",
+        "geometry_resource_path",
+        "copy_strategy",
+        "disabled_function_objects"
+      ],
+      "properties": {
+        "source_profile_key": {
+          "const": "c07_cpu_cabinet"
+        },
+        "source_path": {
+          "const": "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet"
+        },
+        "geometry_resource_path": {
+          "const": "/opt/OpenFOAM-v2112/tutorials/resources/geometry/cpuCabinet"
+        },
+        "copy_strategy": {
+          "const": "copy_official_tutorial_then_patch"
+        },
+        "disabled_function_objects": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "regions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fluid",
+        "solid"
+      ],
+      "properties": {
+        "fluid": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "domain0"
+            }
+          ],
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "solid": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "v_CPU"
+            },
+            {
+              "const": "v_fins"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "mesh_workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_resource",
+        "command_sequence",
+        "required_generated_files"
+      ],
+      "properties": {
+        "geometry_resource": {
+          "const": "$FOAM_TUTORIALS/resources/geometry/cpuCabinet"
+        },
+        "command_sequence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "blockMesh",
+              "surfaceFeatureExtract",
+              "snappyHexMesh -overwrite",
+              "decomposePar",
+              "restore0Dir -processor",
+              "mpirun -np 10 splitMeshRegions -cellZones -overwrite -parallel",
+              "mpirun -np 10 topoSet -region domain0 -parallel",
+              "mpirun -np 10 checkMesh -allRegions -constant -parallel"
+            ]
+          }
+        },
+        "required_generated_files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "parallel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "launcher",
+        "number_of_subdomains",
+        "method",
+        "region_subdomains"
+      ],
+      "properties": {
+        "launcher": {
+          "const": "mpirun"
+        },
+        "number_of_subdomains": {
+          "const": 10
+        },
+        "method": {
+          "const": "scotch"
+        },
+        "region_subdomains": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "domain0",
+            "v_CPU",
+            "v_fins"
+          ],
+          "properties": {
+            "domain0": {
+              "const": 4
+            },
+            "v_CPU": {
+              "const": 4
+            },
+            "v_fins": {
+              "const": 4
+            }
+          }
+        }
+      }
+    },
+    "materials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain0",
+        "v_CPU",
+        "v_fins"
+      ],
+      "properties": {
+        "domain0": {
+          "$ref": "#/$defs/fluid_material"
+        },
+        "v_CPU": {
+          "$ref": "#/$defs/solid_material"
+        },
+        "v_fins": {
+          "$ref": "#/$defs/solid_material"
+        }
+      }
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial_temperature_K",
+        "required_by_region"
+      ],
+      "properties": {
+        "initial_temperature_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "required_by_region": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "domain0",
+            "v_CPU",
+            "v_fins"
+          ],
+          "properties": {
+            "domain0": {
+              "$ref": "#/$defs/non_empty_string_array"
+            },
+            "v_CPU": {
+              "$ref": "#/$defs/non_empty_string_array"
+            },
+            "v_fins": {
+              "$ref": "#/$defs/non_empty_string_array"
+            }
+          }
+        }
+      }
+    },
+    "interfaces": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "owner_region",
+          "neighbour_region",
+          "owner_patch",
+          "neighbour_patch",
+          "temperature_bc"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner_region": {
+            "enum": [
+              "domain0",
+              "v_CPU",
+              "v_fins"
+            ]
+          },
+          "neighbour_region": {
+            "enum": [
+              "domain0",
+              "v_CPU",
+              "v_fins"
+            ]
+          },
+          "owner_patch": {
+            "type": "string",
+            "minLength": 1
+          },
+          "neighbour_patch": {
+            "type": "string",
+            "minLength": 1
+          },
+          "temperature_bc": {
+            "const": "compressible::turbulentTemperatureRadCoupledMixed"
+          }
+        }
+      }
+    },
+    "heat_sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "v_CPU"
+      ],
+      "properties": {
+        "v_CPU": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_type",
+            "field",
+            "power_W"
+          ],
+          "properties": {
+            "source_type": {
+              "const": "scalarSemiImplicitSource"
+            },
+            "field": {
+              "const": "h"
+            },
+            "power_W": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      }
+    },
+    "numerics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control",
+        "mrf"
+      ],
+      "properties": {
+        "control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "end_time_iterations",
+            "delta_t",
+            "write_interval",
+            "write_format"
+          ],
+          "properties": {
+            "end_time_iterations": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "delta_t": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "write_interval": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "write_format": {
+              "const": "ascii"
+            }
+          }
+        },
+        "mrf": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "omega_rad_s"
+          ],
+          "properties": {
+            "omega_rad_s": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      }
+    },
+    "postprocess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "region_temperature_summary",
+        "interface_balance_summary",
+        "method_note"
+      ],
+      "properties": {
+        "region_temperature_summary": {
+          "type": "boolean"
+        },
+        "interface_balance_summary": {
+          "type": "boolean"
+        },
+        "method_note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_dir",
+        "retain_generated_case",
+        "expected_outputs"
+      ],
+      "properties": {
+        "output_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retain_generated_case": {
+          "type": "boolean"
+        },
+        "expected_outputs": {
+          "$ref": "#/$defs/non_empty_string_array"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "temperature_min_K",
+        "temperature_max_K",
+        "max_interface_temperature_jump_K",
+        "max_interface_heat_flux_relative_mismatch",
+        "max_final_residual",
+        "required_generated_files",
+        "required_manifest_sections",
+        "required_interface_pairs",
+        "matrix_role",
+        "expected_trend"
+      ],
+      "properties": {
+        "gate": {
+          "enum": [
+            "static-readiness",
+            "smoke",
+            "targeted-regression",
+            "integration",
+            "double-v",
+            "full-regression"
+          ]
+        },
+        "temperature_min_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "temperature_max_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_interface_temperature_jump_K": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_interface_heat_flux_relative_mismatch": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_final_residual": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "required_generated_files": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "required_manifest_sections": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "required_interface_pairs": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "matrix_role": {
+          "enum": [
+            "baseline",
+            "heat_power_high",
+            "airflow_high",
+            "ambient_temperature_high",
+            "mesh_refinement",
+            "decomposition_sensitivity"
+          ]
+        },
+        "expected_trend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "description"
+          ],
+          "properties": {
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "primary_metric": {
+              "type": "string",
+              "minLength": 1
+            },
+            "direction": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string_array": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "fluid_material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "thermo_type",
+        "mol_weight",
+        "cp_J_kg_K",
+        "dynamic_viscosity_Pa_s",
+        "prandtl"
+      ],
+      "properties": {
+        "thermo_type": {
+          "const": "heRhoThermo"
+        },
+        "mol_weight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cp_J_kg_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "dynamic_viscosity_Pa_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prandtl": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "solid_material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "thermo_type",
+        "density_kg_m3",
+        "cp_J_kg_K",
+        "thermal_conductivity_W_m_K"
+      ],
+      "properties": {
+        "thermo_type": {
+          "const": "heSolidThermo"
+        },
+        "density_kg_m3": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cp_J_kg_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "thermal_conductivity_W_m_K": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    }
+  }
+}

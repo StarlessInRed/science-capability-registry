@@ -1,0 +1,144 @@
+capability_id: cfd.openfoam.lid_driven_cavity_incompressible_laminar
+case_id: baseline
+description: OpenFOAM.com v2112 lid-driven cavity baseline using icoFoam at Re=10 on a 20
+  x 20 x 1 mesh.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112
+  tutorial_path: $FOAM_TUTORIALS/incompressible/icoFoam/cavity/cavity
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.1-lid-driven-cavity-flow
+backend:
+  type: dry_run_only
+  timeout_s: 300
+  parallel: false
+solver:
+  name: icoFoam
+  mode: transient_incompressible_laminar
+  command_sequence:
+  - blockMesh
+  - icoFoam
+geometry:
+  cavity_side_length_m: 0.1
+  thickness_m: 0.01
+mesh:
+  generator: blockMesh
+  cells:
+  - 20
+  - 20
+  - 1
+  simple_grading:
+  - 1
+  - 1
+  - 1
+  patches:
+    movingWall:
+      type: wall
+      role: moving lid
+    fixedWalls:
+      type: wall
+      role: stationary side and bottom walls
+    frontAndBack:
+      type: empty
+      role: two-dimensional front and back planes
+material:
+  kinematic_viscosity_m2_s: 0.01
+  reynolds_number: 10
+  lid_velocity_m_s: 1.0
+fields:
+  p:
+    class: volScalarField
+    dimensions: '[0 2 -2 0 0 0 0]'
+    internal_field: uniform 0
+    boundaries:
+      movingWall:
+        type: zeroGradient
+      fixedWalls:
+        type: zeroGradient
+      frontAndBack:
+        type: empty
+  U:
+    class: volVectorField
+    dimensions: '[0 1 -1 0 0 0 0]'
+    internal_field: uniform (0 0 0)
+    boundaries:
+      movingWall:
+        type: fixedValue
+        value: uniform (1 0 0)
+      fixedWalls:
+        type: noSlip
+      frontAndBack:
+        type: empty
+numerics:
+  control:
+    start_time_s: 0
+    end_time_s: 0.5
+    delta_t_s: 0.005
+    write_interval: 20
+  fv_schemes:
+    ddt: Euler
+    grad: Gauss linear
+    div_phi_U: Gauss linear
+    laplacian: Gauss linear orthogonal
+    interpolation: linear
+    sn_grad: orthogonal
+  fv_solution:
+    p_solver:
+      solver: PCG
+      preconditioner: DIC
+      tolerance: 1.0e-06
+      relTol: 0.05
+    U_solver:
+      solver: smoothSolver
+      smoother: symGaussSeidel
+      tolerance: 1.0e-05
+      relTol: 0
+    piso:
+      nCorrectors: 2
+      nNonOrthogonalCorrectors: 0
+      pRefCell: 0
+      pRefValue: 0
+    p_final_solver:
+      base: p
+      relTol: 0
+outputs:
+  output_dir: _results/openfoam/lid_driven_cavity_incompressible_laminar/baseline
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - manifest.json
+  - metrics.json
+  - validation_report.md
+  postprocess:
+    centerline_profiles:
+    - centerline_vertical_Ux
+    - centerline_horizontal_Uy
+    plots:
+    - vertical_centerline_Ux_comparison
+    - horizontal_centerline_Uy_comparison
+validation:
+  gate: static-readiness
+  max_courant_number: 1.0
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - expected_outputs
+  - validation_targets

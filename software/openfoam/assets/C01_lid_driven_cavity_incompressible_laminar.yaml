@@ -1,0 +1,208 @@
+asset_id: C01_lid_driven_cavity_incompressible_laminar
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.1-lid-driven-cavity-flow
+domain: CFD
+capability_name: lid-driven cavity incompressible laminar flow
+problem_type:
+  category: 2D incompressible laminar internal flow
+  description: Simulate an isothermal incompressible flow in a closed square cavity
+    driven by a moving top wall.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2512 source family, tutorial guide page historically based on
+    OpenFOAM.com tutorial content
+  solver: icoFoam
+  solver_family: transient incompressible laminar finite-volume solver
+  model_class:
+  - incompressible Navier-Stokes equations
+  - laminar isothermal single-phase flow
+  - PISO pressure-velocity coupling
+  governing_parameters:
+    reynolds_number: 10
+    characteristic_length_m: 0.1
+    lid_velocity_m_s: 1.0
+    kinematic_viscosity_m2_s: 0.01
+  geometry:
+    shape: square cavity
+    dimensions_m:
+      x: 0.1
+      y: 0.1
+      z: one-cell 2D thickness
+  mesh:
+    generator: blockMesh
+    baseline_cells:
+    - 20
+    - 20
+    - 1
+    grading:
+    - 1
+    - 1
+    - 1
+    two_dimensional_patch: frontAndBack empty
+  initial_conditions:
+    p: uniform 0 kinematic pressure
+    U: uniform (0 0 0)
+  boundary_conditions:
+    movingWall:
+      U: fixedValue uniform (1 0 0)
+      p: zeroGradient
+    fixedWalls:
+      U: noSlip
+      p: zeroGradient
+    frontAndBack:
+      U: empty
+      p: empty
+  numerics:
+    time_scheme: Euler
+    gradient_scheme: Gauss linear
+    divergence_scheme: Gauss linear for div(phi,U)
+    laplacian_scheme: Gauss linear orthogonal
+    pressure_solver: PCG with DIC preconditioner
+    velocity_solver: smoothSolver with symGaussSeidel smoother
+    piso:
+      nCorrectors: 2
+      nNonOrthogonalCorrectors: 0
+      pRefCell: 0
+      pRefValue: 0
+    pressure_final_solver: pFinal inherits p with relTol 0 for OpenCFD v2112-compatible
+      icoFoam runs.
+  runtime_controls:
+    start_time_s: 0
+    end_time_s: 0.5
+    delta_t_s: 0.005
+    write_control: timeStep
+    write_interval: 20
+    courant_requirement: max Courant number should remain no greater than 1 for the
+      baseline mesh and time step.
+  local_runtime_profile: openfoam_com_v2112 on WSL Ubuntu-24.04; baseline smoke passed
+    on this machine.
+inputs:
+  run_schema_targets:
+  - openfoam_distribution
+  - openfoam_version
+  - backend
+  - solver
+  - reynolds_number
+  - cavity_side_length_m
+  - lid_velocity_m_s
+  - kinematic_viscosity_m2_s
+  - mesh_resolution
+  - time_controls
+  - boundary_conditions
+  - discretization_schemes
+  - linear_solver_settings
+  - postprocess_targets
+  - validation_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/incompressible/icoFoam/cavity/cavity
+    source_tree_path: tutorials/incompressible/icoFoam/cavity/cavity
+    solver: icoFoam
+    mesh_resolution:
+    - 20
+    - 20
+    - 1
+    end_time_s: 0.5
+    delta_t_s: 0.005
+outputs:
+  fields:
+  - U
+  - p
+  scalar_metrics:
+  - max_courant_number
+  - initial_residuals
+  - final_residuals
+  - continuity_error
+  - written_time_directories
+  - centerline_velocity_profiles
+  - mass_conservation_indicator
+  required_artifacts:
+  - blockMesh log
+  - checkMesh log
+  - icoFoam solver log
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - centerline_vertical_Ux.csv
+  - centerline_horizontal_Uy.csv
+  - vertical centerline comparison plot
+  - horizontal centerline comparison plot
+benchmark:
+  source_name: OpenFOAM.com Tutorial Guide 2.1, Lid-driven cavity flow
+  source_type: official tutorial
+  source_tree_url: https://gitlab.com/openfoam/core/openfoam/-/tree/master/tutorials/incompressible/icoFoam/cavity/cavity
+  tutorial_path: $FOAM_TUTORIALS/incompressible/icoFoam/cavity/cavity
+  benchmark_role: Official benchmark candidate for a minimal incompressible laminar
+    finite-volume OpenFOAM capability.
+  status_rationale: The official tutorial defines the case physics, mesh, boundary
+    conditions, numerics, runtime controls, and qualitative post-processing targets.
+    This repository now has a config-first OpenFOAM C01 package, dry-run generation,
+    local WSL OpenFOAM.com v2112 backend execution, four-case integration matrix,
+    Python final-field centerline CSV extraction, centerline comparison plots, metrics.json,
+    validation.json, and pytest coverage. The benchmark is validated for the local
+    OpenFOAM.com v2112 registry capability scope, with residual risk limited to lack
+    of OpenFOAM sample-functionObject evidence and external high-accuracy reference-data
+    comparison.
+  local_runtime_evidence:
+    runtime_profile: openfoam_com_v2112
+    wsl_distro: Ubuntu-24.04
+    matrix_cases:
+    - baseline_wsl_v2112
+    - mesh_40x40_cfl_matched_wsl_v2112
+    - re100_wsl_v2112
+    - dt_half_wsl_v2112
+    result_dir: _results/openfoam/lid_driven_cavity_incompressible_laminar/benchmark_matrix/
+    summary_csv: case_summary.csv
+    validation: benchmark_validation.json
+    plots:
+    - plots/vertical_centerline_Ux_comparison.png
+    - plots/horizontal_centerline_Uy_comparison.png
+    status: integration_matrix_passed
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json and must
+  not use the retired top-level status field.
+- Generated case contract must reproduce the official cavity geometry, 20 x 20 x 1
+  mesh, movingWall, fixedWalls, and frontAndBack empty patches.
+- Dry-run manifest must list generated 0/, constant/, and system/ dictionaries, mesh
+  command, solver command, expected artifacts, and validation targets.
+- blockMesh must complete successfully and report the expected two-dimensional mesh
+  topology.
+- icoFoam baseline must reach t=0.5 s and write U and p at configured time intervals.
+- Local WSL runtime smoke must complete blockMesh and icoFoam with final time t=0.5,
+  finite residuals and continuity, and max Courant number no greater than 1.
+- Maximum Courant number must remain no greater than 1 for the baseline case.
+- Solver residuals and continuity errors must be finite and recorded in metrics.json.
+- Final velocity field must preserve no-slip fixed walls, the configured moving lid
+  velocity, and a closed recirculating cavity pattern.
+- Benchmark validation matrix must include baseline, mesh refinement, Reynolds-number
+  increase, and timestep refinement cases with solver health, centerline CSV, plots,
+  and trend checks passing.
+- Python final-field postprocess must extract centerline_vertical_Ux.csv and centerline_horizontal_Uy.csv
+  from final-time U fields with finite, monotonic coordinates.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.lid_driven_cavity_incompressible_laminar:run
+  input_schema: schemas/openfoam_C01_lid_driven_cavity_incompressible_laminar.schema.json
+  workflow_stage: cfd.openfoam.lid_driven_cavity_incompressible_laminar
+  runtime_target: _results/openfoam/lid_driven_cavity_incompressible_laminar/baseline/
+  integration_notes:
+  - Use a runtime profile to translate canonical incompressible-laminar intent into
+    the selected OpenFOAM distribution and solver.
+  - Keep all mesh, boundary, numerics, runtime, output, and validation choices in
+    config/schema instead of CLI flags.
+  - Treat official tutorial files as source evidence, not as the long-term canonical
+    case definition.
+intern_deliverables:
+- OpenFOAM C01 run schema and baseline config with explicit geometry, mesh, fields,
+  boundary conditions, numerics, runtime controls, backend, outputs, and validation
+  thresholds.
+- Dry-run package that emits a manifest without requiring OpenFOAM execution.
+- Case generation for 0/, constant/, and system/ dictionaries from config rather than
+  copied tutorial folders.
+- WSL backend execution through explicit runtime profile, including logs, Python final-field
+  centerline parser outputs, metrics.json, validation.json, and validation_report.md.
+- Post-processing that parses residuals, Courant number, continuity, final-time centerline
+  velocity profiles, CSV files, centerline comparison plots, metrics.json, validation.json,
+  and validation_report.md.
+- Perturbation cases for mesh sensitivity, Reynolds number or viscosity change, and
+  time-step/Courant sensitivity with physical trend explanations.
+card_status: accepted
+benchmark_status: benchmark_validated

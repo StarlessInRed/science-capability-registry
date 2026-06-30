@@ -1,0 +1,144 @@
+asset_id: C07_conjugate_heat_transfer_cooling
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/user-guide/a-reference/a.1-standard-solvers
+domain: multiphysics
+capability_name: conjugate heat transfer cooling
+problem_type:
+  category: steady multi-region solid-fluid conjugate heat transfer
+  description: Use OpenFOAM.com v2112 chtMultiRegionSimpleFoam and the official cpuCabinet tutorial family to model electronics-style cooling where buoyant/turbulent air regions exchange heat with solid CPU and fin regions.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local solver and tutorial evidence
+  solver: chtMultiRegionSimpleFoam
+  solver_family: steady buoyant multi-region conjugate heat-transfer finite-volume solver
+  model_class:
+  - buoyant turbulent fluid flow in one or more fluid regions
+  - solid heat conduction in one or more solid regions
+  - coupled temperature and heat-flux continuity at fluid-solid interfaces
+  - SIMPLE-style steady iteration across region-specific equations
+  governing_parameters:
+    fluid_regions:
+    - domain0
+    solid_regions:
+    - v_CPU
+    - v_fins
+    baseline_end_time_iterations: 200
+    baseline_parallel_subdomains: 10
+  benchmark_template:
+    source_tree_path: tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    local_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    region_properties:
+      fluid:
+      - domain0
+      solid:
+      - v_CPU
+      - v_fins
+  local_runtime_profile: openfoam_com_v2112_cht on WSL Ubuntu-24.04
+inputs:
+  run_schema_targets:
+  - backend
+  - runtime_profile
+  - official_template_source_path
+  - region_properties
+  - fluid_thermophysical_properties
+  - solid_thermophysical_properties
+  - inlet_or_fan_flow_condition
+  - heat_source_power
+  - ambient_temperature
+  - turbulence_model
+  - mesh_workflow
+  - parallel_decomposition
+  - steady_iteration_controls
+  - validation_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    solver: chtMultiRegionSimpleFoam
+    mesh_workflow:
+    - blockMesh
+    - surfaceFeatureExtract
+    - snappyHexMesh
+    - decomposePar
+    - splitMeshRegions
+    - topoSet
+    execution_mode: parallel
+outputs:
+  fields:
+  - T
+  - U
+  - p
+  - p_rgh
+  - k
+  - epsilon
+  - alphat
+  - mut
+  scalar_metrics:
+  - final_region_residuals
+  - region_continuity_errors
+  - max_temperature_by_region
+  - min_temperature_by_region
+  - cpu_peak_temperature
+  - fin_average_temperature
+  - interface_temperature_jump_proxy
+  - interface_heat_flux_balance_proxy
+  - mesh_quality_summary
+  - parallel_reconstruction_status
+  required_artifacts:
+  - blockMesh log
+  - surfaceFeatureExtract log
+  - snappyHexMesh log
+  - decomposePar log
+  - splitMeshRegions log
+  - topoSet log
+  - chtMultiRegionSimpleFoam solver log
+  - reconstructParMesh log
+  - reconstructPar log
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - region_temperature_summary.csv
+  - interface_balance_summary.csv
+benchmark:
+  source_name: OpenFOAM.com v2112 chtMultiRegionSimpleFoam cpuCabinet tutorial
+  source_type: official tutorial and local solver source
+  tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+  benchmark_role: Benchmark candidate for reusable steady electronics-cooling CHT capability with explicit solid and fluid regions.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository does not yet have a C07 run schema, case generator, runner, metrics contract, solver evidence, perturbation matrix, or validation report, so the capability must remain a benchmark candidate.
+  local_runtime_evidence:
+    runtime_profile: openfoam_com_v2112_cht
+    wsl_distro: Ubuntu-24.04
+    solver_binary: /opt/OpenFOAM-v2112/platforms/linux64GccDPInt32Opt/bin/chtMultiRegionSimpleFoam
+    tutorial_root: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+    source_file: /opt/OpenFOAM-v2112/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C
+  alternate_tutorials:
+  - tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
+  - tutorials/heatTransfer/chtMultiRegionSimpleFoam/externalCoupledHeater
+  - tutorials/heatTransfer/chtMultiRegionSimpleFoam/heatExchanger
+  alternate_tutorial_notes:
+  - multiRegionHeaterRadiation has explicit solid/fluid regions but also radiation view-factor setup.
+  - externalCoupledHeater has explicit solid/fluid regions but includes externalCoupled interface behavior.
+  - heatExchanger is useful heat-transfer evidence but its v2112 regionProperties declares no solid region.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json and must not use the retired top-level status field.
+- Runtime profile must declare OpenFOAM.com v2112, WSL backend, legacy CHT multi-region layout, parallel execution, chtMultiRegionSimpleFoam, and required mesh/preprocess executables.
+- Future run schema must expose regionProperties, thermophysical properties, heat source, ambient condition, mesh workflow, parallel decomposition, solver controls, and validation thresholds as config-visible fields.
+- Dry-run manifest must prove the generated case contains constant/regionProperties, per-region 0/ fields, per-region constant properties, system dictionaries, and a deterministic command sequence.
+- Mesh pipeline must complete blockMesh, surfaceFeatureExtract, snappyHexMesh, decomposePar, splitMeshRegions, topoSet, and checkMesh or equivalent mesh-quality checks before solver execution.
+- Solver baseline must reach the configured end time or iteration count with finite fields, acceptable residuals, and no missing region solves.
+- Temperature fields must remain finite and physically bounded, and CPU/solid heat-source perturbations must increase peak solid temperature in the expected direction.
+- Interface validation must report temperature continuity and heat-flux balance proxies across solid-fluid coupled patches until a stronger native flux extraction is implemented.
+- Integration benchmark must include baseline plus at least three perturbations covering heat source power, airflow or inlet condition, and mesh/decomposition sensitivity before promotion beyond benchmark_candidate.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run
+  input_schema: schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json
+  workflow_stage: cfd.openfoam.conjugate_heat_transfer_cooling
+  runtime_target: _results/openfoam/conjugate_heat_transfer_cooling/
+  runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112_cht.yaml
+intern_deliverables:
+- Create a strict C07 run schema and baseline config for the cpuCabinet tutorial without hiding physics choices in CLI flags.
+- Implement a config-first dry-run generator that copies the official template and validates all multi-region files before solver execution.
+- Implement the OpenFOAM.com v2112 CHT runtime path only after the dry-run contract is stable.
+- Produce metrics.json, validation.json, region temperature CSVs, interface balance CSVs, and validation_report.md under _results/openfoam/conjugate_heat_transfer_cooling/.
+- Add pytest coverage for schema rejection, dry-run manifest completeness, runtime profile resolution, log parsing, metrics validation, and perturbation trend checks.
+- Keep benchmark_status at benchmark_candidate until local solver evidence and perturbation reports pass.
+card_status: review
+benchmark_status: benchmark_candidate

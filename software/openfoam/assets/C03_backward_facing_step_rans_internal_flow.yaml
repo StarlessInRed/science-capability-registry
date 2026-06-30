@@ -1,0 +1,111 @@
+asset_id: C03_backward_facing_step_rans_internal_flow
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/tutorial-guide/3-compressible-flow/3.1-steady-turbulent-flow-over-a-backward-facing-step
+domain: CFD
+capability_name: backward-facing step RANS internal flow
+problem_type:
+  category: 2D incompressible steady turbulent internal flow
+  description: Use OpenFOAM simpleFoam and the official pitzDaily backward-facing-step tutorial template to evaluate separated internal flow, pressure drop, wall-shear proxy, and velocity-profile trends.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local runtime evidence
+  solver: simpleFoam
+  solver_family: steady incompressible RANS finite-volume solver
+  model_class:
+  - incompressible Reynolds-averaged Navier-Stokes equations
+  - kEpsilon turbulence closure
+  - SIMPLE pressure-velocity coupling
+  governing_parameters:
+    step_height_m: 0.0254
+    kinematic_viscosity_m2_s: 1.0e-05
+    baseline_inlet_velocity_m_s: 10.0
+    baseline_reynolds_number_H: 25400
+  benchmark_template:
+    source_tree_path: tutorials/incompressible/simpleFoam/pitzDaily
+    local_path: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/pitzDaily
+  local_runtime_profile: openfoam_com_v2112 on WSL Ubuntu-24.04
+inputs:
+  run_schema_targets:
+  - backend
+  - runtime_profile
+  - official_template_source_path
+  - inlet_velocity_m_s
+  - kinematic_viscosity_m2_s
+  - turbulence_model
+  - k
+  - epsilon
+  - mesh_cell_count_scale
+  - steady_iteration_controls
+  - postprocess_stations
+  - validation_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/pitzDaily
+    solver: simpleFoam
+    inlet_velocity_m_s: 10.0
+    end_time_iterations: 80
+outputs:
+  fields:
+  - U
+  - p
+  - k
+  - epsilon
+  - nut
+  scalar_metrics:
+  - final_residuals
+  - continuity_error
+  - pressure_drop_kinematic
+  - max_speed
+  - lower_wall_shear_proxy
+  - reattachment_length_proxy
+  - yplus_proxy_summary
+  required_artifacts:
+  - blockMesh log
+  - checkMesh log
+  - simpleFoam solver log
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - velocity_profiles.csv
+  - lower_wall_shear.csv
+  - pressure_coefficient.csv
+  - yplus_summary.csv
+benchmark:
+  source_name: OpenFOAM.com Tutorial Guide 3.1, Steady turbulent flow over a backward-facing step
+  source_type: official tutorial
+  tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/pitzDaily
+  benchmark_role: Official benchmark candidate for a reusable incompressible RANS internal-flow capability.
+  status_rationale: Local WSL OpenFOAM.com v2112 execution now has a config-first template runner, four-case integration matrix, solver logs, metrics.json, validation.json, CSV postprocess, plots, and pytest coverage. OpenFOAM functionObjects are disabled because this local OpenFOAM.com v2112 WSL profile emits sha1 IO errors, including ext4 probe paths; Python final-field postprocess is used and reported as a residual risk.
+  local_runtime_evidence:
+    runtime_profile: openfoam_com_v2112
+    wsl_distro: Ubuntu-24.04
+    matrix_cases:
+    - baseline_wsl_v2112
+    - mesh_refined_wsl_v2112
+    - inlet_velocity_high_wsl_v2112
+    - inlet_velocity_low_wsl_v2112
+    result_dir: _results/openfoam/backward_facing_step_rans_internal_flow/benchmark_matrix/
+    summary_csv: case_summary.csv
+    validation: benchmark_validation.json
+    plots:
+    - plots/pressure_drop_vs_inlet_velocity.png
+    - plots/lower_wall_shear_comparison.png
+    status: integration_matrix_passed
+validation_criteria:
+- Config schema must reject unknown top-level keys and must fix solver to simpleFoam.
+- Runner must copy the official pitzDaily tutorial template, remove unstable streamlines functionObject usage, and patch control, mesh scale, inlet velocity, viscosity, k, and epsilon from config.
+- blockMesh, checkMesh, and simpleFoam must return zero for every matrix case.
+- Final pseudo-time must reach the configured endTime and final residuals/continuity must satisfy configured thresholds.
+- Python postprocess must produce finite velocity profiles, pressure coefficient, lower-wall shear proxy, and yPlus proxy CSVs.
+- Matrix checks must show mesh-refined pressure drop remains same order, high inlet velocity increases pressure drop and max speed, and low inlet velocity decreases them.
+- Report must state that wall shear and yPlus are Python proxy metrics, not OpenFOAM functionObject results.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.backward_facing_step_rans_internal_flow:run
+  input_schema: schemas/openfoam_C03_backward_facing_step_rans_internal_flow.schema.json
+  workflow_stage: cfd.openfoam.backward_facing_step_rans_internal_flow
+  runtime_target: _results/openfoam/backward_facing_step_rans_internal_flow/
+intern_deliverables:
+- Maintain config-first OpenFOAM C03 runner and matrix configs.
+- Extend wall-shear/yPlus extraction to native OpenFOAM functionObjects only after the local sha1 IO failure is resolved.
+- Add external Pitz & Daily or ERCOFTAC reference comparison before claiming experimental validation.
+card_status: accepted
+benchmark_status: benchmark_validated

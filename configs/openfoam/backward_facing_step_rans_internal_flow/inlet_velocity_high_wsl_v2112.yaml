@@ -1,0 +1,116 @@
+capability_id: cfd.openfoam.backward_facing_step_rans_internal_flow
+case_id: inlet_velocity_high_wsl_v2112
+description: C03 pitzDaily with inlet velocity increased to 15 m/s.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112
+  tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/pitzDaily
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/3-compressible-flow/3.1-steady-turbulent-flow-over-a-backward-facing-step
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - blockMesh
+  - checkMesh
+  - simpleFoam
+backend:
+  type: wsl
+  timeout_s: 420
+  parallel: false
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: simpleFoam
+  mode: steady_incompressible_RANS
+  command_sequence:
+  - blockMesh
+  - checkMesh
+  - simpleFoam
+template:
+  source_path: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/pitzDaily
+  copy_strategy: copy_official_tutorial_then_patch
+  disabled_function_objects:
+  - "streamlines: disabled because this local OpenFOAM.com v2112 WSL profile triggers sha1 IO errors, including ext4 probe paths; Python field postprocess is used instead."
+geometry:
+  step_height_m: 0.0254
+  step_location_x_m: 0.0
+mesh:
+  generator: blockMesh
+  cell_count_scale: 1
+material:
+  kinematic_viscosity_m2_s: 0.00001
+  density_kg_m3: 1.0
+  inlet_velocity_m_s: 15
+  reynolds_number_H: 38100
+turbulence:
+  model: kEpsilon
+  k_m2_s2: 0.84375
+  epsilon_m2_s3: 50.135625000000005
+numerics:
+  control:
+    end_time_iterations: 80
+    write_interval: 40
+postprocess:
+  velocity_profile_x_over_H:
+  - 1
+  - 2
+  - 4
+  - 6
+  - 8
+  wall_patch: lowerWall
+  method_note: Python final-field parser extracts pressure drop, velocity profiles, lower-wall shear proxy, and yPlus proxy.
+outputs:
+  output_dir: _results/openfoam/backward_facing_step_rans_internal_flow/inlet_velocity_high_wsl_v2112
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/0/k
+  - case/0/epsilon
+  - case/0/nut
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - logs/log.blockMesh
+  - logs/log.checkMesh
+  - logs/log.simpleFoam
+  - postprocess/velocity_profiles.csv
+  - postprocess/lower_wall_shear.csv
+  - postprocess/pressure_coefficient.csv
+  - postprocess/yplus_summary.csv
+validation:
+  gate: smoke
+  max_final_residual: 0.03
+  max_continuity_sum_local: 1.0
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/0/k
+  - case/0/epsilon
+  - case/0/nut
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - expected_outputs
+  - validation_targets
+  - runtime
+  matrix_role: inlet_velocity_high
+  compare_to: baseline_wsl_v2112
+  expected_trend:
+    description: Pressure drop and maximum speed should increase relative to baseline.

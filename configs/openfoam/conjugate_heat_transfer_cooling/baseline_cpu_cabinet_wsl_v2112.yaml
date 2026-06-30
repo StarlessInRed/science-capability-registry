@@ -1,0 +1,233 @@
+capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+case_id: baseline_cpu_cabinet_wsl_v2112
+description: Dry-run official cpuCabinet template contract for C07 steady multi-region CHT cooling.
+openfoam:
+  distribution: openfoam_com
+  version: v2112
+  runtime_profile: openfoam_com_v2112_cht
+  tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+  source_url: https://www.openfoam.com/documentation/user-guide/a-reference/a.1-standard-solvers
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: legacy_cht_multi_region
+  required_executables:
+  - blockMesh
+  - surfaceFeatureExtract
+  - snappyHexMesh
+  - decomposePar
+  - splitMeshRegions
+  - topoSet
+  - reconstructParMesh
+  - reconstructPar
+  - checkMesh
+  - chtMultiRegionSimpleFoam
+  - postProcess
+  - mpirun
+backend:
+  type: dry_run_only
+  timeout_s: 1200
+  parallel: true
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: chtMultiRegionSimpleFoam
+  mode: steady_multi_region_CHT
+  command_sequence:
+  - mpirun -np 10 chtMultiRegionSimpleFoam -parallel
+template:
+  source_profile_key: c07_cpu_cabinet
+  source_path: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+  geometry_resource_path: /opt/OpenFOAM-v2112/tutorials/resources/geometry/cpuCabinet
+  copy_strategy: copy_official_tutorial_then_patch
+  disabled_function_objects:
+  - "system/probes include is removed from controlDict for static readiness because local OpenFOAM.com v2112 WSL functionObject writes have known sha1 IO risk."
+regions:
+  fluid:
+  - domain0
+  solid:
+  - v_CPU
+  - v_fins
+mesh_workflow:
+  geometry_resource: $FOAM_TUTORIALS/resources/geometry/cpuCabinet
+  command_sequence:
+  - blockMesh
+  - surfaceFeatureExtract
+  - snappyHexMesh -overwrite
+  - decomposePar
+  - restore0Dir -processor
+  - mpirun -np 10 splitMeshRegions -cellZones -overwrite -parallel
+  - mpirun -np 10 topoSet -region domain0 -parallel
+  - mpirun -np 10 checkMesh -allRegions -constant -parallel
+  required_generated_files:
+  - case/constant/triSurface/Cabinet_withMesh.obj.gz
+  - case/constant/triSurface/MRF_region.obj.gz
+parallel:
+  launcher: mpirun
+  number_of_subdomains: 10
+  method: scotch
+  region_subdomains:
+    domain0: 4
+    v_CPU: 4
+    v_fins: 4
+materials:
+  domain0:
+    thermo_type: heRhoThermo
+    mol_weight: 28.966
+    cp_J_kg_K: 1006.43
+    dynamic_viscosity_Pa_s: 1.846e-05
+    prandtl: 0.706414
+  v_CPU:
+    thermo_type: heSolidThermo
+    density_kg_m3: 2719
+    cp_J_kg_K: 871
+    thermal_conductivity_W_m_K: 202.4
+  v_fins:
+    thermo_type: heSolidThermo
+    density_kg_m3: 2719
+    cp_J_kg_K: 871
+    thermal_conductivity_W_m_K: 202.4
+fields:
+  initial_temperature_K: 300
+  required_by_region:
+    domain0:
+    - T
+    - U
+    - p
+    - p_rgh
+    - k
+    - epsilon
+    - alphat
+    - nut
+    v_CPU:
+    - T
+    - p
+    v_fins:
+    - T
+    - p
+interfaces:
+- name: domain0_to_v_CPU
+  owner_region: domain0
+  neighbour_region: v_CPU
+  owner_patch: domain0_to_v_CPU
+  neighbour_patch: v_CPU_to_domain0
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+- name: domain0_to_v_fins
+  owner_region: domain0
+  neighbour_region: v_fins
+  owner_patch: domain0_to_v_fins
+  neighbour_patch: v_fins_to_domain0
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+- name: v_CPU_to_v_fins
+  owner_region: v_CPU
+  neighbour_region: v_fins
+  owner_patch: v_CPU_to_v_fins
+  neighbour_patch: v_fins_to_v_CPU
+  temperature_bc: compressible::turbulentTemperatureRadCoupledMixed
+heat_sources:
+  v_CPU:
+    source_type: scalarSemiImplicitSource
+    field: h
+    power_W: 100
+numerics:
+  control:
+    end_time_iterations: 200
+    delta_t: 1
+    write_interval: 10
+    write_format: ascii
+  mrf:
+    omega_rad_s: 209.44
+postprocess:
+  region_temperature_summary: true
+  interface_balance_summary: true
+  method_note: Static-readiness dry-run records planned CHT postprocess outputs; runtime field parsing is deferred to smoke.
+outputs:
+  output_dir: _results/openfoam/conjugate_heat_transfer_cooling/baseline_cpu_cabinet_wsl_v2112
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/domain0/T
+  - case/0/domain0/U
+  - case/0/domain0/p
+  - case/0/domain0/p_rgh
+  - case/0/domain0/k
+  - case/0/domain0/epsilon
+  - case/0/domain0/alphat
+  - case/0/domain0/nut
+  - case/0/v_CPU/T
+  - case/0/v_CPU/p
+  - case/0/v_fins/T
+  - case/0/v_fins/p
+  - case/constant/regionProperties
+  - case/constant/domain0/thermophysicalProperties
+  - case/constant/domain0/turbulenceProperties
+  - case/constant/domain0/MRFProperties
+  - case/constant/v_CPU/thermophysicalProperties
+  - case/constant/v_fins/thermophysicalProperties
+  - case/system/controlDict
+  - case/system/decomposeParDict
+  - case/system/snappyHexMeshDict
+  - case/system/surfaceFeatureExtractDict
+  - case/system/domain0/fvSolution
+  - case/system/v_CPU/fvOptions
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - postprocess/region_temperature_summary.csv
+  - postprocess/interface_balance_summary.csv
+validation:
+  gate: static-readiness
+  temperature_min_K: 250
+  temperature_max_K: 500
+  max_interface_temperature_jump_K: 1
+  max_interface_heat_flux_relative_mismatch: 0.2
+  max_final_residual: 0.001
+  required_generated_files:
+  - case/0/domain0/T
+  - case/0/domain0/U
+  - case/0/domain0/p
+  - case/0/domain0/p_rgh
+  - case/0/domain0/k
+  - case/0/domain0/epsilon
+  - case/0/domain0/alphat
+  - case/0/domain0/nut
+  - case/0/v_CPU/T
+  - case/0/v_CPU/p
+  - case/0/v_fins/T
+  - case/0/v_fins/p
+  - case/constant/regionProperties
+  - case/constant/triSurface/Cabinet_withMesh.obj.gz
+  - case/constant/triSurface/MRF_region.obj.gz
+  - case/constant/domain0/thermophysicalProperties
+  - case/constant/domain0/turbulenceProperties
+  - case/constant/domain0/MRFProperties
+  - case/constant/v_CPU/thermophysicalProperties
+  - case/constant/v_fins/thermophysicalProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/decomposeParDict
+  - case/system/snappyHexMeshDict
+  - case/system/surfaceFeatureExtractDict
+  - case/system/domain0/fvSolution
+  - case/system/domain0/topoSetDict
+  - case/system/v_CPU/fvOptions
+  - case/system/v_CPU/fvSolution
+  - case/system/v_fins/fvSolution
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - runtime_profile
+  - backend
+  - regions
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - postprocess_commands
+  - expected_outputs
+  - validation_targets
+  required_interface_pairs:
+  - domain0_to_v_CPU
+  - domain0_to_v_fins
+  - v_CPU_to_v_fins
+  matrix_role: baseline
+  expected_trend:
+    description: Static contract reference for template copy, multi-region file materialization, geometry resource copy, and CHT command planning.
+    primary_metric: dry_run_manifest_completeness
+    direction: pass

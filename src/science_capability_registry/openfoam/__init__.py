@@ -1,0 +1,2 @@
+"""OpenFOAM capability packages."""
+

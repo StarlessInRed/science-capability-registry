@@ -1,0 +1,49 @@
+profile_id: openfoam_com_v2112_cht
+distribution: openfoam_com
+version_label: v2112
+bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+case_layout: legacy_cht_multi_region
+backend:
+  type: wsl
+  wsl_distro: Ubuntu-24.04
+  timeout_s: 1200
+  parallel: true
+executable_bindings:
+  cht_steady: chtMultiRegionSimpleFoam
+  cht_transient: chtMultiRegionFoam
+  mesh_block: blockMesh
+  mesh_surface_features: surfaceFeatureExtract
+  mesh_snappy: snappyHexMesh
+  mesh_decompose: decomposePar
+  mesh_split_regions: splitMeshRegions
+  mesh_toposet: topoSet
+  mesh_reconstruct: reconstructParMesh
+  case_reconstruct: reconstructPar
+  mesh_check: checkMesh
+  parallel_launcher: mpirun
+  postprocess_driver: postProcess
+required_executables:
+- blockMesh
+- surfaceFeatureExtract
+- snappyHexMesh
+- decomposePar
+- splitMeshRegions
+- topoSet
+- reconstructParMesh
+- reconstructPar
+- checkMesh
+- chtMultiRegionSimpleFoam
+- chtMultiRegionFoam
+- mpirun
+- postProcess
+tutorial_roots:
+  c07_cpu_cabinet: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
+  c07_multi_region_heater_radiation: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
+  c07_external_coupled_heater: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/externalCoupledHeater
+  c07_heat_exchanger: /opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/heatExchanger
+known_limitations:
+- Evidence collected on this host is OpenFOAM.com v2112 under WSL Ubuntu-24.04.
+- This profile is for CHT multi-region cases and must not be used as the default single-region C01/C03/C06 profile.
+- The first C07 benchmark candidate is cpuCabinet, which requires snappyHexMesh, splitMeshRegions, and parallel decomposition/reconstruction.
+- multiRegionHeaterRadiation adds radiation view-factor preprocessing, externalCoupledHeater adds external coupled-interface behavior, and heatExchanger has no solid region in v2112 regionProperties.
+- No C07 registry runner, schema, metrics contract, or solver validation report exists yet.

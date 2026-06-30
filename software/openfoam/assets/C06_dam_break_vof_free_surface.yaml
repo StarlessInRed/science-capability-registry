@@ -1,0 +1,111 @@
+asset_id: C06_dam_break_vof_free_surface
+software: OpenFOAM
+source_url: https://www.openfoam.com/documentation/tutorial-guide/4-multiphase-flow/4.1-breaking-of-a-dam
+domain: CFD
+capability_name: dam break VOF free surface
+problem_type:
+  category: 2D transient two-phase free-surface flow
+  description: Use OpenFOAM interFoam and the official laminar damBreak tutorial template to validate VOF alpha boundedness, water-volume conservation, front propagation, gauge interface height, and perturbation trends.
+physics:
+  openfoam_distribution: openfoam_com
+  openfoam_version: v2112 local runtime evidence
+  solver: interFoam
+  solver_family: transient incompressible two-phase VOF finite-volume solver
+  model_class:
+  - incompressible two-phase Navier-Stokes equations
+  - VOF interface capturing with alpha.water
+  - laminar free-surface flow
+  governing_parameters:
+    gravity_m_s2: 9.81
+    water_density_kg_m3: 1000
+    air_density_kg_m3: 1
+    water_kinematic_viscosity_m2_s: 1.0e-06
+    air_kinematic_viscosity_m2_s: 1.48e-05
+    surface_tension_N_m: 0.07
+  benchmark_template:
+    source_tree_path: tutorials/multiphase/interFoam/laminar/damBreak/damBreak
+    local_path: /opt/OpenFOAM-v2112/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
+  local_runtime_profile: openfoam_com_v2112 on WSL Ubuntu-24.04
+inputs:
+  run_schema_targets:
+  - backend
+  - runtime_profile
+  - official_template_source_path
+  - gravity_m_s2
+  - water_column_width_m
+  - water_column_height_m
+  - mesh_cell_count_scale
+  - time_controls
+  - alpha_threshold
+  - gauge_locations
+  - validation_thresholds
+  baseline_case:
+    tutorial_path: $FOAM_TUTORIALS/multiphase/interFoam/laminar/damBreak/damBreak
+    solver: interFoam
+    end_time_s: 0.1
+    water_column_height_m: 0.292
+outputs:
+  fields:
+  - alpha.water
+  - U
+  - p_rgh
+  scalar_metrics:
+  - max_courant_number
+  - max_alpha_courant_number
+  - alpha_bounds
+  - water_volume_relative_error
+  - front_position
+  - gauge_interface_height
+  required_artifacts:
+  - blockMesh log
+  - setFields log
+  - checkMesh log
+  - interFoam solver log
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - front_position_history.csv
+  - water_volume_history.csv
+  - alpha_bounds_history.csv
+  - gauge_interface_height_history.csv
+  - free_surface_profile_final.csv
+benchmark:
+  source_name: OpenFOAM.com Tutorial Guide 4.1, Breaking of a dam
+  source_type: official tutorial
+  tutorial_path: $FOAM_TUTORIALS/multiphase/interFoam/laminar/damBreak/damBreak
+  benchmark_role: Official benchmark candidate for a reusable VOF free-surface OpenFOAM capability.
+  status_rationale: Local WSL OpenFOAM.com v2112 execution now has a config-first template runner, four-case integration matrix, solver logs, metrics.json, validation.json, alpha-field CSV postprocess, plots, and pytest coverage. OpenFOAM sampling include is disabled because this local OpenFOAM.com v2112 WSL profile emits sha1 IO errors, including ext4 probe paths; Python alpha postprocess is used and reported as a residual risk.
+  local_runtime_evidence:
+    runtime_profile: openfoam_com_v2112
+    wsl_distro: Ubuntu-24.04
+    matrix_cases:
+    - baseline_wsl_v2112
+    - mesh_refined_wsl_v2112
+    - gravity_half_wsl_v2112
+    - water_height_125pct_wsl_v2112
+    result_dir: _results/openfoam/dam_break_vof_free_surface/benchmark_matrix/
+    summary_csv: case_summary.csv
+    validation: benchmark_validation.json
+    plots:
+    - plots/front_position_history.png
+    - plots/water_volume_error_history.png
+    status: integration_matrix_passed
+validation_criteria:
+- Config schema must reject unknown top-level keys and must fix solver to interFoam.
+- Runner must copy the official damBreak tutorial template, restore 0.orig to 0, remove unstable sampling include, and patch control, gravity, mesh scale, and initial water box from config.
+- blockMesh, setFields, checkMesh, and interFoam must return zero for every matrix case.
+- Final time must reach the configured endTime; Courant and alpha Courant must satisfy configured thresholds.
+- alpha.water must stay finite and bounded within configured tolerances.
+- Water volume relative error must satisfy the configured conservation tolerance.
+- Matrix checks must show mesh refinement keeps same-order front position, half gravity slows the front, and higher water height increases water volume without slowing the front.
+integration_targets:
+  package_entrypoint: science_capability_registry.openfoam.dam_break_vof_free_surface:run
+  input_schema: schemas/openfoam_C06_dam_break_vof_free_surface.schema.json
+  workflow_stage: cfd.openfoam.dam_break_vof_free_surface
+  runtime_target: _results/openfoam/dam_break_vof_free_surface/
+intern_deliverables:
+- Maintain config-first OpenFOAM C06 runner and matrix configs.
+- Add full-horizon and external dam-break reference comparison before claiming double-v validation.
+- Extend sampling/functionObject support only after the local sha1 IO failure is resolved.
+card_status: accepted
+benchmark_status: benchmark_validated

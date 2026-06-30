@@ -1,0 +1,168 @@
+backend:
+  parallel: false
+  timeout_s: 300
+  type: wsl
+  wsl_distro: Ubuntu-24.04
+capability_id: cfd.openfoam.lid_driven_cavity_incompressible_laminar
+case_id: re100_wsl_v2112
+description: Local WSL OpenFOAM.com v2112 Reynolds-number perturbation for C01 on
+  the refined mesh.
+fields:
+  U:
+    boundaries:
+      fixedWalls:
+        type: noSlip
+      frontAndBack:
+        type: empty
+      movingWall:
+        type: fixedValue
+        value: uniform (1 0 0)
+    class: volVectorField
+    dimensions: '[0 1 -1 0 0 0 0]'
+    internal_field: uniform (0 0 0)
+  p:
+    boundaries:
+      fixedWalls:
+        type: zeroGradient
+      frontAndBack:
+        type: empty
+      movingWall:
+        type: zeroGradient
+    class: volScalarField
+    dimensions: '[0 2 -2 0 0 0 0]'
+    internal_field: uniform 0
+geometry:
+  cavity_side_length_m: 0.1
+  thickness_m: 0.01
+material:
+  kinematic_viscosity_m2_s: 0.001
+  lid_velocity_m_s: 1.0
+  reynolds_number: 100
+mesh:
+  cells:
+  - 40
+  - 40
+  - 1
+  generator: blockMesh
+  patches:
+    fixedWalls:
+      role: stationary side and bottom walls
+      type: wall
+    frontAndBack:
+      role: two-dimensional front and back planes
+      type: empty
+    movingWall:
+      role: moving lid
+      type: wall
+  simple_grading:
+  - 1
+  - 1
+  - 1
+numerics:
+  control:
+    delta_t_s: 0.00125
+    end_time_s: 0.5
+    start_time_s: 0
+    write_interval: 80
+  fv_schemes:
+    ddt: Euler
+    div_phi_U: Gauss linear
+    grad: Gauss linear
+    interpolation: linear
+    laplacian: Gauss linear orthogonal
+    sn_grad: orthogonal
+  fv_solution:
+    U_solver:
+      relTol: 0
+      smoother: symGaussSeidel
+      solver: smoothSolver
+      tolerance: 1.0e-05
+    p_final_solver:
+      base: p
+      relTol: 0
+    p_solver:
+      preconditioner: DIC
+      relTol: 0.05
+      solver: PCG
+      tolerance: 1.0e-06
+    piso:
+      nCorrectors: 2
+      nNonOrthogonalCorrectors: 0
+      pRefCell: 0
+      pRefValue: 0
+openfoam:
+  bashrc_path: /opt/OpenFOAM-v2112/etc/bashrc
+  case_layout: single_region
+  distribution: openfoam_com
+  required_executables:
+  - blockMesh
+  - icoFoam
+  - postProcess
+  - checkMesh
+  runtime_profile: openfoam_com_v2112
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.1-lid-driven-cavity-flow
+  tutorial_path: $FOAM_TUTORIALS/incompressible/icoFoam/cavity/cavity
+  version: v2112
+outputs:
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - manifest.json
+  - metrics.json
+  - validation_report.md
+  - logs/log.blockMesh
+  - logs/log.icoFoam
+  - validation.json
+  - postprocess/centerline_vertical_Ux.csv
+  - postprocess/centerline_horizontal_Uy.csv
+  - logs/log.checkMesh
+  output_dir: _results/openfoam/lid_driven_cavity_incompressible_laminar/re100_wsl_v2112
+  postprocess:
+    centerline_profiles:
+    - centerline_vertical_Ux
+    - centerline_horizontal_Uy
+    plots:
+    - vertical_centerline_Ux_comparison
+    - horizontal_centerline_Uy_comparison
+  retain_generated_case: true
+solver:
+  command_sequence:
+  - blockMesh
+  - checkMesh
+  - icoFoam
+  mode: transient_incompressible_laminar
+  name: icoFoam
+validation:
+  expected_trend:
+    description: Increasing Reynolds number should strengthen centerline recirculation
+      signatures before leaving the laminar tutorial scope.
+    primary_metric: centerline_velocity_gradient_ratio
+    direction: increase
+    threshold: 1.05
+  gate: smoke
+  matrix_role: reynolds_increase
+  max_courant_number: 1.0
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/system/blockMeshDict
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - expected_outputs
+  - validation_targets
+  - runtime
+  compare_to: mesh_40x40_cfl_matched_wsl_v2112
