@@ -77,14 +77,14 @@ benchmark:
   source_type: official tutorial and local runtime evidence source
   tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
   benchmark_role: Benchmark candidate for transient cylinder wake, force-coefficient extraction, and vortex-shedding trend validation.
-  status_rationale: The repository now records a run schema and baseline dry-run config, but no package runner, local solver metrics, force time-series artifact, or perturbation report has been produced. The capability must remain benchmark_candidate.
+  status_rationale: The repository now records a run schema, baseline config, package runner, dry-run manifest path, runtime parser, and force-coefficient postprocess contract. Local solver metrics, force time-series evidence, and perturbation reports have not been produced, so the capability is package_skeleton_created rather than benchmark_validated.
   local_source_evidence:
     runtime_profile: openfoam_com_v2112
     wsl_distro: Ubuntu-24.04
     tutorial_root: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
     solver: pimpleFoam
 validation_criteria:
-- Capability card must validate against schemas/capability_card.schema.json and must remain benchmark_candidate until local runtime evidence exists.
+- Capability card must validate against schemas/capability_card.schema.json and must remain package_skeleton_created until local runtime evidence exists.
 - Run schema must expose geometry, material, Reynolds number, mesh workflow, time controls, PIMPLE controls, force extraction, and validation thresholds as config-visible fields.
 - Dry-run manifest must prove the generated case contains U and p fields, transportProperties, turbulenceProperties, controlDict, fvSchemes, fvSolution, and mesh dictionaries.
 - Runtime smoke must complete mesh generation and pimpleFoam without FOAM FATAL errors or true floating-point exceptions.
@@ -102,6 +102,6 @@ intern_deliverables:
 - Add runtime execution only after the dry-run manifest and schema are accepted.
 - Extract lift/drag coefficients and compute a transparent Strouhal estimate from the time series.
 - Add validation for Courant bounds, residual finiteness, force artifact completeness, and provisional shedding-frequency range.
-- Keep benchmark_status at benchmark_candidate until local runtime and perturbation evidence pass.
+- Keep benchmark_status at package_skeleton_created until local runtime and perturbation evidence pass.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

@@ -43,8 +43,8 @@ def test_openfoam_c05_assets_remain_benchmark_candidate() -> None:
     task_text = TASK_PATH.read_text(encoding="utf-8")
 
     assert asset["integration_targets"]["input_schema"] == SCHEMA_PATH.as_posix()
-    assert asset["benchmark_status"] == "benchmark_candidate"
-    assert "benchmark_candidate" in task_text
+    assert asset["benchmark_status"] == "package_skeleton_created"
+    assert "package_skeleton_created" in task_text
 
 
 def test_openfoam_c05_schema_rejects_wrong_solver() -> None:

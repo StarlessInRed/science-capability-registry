@@ -6,18 +6,18 @@
 
 ## 当前边界
 
-- 本轮已建立 capability card、run schema 和 baseline dry-run config。
-- 尚未实现 package runner、case generator、solver execution、force coefficient parser 或 Strouhal 验证。
-- 因此 `benchmark_status` 必须保持 `benchmark_candidate`。
+- 已建立 capability card、run schema、baseline config、package runner、case generator、dry-run manifest、runtime parser 与 force coefficient postprocess contract。
+- 尚未完成本地 solver execution、force coefficient runtime artifact 或 Strouhal 验证。
+- 因此 `benchmark_status` 当前为 `package_skeleton_created`，不得提升为 `benchmark_validated`。
 
 ## 最小交付
 
-1. `src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/` package
-2. dry-run runner：复制官方 cylinder2D template，写出 manifest，并校验 U/p、transportProperties、controlDict、fvSchemes、fvSolution、mesh dictionaries
-3. runtime runner：在 `openfoam_com_v2112` WSL profile 下执行 mesh workflow 与 `pimpleFoam`
-4. log parser：提取 Courant、Time、residual、fatal error、final time
-5. postprocess：输出 lift/drag time series、force coefficient CSV、Strouhal summary
-6. validation：检查 Courant、残差、force artifact、Strouhal provisional range 和工件完整性
+1. 继续强化 `src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/` package
+2. runtime runner：在 `openfoam_com_v2112` WSL profile 下执行 mesh workflow 与 `pimpleFoam`
+3. log parser：提取 Courant、Time、residual、fatal error、final time
+4. postprocess：输出 lift/drag time series、force coefficient CSV、Strouhal summary
+5. validation：检查 Courant、残差、force artifact、Strouhal provisional range 和工件完整性
+6. 添加 mesh refinement、time step sensitivity、Reynolds sensitivity 三个 perturbation cases
 
 ## 验证标准
 

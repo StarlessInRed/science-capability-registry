@@ -54,16 +54,14 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     catalog = load_catalog()
     _validate_json(catalog, Path("schemas/capability_registry.schema.json"))
 
-    assert len(catalog["capabilities"]) == 10
-    assert len(catalog_entries_by_id(catalog)) == 10
+    assert len(catalog["capabilities"]) == 12
+    assert len(catalog_entries_by_id(catalog)) == 12
     for entry in catalog["capabilities"]:
         assert repo_path(entry["asset_path"]).exists()
 
-    # C05 and Gmsh C01 are asset/contract intake items in this commit; they do
-    # not enter the executable registry until package runners exist.
     catalog_asset_paths = {entry["asset_path"] for entry in catalog["capabilities"]}
-    assert "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml" not in catalog_asset_paths
-    assert "software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml" not in catalog_asset_paths
+    assert "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml" in catalog_asset_paths
+    assert "software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml" in catalog_asset_paths
 
 
 def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:

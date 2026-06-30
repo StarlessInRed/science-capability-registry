@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Gmsh C01 parametric geometry and mesh generation run config.",
+  "title": "Gmsh C01 Parametric Geometry Mesh Generation Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "gmsh",
+    "backend",
+    "geometry",
+    "physical_groups",
+    "mesh",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "meshing.gmsh.parametric_geometry_mesh_generation"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "gmsh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "api", "version_expectation", "source_url"],
+      "properties": {
+        "runtime_profile": {"const": "python_api"},
+        "api": {"const": "gmsh-python"},
+        "version_expectation": {"type": "string", "minLength": 1},
+        "source_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "python_api"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "origin_m", "length_m", "height_m", "characteristic_length_m"],
+      "properties": {
+        "family": {"const": "rectangle_channel_2d"},
+        "origin_m": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "length_m": {"type": "number", "exclusiveMinimum": 0},
+        "height_m": {"type": "number", "exclusiveMinimum": 0},
+        "characteristic_length_m": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "physical_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "dimension", "role"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[A-Za-z0-9_/-]+$"},
+          "dimension": {"type": "integer", "minimum": 1, "maximum": 2},
+          "role": {"enum": ["inlet", "outlet", "wall", "domain"]}
+        }
+      }
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "element_order", "algorithm", "output_format"],
+      "properties": {
+        "dimension": {"const": 2},
+        "element_order": {"type": "integer", "minimum": 1, "maximum": 2},
+        "algorithm": {"type": "integer", "minimum": 1},
+        "output_format": {"enum": ["msh2", "msh4"]}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "expected_outputs": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_physical_groups",
+        "required_generated_files",
+        "required_manifest_sections",
+        "min_node_count",
+        "min_element_count",
+        "min_quality_proxy",
+        "require_coordinate_finiteness"
+      ],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "required_physical_groups": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "required_generated_files": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "min_node_count": {"type": "integer", "minimum": 1},
+        "min_element_count": {"type": "integer", "minimum": 1},
+        "min_quality_proxy": {"type": "number", "minimum": 0, "maximum": 1},
+        "require_coordinate_finiteness": {"type": "boolean"}
+      }
+    }
+  }
+}

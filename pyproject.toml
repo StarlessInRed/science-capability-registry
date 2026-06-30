@@ -34,9 +34,12 @@ science-openfoam-c01 = "science_capability_registry.openfoam.lid_driven_cavity_i
 science-openfoam-c01-benchmark = "science_capability_registry.openfoam.lid_driven_cavity_incompressible_laminar.benchmark:main"
 science-openfoam-c03 = "science_capability_registry.openfoam.backward_facing_step_rans_internal_flow.cli:main"
 science-openfoam-c03-benchmark = "science_capability_registry.openfoam.backward_facing_step_rans_internal_flow.benchmark:main"
+science-openfoam-c05 = "science_capability_registry.openfoam.transient_cylinder_vortex_shedding.cli:main"
 science-openfoam-c06 = "science_capability_registry.openfoam.dam_break_vof_free_surface.cli:main"
 science-openfoam-c06-benchmark = "science_capability_registry.openfoam.dam_break_vof_free_surface.benchmark:main"
 science-openfoam-c07 = "science_capability_registry.openfoam.conjugate_heat_transfer_cooling.cli:main"
+science-gmsh-c01 = "science_capability_registry.gmsh.parametric_geometry_mesh_generation.cli:main"
+science-capability = "science_capability_registry.registry.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

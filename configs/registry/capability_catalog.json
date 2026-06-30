@@ -109,6 +109,19 @@
       "evidence_ids": ["openfoam_C03_benchmark_validation"]
     },
     {
+      "capability_id": "cfd.openfoam.transient_cylinder_vortex_shedding",
+      "asset_id": "C05_transient_cylinder_vortex_shedding",
+      "software": "OpenFOAM",
+      "domain": "CFD",
+      "asset_path": "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml",
+      "run_schema_path": "schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json",
+      "default_config_path": "configs/openfoam/transient_cylinder_vortex_shedding/baseline_cylinder2d.yaml",
+      "package_entrypoint": "science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": []
+    },
+    {
       "capability_id": "cfd.openfoam.dam_break_vof_free_surface",
       "asset_id": "C06_dam_break_vof_free_surface",
       "software": "OpenFOAM",
@@ -132,7 +145,23 @@
       "package_entrypoint": "science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run",
       "card_status": "review",
       "benchmark_status": "benchmark_candidate",
-      "evidence_ids": ["openfoam_C07_runtime_smoke_attempt_2026-06-30"]
+      "evidence_ids": [
+        "openfoam_C07_runtime_smoke_attempt_2026-06-30",
+        "openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30"
+      ]
+    },
+    {
+      "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
+      "asset_id": "C01_parametric_geometry_mesh_generation",
+      "software": "Gmsh",
+      "domain": "meshing",
+      "asset_path": "software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml",
+      "run_schema_path": "schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json",
+      "default_config_path": "configs/gmsh/parametric_geometry_mesh_generation/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.gmsh.parametric_geometry_mesh_generation:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": []
     }
   ]
 }

@@ -62,10 +62,10 @@ benchmark:
   - https://gmsh.info/doc/texinfo/gmsh.html
   - https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/tutorials/t1.geo
   benchmark_role: Benchmark candidate for a reusable parametric mesh-generation capability that emits solver-ready mesh files with explicit physical-group contracts.
-  status_rationale: The repository has not yet implemented a Gmsh run schema, generator, metrics extraction, mesh-quality validation, or downstream solver import smoke test. This card therefore records capability evidence only.
+  status_rationale: The repository now implements a strict run schema, baseline config, package runner, dry-run .geo generation, Python API runtime path, mesh summary, and validation contract. Downstream solver import smoke and broader mesh-quality validation remain pending, so this is package_skeleton_created rather than benchmark_validated.
 validation_criteria:
-- Capability card must validate against schemas/capability_card.schema.json and remain benchmark_candidate until local mesh generation evidence exists.
-- Future schema must expose geometry parameters, physical groups, mesh dimension, mesh-size controls, element order, output format, and quality thresholds.
+- Capability card must validate against schemas/capability_card.schema.json and remain package_skeleton_created until local mesh generation plus downstream import evidence exists.
+- Schema must expose geometry parameters, physical groups, mesh dimension, mesh-size controls, element order, output format, and quality thresholds.
 - Generated mesh must include all required physical groups and must reject missing or renamed boundary groups.
 - Mesh quality summary must report element counts, minimum quality proxy, maximum skewness or equivalent quality metric, and nonfinite coordinate detection.
 - Repeated runs from the same config must produce a deterministic manifest and stable physical-group mapping.
@@ -76,10 +76,10 @@ integration_targets:
   workflow_stage: meshing.gmsh.parametric_geometry_mesh_generation
   runtime_target: _results/gmsh/parametric_geometry_mesh_generation/
 intern_deliverables:
-- Create a strict Gmsh C01 run schema and baseline config only after this asset boundary is accepted.
-- Implement config-first generation of a `.geo` file from explicit geometry and physical-group parameters.
+- Maintain the strict Gmsh C01 run schema and baseline config.
+- Extend config-first generation of a `.geo` file from explicit geometry and physical-group parameters.
 - Run Gmsh in a controlled local runtime profile and export `.msh` plus a machine-readable mesh summary.
 - Validate physical groups, element counts, coordinate finiteness, basic mesh-quality thresholds, and artifact completeness.
 - Add a downstream import smoke test or conversion path before claiming solver-ready integration.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

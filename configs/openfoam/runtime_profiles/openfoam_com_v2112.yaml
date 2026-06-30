@@ -10,16 +10,25 @@ backend:
   parallel: false
 executable_bindings:
   incompressible_laminar_transient: icoFoam
+  incompressible_laminar_pimple_transient: pimpleFoam
   incompressible_rans_steady: simpleFoam
   vof_free_surface_transient: interFoam
   mesh_block: blockMesh
+  mesh_snappy: snappyHexMesh
+  mesh_mirror: mirrorMesh
   mesh_check: checkMesh
   field_initializer: setFields
   postprocess_driver: postProcess
 required_executables:
 - blockMesh
+- snappyHexMesh
+- mirrorMesh
+- decomposePar
+- renumberMesh
+- redistributePar
 - checkMesh
 - icoFoam
+- pimpleFoam
 - simpleFoam
 - interFoam
 - setFields
@@ -27,6 +36,7 @@ required_executables:
 tutorial_roots:
   c01_lid_driven_cavity: /opt/OpenFOAM-v2112/tutorials/incompressible/icoFoam/cavity/cavity
   c03_pitz_daily: /opt/OpenFOAM-v2112/tutorials/incompressible/simpleFoam/pitzDaily
+  c05_cylinder2d: /opt/OpenFOAM-v2112/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   c06_dam_break: /opt/OpenFOAM-v2112/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
 known_limitations:
 - Evidence collected on this host is OpenFOAM.com v2112 under WSL Ubuntu-24.04.

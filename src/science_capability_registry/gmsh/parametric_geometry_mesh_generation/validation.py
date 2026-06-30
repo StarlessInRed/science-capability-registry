@@ -1,0 +1,81 @@
+"""Validation for Gmsh C01 artifacts."""
+
+from __future__ import annotations
+
+import json
+import math
+from pathlib import Path
+from typing import Any
+
+
+def _check(checks: list[dict[str, Any]], name: str, passed: bool, details: str) -> None:
+    checks.append({"name": name, "passed": bool(passed), "details": details})
+
+
+def _required_groups(config: dict[str, Any]) -> set[str]:
+    return set(config["validation"]["required_physical_groups"])
+
+
+def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_dir: str | Path | None = None) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    for section in config["validation"]["required_manifest_sections"]:
+        _check(checks, f"manifest.section.{section}", section in manifest, f"required section {section}")
+
+    backend = manifest.get("backend", {})
+    generated_files = set(manifest.get("generated_files", []))
+    group_names = {item["name"] for item in manifest.get("physical_groups", [])}
+    required = _required_groups(config)
+
+    _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", json.dumps(backend, ensure_ascii=False))
+    _check(checks, "geometry.family", manifest.get("geometry", {}).get("family") == "rectangle_channel_2d", json.dumps(manifest.get("geometry", {}), ensure_ascii=False))
+    _check(checks, "physical_groups.required", required.issubset(group_names), f"groups={sorted(group_names)}, required={sorted(required)}")
+
+    for rel_path in config["validation"]["required_generated_files"]:
+        _check(checks, f"generated_file.listed.{rel_path}", rel_path in generated_files, rel_path)
+    if output_dir is not None:
+        root = Path(output_dir)
+        for rel_path in config["validation"]["required_generated_files"]:
+            path = root / rel_path
+            _check(checks, f"generated_file.exists.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
+
+    return {
+        "passed": all(item["passed"] for item in checks),
+        "gate": config["validation"]["gate"],
+        "scope": "dry-run Gmsh geometry script manifest",
+        "checks": checks,
+    }
+
+
+def validate_mesh_summary(summary: dict[str, Any], config: dict[str, Any], output_dir: str | Path | None = None) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    required = _required_groups(config)
+    groups = set(summary.get("physical_groups", {}))
+    nodes = int(summary.get("node_count", 0))
+    elements = int(summary.get("element_count", 0))
+    quality = summary.get("quality", {})
+    min_quality = quality.get("min_quality_proxy")
+    coordinates_finite = summary.get("coordinates_finite")
+
+    _check(checks, "physical_groups.required", required.issubset(groups), f"groups={sorted(groups)}, required={sorted(required)}")
+    _check(checks, "mesh.node_count", nodes >= int(config["validation"]["min_node_count"]), f"node_count={nodes}")
+    _check(checks, "mesh.element_count", elements >= int(config["validation"]["min_element_count"]), f"element_count={elements}")
+    _check(checks, "mesh.coordinates_finite", coordinates_finite is True or not config["validation"]["require_coordinate_finiteness"], str(coordinates_finite))
+    _check(
+        checks,
+        "mesh.quality_proxy",
+        isinstance(min_quality, (int, float)) and math.isfinite(float(min_quality)) and float(min_quality) >= float(config["validation"]["min_quality_proxy"]),
+        json.dumps(quality, ensure_ascii=False),
+    )
+    if output_dir is not None:
+        for rel_path in config["outputs"]["expected_outputs"]:
+            if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
+                continue
+            path = Path(output_dir) / rel_path
+            _check(checks, f"artifact.expected.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
+
+    return {
+        "passed": all(item["passed"] for item in checks),
+        "gate": config["validation"]["gate"],
+        "scope": "Gmsh Python API mesh generation summary",
+        "checks": checks,
+    }

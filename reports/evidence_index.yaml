@@ -149,3 +149,20 @@ evidence:
   scope: Local WSL OpenFOAM.com v2112 runtime smoke attempt reached chtMultiRegionSimpleFoam but failed with a true solver FPE at Time=2.
   limitations:
   - Does not validate CHT physics, temperature fields, interface continuity, or perturbation trends.
+- evidence_id: openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: runtime_debug_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C07_conjugate_heat_transfer_cooling_official_cpuCabinet_runtime_debug_2026-06-30.md
+  supporting_paths:
+  - configs/openfoam/conjugate_heat_transfer_cooling/baseline_cpu_cabinet_wsl_v2112.yaml
+  - reports/openfoam_C07_conjugate_heat_transfer_cooling_runtime_smoke_attempt_2026-06-30.md
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/official_cpuCabinet_allrun_wsl_v2112_20260630_114248/
+  - _results/openfoam/conjugate_heat_transfer_cooling/official_cpuCabinet_oversubscribe_wsl_v2112_20260630_114714/
+  - _results/openfoam/conjugate_heat_transfer_cooling/official_cpuCabinet_probe_removed_short_wsl_v2112_20260630_115130/
+  scope: Official cpuCabinet runtime diagnostics show local launcher slots failure, sha1 IO failure, and then the same Time=2 realizableKE FPE after minimal probe mitigation.
+  limitations:
+  - Does not validate CHT physics or promote C07; it classifies the current runtime blocker.

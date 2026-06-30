@@ -1,0 +1,70 @@
+capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+case_id: baseline_rectangle_channel_2d
+description: Baseline Gmsh Python API contract for a rectangular 2D channel with physical groups.
+gmsh:
+  runtime_profile: python_api
+  api: gmsh-python
+  version_expectation: ">=4.12"
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: dry_run_only
+  timeout_s: 300
+geometry:
+  family: rectangle_channel_2d
+  origin_m:
+  - 0
+  - 0
+  length_m: 4
+  height_m: 1
+  characteristic_length_m: 0.2
+physical_groups:
+- name: inlet
+  dimension: 1
+  role: inlet
+- name: outlet
+  dimension: 1
+  role: outlet
+- name: wall
+  dimension: 1
+  role: wall
+- name: fluid_domain
+  dimension: 2
+  role: domain
+mesh:
+  dimension: 2
+  element_order: 1
+  algorithm: 6
+  output_format: msh2
+outputs:
+  output_dir: _results/gmsh/parametric_geometry_mesh_generation/baseline_rectangle_channel_2d
+  expected_outputs:
+  - case.geo
+  - case.msh
+  - mesh_summary.json
+  - manifest.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_physical_groups:
+  - inlet
+  - outlet
+  - wall
+  - fluid_domain
+  required_generated_files:
+  - case.geo
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry
+  - physical_groups
+  - mesh
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  min_node_count: 4
+  min_element_count: 2
+  min_quality_proxy: 0.05
+  require_coordinate_finiteness: true

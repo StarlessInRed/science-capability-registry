@@ -102,7 +102,7 @@ benchmark:
   source_type: official tutorial and local solver source
   tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet
   benchmark_role: Benchmark candidate for reusable steady electronics-cooling CHT capability with explicit solid and fluid regions.
-  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository has a C07 run schema, dry-run generator, runtime command path, log parser, and runtime smoke attempt report, but the local solver attempt fails with a true floating-point exception at Time=2 before reconstructed temperature and interface metrics are available. The capability must remain a benchmark candidate.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, and the cpuCabinet tutorial. The repository has a C07 run schema, dry-run generator, runtime command path, log parser, runtime smoke attempt report, and official cpuCabinet debug report. Unmodified official Allrun is blocked by local MPI slots; official unpatched oversubscribe is blocked by v2112 sha1 IO; after minimal probe mitigation the official case reproduces the same Time=2 floating-point exception in compressibleTurbulenceModel::phi()/realizableKE::correct(). The capability must remain a benchmark candidate.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112_cht
     wsl_distro: Ubuntu-24.04
@@ -127,6 +127,7 @@ validation_criteria:
 - Temperature fields must remain finite and physically bounded, and CPU/solid heat-source perturbations must increase peak solid temperature in the expected direction.
 - Interface validation must report temperature continuity and heat-flux balance proxies across solid-fluid coupled patches until a stronger native flux extraction is implemented.
 - Integration benchmark must include baseline plus at least three perturbations covering heat source power, airflow or inlet condition, and mesh/decomposition sensitivity before promotion beyond benchmark_candidate.
+- Current runtime debug evidence classifies the cpuCabinet blocker as a reproducible local v2112/tutorial solver path failure after sha1 mitigation, not a validated CHT baseline.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run
   input_schema: schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json

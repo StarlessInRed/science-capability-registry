@@ -11,10 +11,12 @@ from science_capability_registry.cantera.c03_counterflow_diffusion_flame import 
 from science_capability_registry.cantera.c04_extinction_strain_rate import run as run_cantera_c04
 from science_capability_registry.cantera.c05_reaction_path_analysis import run as run_cantera_c05
 from science_capability_registry.cantera.c06_mechanism_reduction import run as run_cantera_c06
+from science_capability_registry.gmsh.parametric_geometry_mesh_generation import run as run_gmsh_c01
 from science_capability_registry.openfoam.backward_facing_step_rans_internal_flow import run as run_openfoam_c03
 from science_capability_registry.openfoam.conjugate_heat_transfer_cooling import run as run_openfoam_c07
 from science_capability_registry.openfoam.dam_break_vof_free_surface import run as run_openfoam_c06
 from science_capability_registry.openfoam.lid_driven_cavity_incompressible_laminar import run as run_openfoam_c01
+from science_capability_registry.openfoam.transient_cylinder_vortex_shedding import run as run_openfoam_c05
 
 from .catalog import catalog_entries_by_id, load_catalog, repo_path, resolve_capability
 
@@ -29,8 +31,10 @@ RUNNERS: dict[str, Runner] = {
     "combustion.cantera.mechanism_reduction": run_cantera_c06,
     "cfd.openfoam.lid_driven_cavity_incompressible_laminar": run_openfoam_c01,
     "cfd.openfoam.backward_facing_step_rans_internal_flow": run_openfoam_c03,
+    "cfd.openfoam.transient_cylinder_vortex_shedding": run_openfoam_c05,
     "cfd.openfoam.dam_break_vof_free_surface": run_openfoam_c06,
     "cfd.openfoam.conjugate_heat_transfer_cooling": run_openfoam_c07,
+    "meshing.gmsh.parametric_geometry_mesh_generation": run_gmsh_c01,
 }
 
 

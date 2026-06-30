@@ -7,16 +7,16 @@
 ## 范围
 
 - 输入必须来自 JSON/YAML config，不允许把几何尺寸、physical group 名称、mesh-size 控制藏在 CLI 参数或脚本常量里。
-- 第一版目标是生成一个明确的 `.geo`、`.msh`、`mesh_summary.json`、`validation.json` 和 `validation_report.md`。
-- benchmark_status 在没有本地 runtime 和下游导入 smoke 前保持 `benchmark_candidate`。
+- 当前 package skeleton 目标是生成明确的 `.geo`、`.msh`、`mesh_summary.json`、`validation.json` 和 `validation_report.md`。
+- benchmark_status 在没有下游导入 smoke 前保持 `package_skeleton_created`，不得提升为 `benchmark_validated`。
 
 ## 最小交付
 
-1. `schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json`
-2. `configs/gmsh/parametric_geometry_mesh_generation/baseline.yaml`
-3. `src/science_capability_registry/gmsh/parametric_geometry_mesh_generation/` package skeleton
-4. Gmsh runtime profile 或可复用执行配置
-5. mesh quality parser 和 validation gate
+1. 维护 `schemas/gmsh_C01_parametric_geometry_mesh_generation.schema.json`
+2. 维护 `configs/gmsh/parametric_geometry_mesh_generation/baseline.yaml`
+3. 强化 `src/science_capability_registry/gmsh/parametric_geometry_mesh_generation/` package
+4. 补充下游 solver import 或格式转换 smoke
+5. 扩展 mesh quality parser 和 validation gate
 6. pytest 覆盖 schema、dry-run manifest、physical group 完整性、mesh quality 和 artifact completeness
 
 ## 验证标准
