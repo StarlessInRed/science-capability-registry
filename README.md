@@ -16,6 +16,7 @@
 - `docs/`：科学资产管理方法、个人/MatOS 复用边界和长期设计文档。
 - `software/`：按科学计算软件组织的软件能力定位、能力地图和资产卡。
 - `capabilities/`：按科学问题域组织的 capability 视角。
+- `benchmarks/`：冻结科学基准、reference metrics、artifact hash 和 validation criteria。
 - `tasks/`：实习生任务书和负责人验收要求。
 - `schemas/`：能力卡、任务、报告等结构化资产的 schema。
 - `prompts/`：把网页、example、论文或软件文档转成资产卡的提示词。
