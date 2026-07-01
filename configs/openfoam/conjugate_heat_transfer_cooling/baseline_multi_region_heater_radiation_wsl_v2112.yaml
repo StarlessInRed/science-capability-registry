@@ -193,15 +193,17 @@ postprocess:
   region_temperature_summary: true
   interface_balance_summary: true
   patch_heat_flux_proxy_summary: true
+  interface_heat_flux_field_summary: true
   heat_flux_validation:
-    source: proxy_only
-    native_required_for_promotion: true
-    energy_balance_source: not_configured
+    source: face_field_integration
+    native_required_for_promotion: false
+    energy_balance_source: face_field_integration
   command_sequence:
   - python:write_region_temperature_summary
   - python:write_interface_balance_summary
   - python:write_patch_heat_flux_proxy_summary
-  method_note: Smoke gate extracts region T min/max/mean, an interface region-mean proxy, and a paired patch owner-cell series-resistance heat-flux proxy; native heat-flux conservation is not claimed.
+  - python:write_interface_heat_flux_field_summary
+  method_note: Smoke gate extracts region T min/max/mean, an interface region-mean proxy, a paired patch owner-cell series-resistance heat-flux proxy, and a two-sided patch-gradient heat-rate integration; native wallHeatFlux is not claimed.
 outputs:
   output_dir: _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112
   retain_generated_case: true
@@ -241,6 +243,7 @@ outputs:
   - postprocess/region_temperature_summary.csv
   - postprocess/interface_balance_summary.csv
   - postprocess/patch_heat_flux_proxy_summary.csv
+  - postprocess/interface_heat_flux_field_summary.csv
 validation:
   gate: smoke
   temperature_min_K: 250

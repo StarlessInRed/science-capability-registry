@@ -22,6 +22,7 @@ CELL_COUNT_RE = re.compile(r"cells:\s+(\d+)")
 NON_ORTHO_RE = re.compile(rf"(?:Max\s+non-orthogonality\s+=|Mesh\s+non-orthogonality\s+Max:)\s*({FLOAT_RE})")
 ASPECT_RE = re.compile(rf"Max\s+aspect\s+ratio\s+=\s+({FLOAT_RE})")
 SKEW_RE = re.compile(rf"Max\s+skewness\s+=\s+({FLOAT_RE})")
+HIGHLY_SKEW_RE = re.compile(r"(\d+)\s+highly skew faces", re.IGNORECASE)
 
 
 def _true_floating_exception(log_text: str) -> bool:
@@ -54,6 +55,7 @@ def parse_mesh_logs(snappy_log: str, check_mesh_log: str) -> dict[str, Any]:
     non_ortho_match = NON_ORTHO_RE.search(check_mesh_log)
     aspect_match = ASPECT_RE.search(check_mesh_log)
     skew_match = SKEW_RE.search(check_mesh_log)
+    highly_skew_match = HIGHLY_SKEW_RE.search(check_mesh_log)
     return {
         "snappy_completed": "Finished meshing" in snappy_log or "End" in snappy_log,
         "mesh_ok": "Mesh OK" in check_mesh_log,
@@ -62,6 +64,7 @@ def parse_mesh_logs(snappy_log: str, check_mesh_log: str) -> dict[str, Any]:
         "max_non_orthogonality": float(non_ortho_match.group(1)) if non_ortho_match else math.nan,
         "max_aspect_ratio": float(aspect_match.group(1)) if aspect_match else math.nan,
         "max_skewness": float(skew_match.group(1)) if skew_match else math.nan,
+        "highly_skew_face_count": int(highly_skew_match.group(1)) if highly_skew_match else 0,
     }
 
 
@@ -76,6 +79,27 @@ def _command_log(runtime: dict[str, Any], token: str, output_dir: Path) -> Path:
     return output_dir / "logs" / f"log.{token}"
 
 
+def _read_face_set_count(path: Path) -> int | None:
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8", errors="replace")
+    match = re.search(r"(?m)^\s*(\d+)\s*$", text)
+    return int(match.group(1)) if match else None
+
+
+def _skew_faces_by_processor(output_dir: Path) -> dict[str, int]:
+    case_dir = output_dir / "case"
+    counts: dict[str, int] = {}
+    for path in sorted(case_dir.glob("processor*/constant/polyMesh/sets/skewFaces")):
+        count = _read_face_set_count(path)
+        if count is not None:
+            counts[path.parts[-5]] = count
+    serial_count = _read_face_set_count(case_dir / "constant" / "polyMesh" / "sets" / "skewFaces")
+    if serial_count is not None:
+        counts["serial"] = serial_count
+    return counts
+
+
 def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dict[str, Any]) -> dict[str, Any]:
     logs = {Path(item["log"]).name: item["log"] for item in runtime.get("commands", [])}
     snappy_log = _command_log(runtime, "snappyHexMesh", output_dir)
@@ -85,6 +109,12 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         snappy_log.read_text(encoding="utf-8") if snappy_log.exists() else "",
         check_mesh_log.read_text(encoding="utf-8") if check_mesh_log.exists() else "",
     )
+    skew_faces = _skew_faces_by_processor(output_dir)
+    if skew_faces:
+        mesh_metrics["skew_faces_by_processor"] = skew_faces
+        mesh_metrics["skew_face_set_count"] = sum(skew_faces.values())
+    mesh_metrics["configured_min_face_weight"] = config["mesh"]["quality"]["min_face_weight"]
+    mesh_metrics["configured_snap_controls"] = config["mesh"]["snappy"].get("snap_controls", {})
     solver_metrics = parse_simplefoam_log(simplefoam_log.read_text(encoding="utf-8") if simplefoam_log.exists() else "")
     if config["function_objects"]["force_coefficients"]["enabled"]:
         force_metrics = write_force_metrics(config, output_dir)

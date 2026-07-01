@@ -89,6 +89,28 @@ def test_openfoam_c04_runner_applies_snappy_config_to_dictionary(tmp_path: Path)
     assert "level 6;" in snappy
     assert "levels ((1E15 4));" in snappy
     assert "nSurfaceLayers 0;" in snappy
+    quality = (tmp_path / "case/system/meshQualityDict").read_text(encoding="utf-8")
+    assert "\nminFaceWeight 0.02;" in quality
+
+
+def test_openfoam_c04_runner_applies_snap_controls_to_dictionary(tmp_path: Path) -> None:
+    result = run(
+        config_path=Path("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112.yaml"),
+        output_dir=tmp_path,
+        dry_run=True,
+        backend="dry_run_only",
+    )
+
+    assert result["validation"]["passed"] is True
+    snappy = (tmp_path / "case/system/snappyHexMeshDict").read_text(encoding="utf-8")
+    assert "nSmoothPatch 5;" in snappy
+    assert "tolerance 4;" in snappy
+    assert "nSolveIter 100;" in snappy
+    assert "nRelaxIter 8;" in snappy
+    assert "nFeatureSnapIter 30;" in snappy
+    assert "implicitFeatureSnap true;" in snappy
+    assert "explicitFeatureSnap true;" in snappy
+    assert "multiRegionFeatureSnap false;" in snappy
 
 
 def test_openfoam_c04_cli_forwards_runtime_arguments(monkeypatch) -> None:

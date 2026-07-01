@@ -27,15 +27,21 @@ def _relative_error(value: Any, reference: Any) -> float | None:
 
 
 def _has_promotion_grade_shock_reference(reference: dict[str, Any]) -> bool:
-    source_type = reference.get("source_type")
-    if source_type in {"external_benchmark", "independent_reference"}:
-        return True
-    accepted = reference.get("accepted_baseline_samples")
-    return (
-        isinstance(accepted, dict)
-        and source_type == "local_runtime_smoke"
-        and accepted.get("status") == "accepted_regression_baseline"
-    )
+    return reference.get("source_type") in {"external_benchmark", "independent_reference"}
+
+
+def _owner_cell_conservation_proxy(conservation: dict[str, Any]) -> dict[str, Any]:
+    proxy = conservation.get("owner_cell_proxy")
+    if isinstance(proxy, dict):
+        return proxy
+    return {}
+
+
+def _flux_parity_conservation(conservation: dict[str, Any]) -> dict[str, Any]:
+    parity = conservation.get("flux_parity")
+    if isinstance(parity, dict):
+        return parity
+    return {}
 
 
 def validate_manifest(
@@ -162,28 +168,34 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     _check(
         checks,
         "boundary_flux.mass_imbalance_proxy",
-        conservation.get("available") is True
-        and conservation.get("method") == "boundary_flux_owner_cell_proxy"
-        and _is_finite(conservation.get("boundary_flux_mass_imbalance_proxy"))
-        and abs(float(conservation["boundary_flux_mass_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_mass_imbalance_proxy"]),
-        json.dumps(conservation, ensure_ascii=False),
+        (owner_cell_proxy := _owner_cell_conservation_proxy(conservation)).get("available") is True
+        and _is_finite(owner_cell_proxy.get("boundary_flux_mass_imbalance_proxy"))
+        and abs(float(owner_cell_proxy["boundary_flux_mass_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_mass_imbalance_proxy"]),
+        json.dumps(owner_cell_proxy or conservation, ensure_ascii=False),
     )
     if config["validation"]["gate"] in PROMOTION_GATES:
-        native_or_face_flux = conservation.get("method") in {"native_openfoam_face_flux", "face_field_integration"}
+        flux_parity = _flux_parity_conservation(conservation)
+        native_or_face_flux = (
+            flux_parity.get("available") is True
+            and flux_parity.get("method") in {"native_openfoam_face_flux", "face_field_integration"}
+            and _is_finite(flux_parity.get("boundary_flux_mass_imbalance"))
+            and abs(float(flux_parity["boundary_flux_mass_imbalance"])) <= float(config["validation"]["max_boundary_flux_mass_imbalance_proxy"])
+            and _is_finite(flux_parity.get("boundary_flux_total_energy_imbalance"))
+            and abs(float(flux_parity["boundary_flux_total_energy_imbalance"])) <= float(config["validation"]["max_boundary_flux_total_energy_imbalance_proxy"])
+        )
         _check(
             checks,
             "boundary_flux.native_or_face_flux_parity_required_for_promotion",
             native_or_face_flux,
-            json.dumps(conservation, ensure_ascii=False),
+            json.dumps(flux_parity or conservation, ensure_ascii=False),
         )
     _check(
         checks,
         "boundary_flux.total_energy_imbalance_proxy",
-        conservation.get("available") is True
-        and conservation.get("method") == "boundary_flux_owner_cell_proxy"
-        and _is_finite(conservation.get("boundary_flux_total_energy_imbalance_proxy"))
-        and abs(float(conservation["boundary_flux_total_energy_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_total_energy_imbalance_proxy"]),
-        json.dumps(conservation, ensure_ascii=False),
+        (owner_cell_proxy := _owner_cell_conservation_proxy(conservation)).get("available") is True
+        and _is_finite(owner_cell_proxy.get("boundary_flux_total_energy_imbalance_proxy"))
+        and abs(float(owner_cell_proxy["boundary_flux_total_energy_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_total_energy_imbalance_proxy"]),
+        json.dumps(owner_cell_proxy or conservation, ensure_ascii=False),
     )
 
     for rel_path in config["outputs"].get("expected_outputs", []):

@@ -41,6 +41,19 @@ def test_openfoam_c05_all_configs_match_schema() -> None:
     assert not failures
 
 
+def test_openfoam_c05_schema_accepts_v2412_native_forcecoeffs_smoke() -> None:
+    config = yaml.safe_load(
+        (CONFIG_DIR / "runtime_forcecoeffs_smoke_wsl_v2412.yaml").read_text(encoding="utf-8")
+    )
+
+    errors = sorted(Draft202012Validator(_schema()).iter_errors(config), key=lambda error: list(error.path))
+
+    assert not errors, [error.message for error in errors]
+    assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2412"
+    assert config["postprocess"]["force_extraction_source"] == "openfoam_forceCoeffs"
+    assert config["postprocess"]["strouhal_estimate"] is False
+
+
 def test_openfoam_c05_schema_rejects_untracked_top_level_key() -> None:
     config = _config()
     config["hidden_choice"] = True

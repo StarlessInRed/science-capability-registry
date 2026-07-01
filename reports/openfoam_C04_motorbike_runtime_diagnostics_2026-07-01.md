@@ -17,9 +17,11 @@ It does not promote C04 to benchmark validation. The diagnostics split three pre
 - `runner.py` now applies the declared C04 `mesh.snappy` fields to `system/snappyHexMeshDict` instead of leaving YAML mesh settings as inert metadata.
 - `runner.py` conditionally injects `#include "forceCoeffs"` only when `function_objects.force_coefficients.enabled` is true.
 - `runtime.py` parses the OpenFOAM.com v2112 `checkMesh` line `Mesh non-orthogonality Max: ...` and records `max_aspect_ratio`.
+- `runtime.py` now records high-skew face counts, per-processor `skewFaces` set counts, configured `minFaceWeight`, and configured `snapControls` for mesh diagnostics.
 - `validation.py` treats forceCoeffs and yPlus as required only when the config declares them required.
 - `runtime_solver_only_wsl_v2112.yaml` disables force/yPlus to isolate the solver path.
 - `runtime_layer0_solver_only_wsl_v2112.yaml` additionally disables layer addition and limits the smoke run to five simpleFoam iterations.
+- `runtime_snap_probe_layer0_wsl_v2112.yaml` exposes snap smoothing/solve-iteration controls while keeping the layer-disabled solver-only isolation.
 
 ## Runtime Evidence
 
@@ -69,6 +71,16 @@ These probes were run after a read-only mesh diagnosis identified highly skew fa
 
 Interpretation: none of the three minimal level-reduction probes improves the skewness gate. The next mesh change should expose snap/local-geometry controls, such as feature snapping and patch-specific handling, instead of lowering all refinement levels or raising the skewness threshold.
 
+### Snap-controls probe
+
+- Config: `configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112.yaml`
+- Evidence root: `_results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112`
+- Result: failed overall, with solver startup still passing.
+- Configured controls: `minFaceWeight=0.02`, `nSmoothPatch=5`, `tolerance=4.0`, `nSolveIter=100`, `nRelaxIter=8`, `nFeatureSnapIter=30`, `implicitFeatureSnap=true`, `explicitFeatureSnap=true`, `multiRegionFeatureSnap=false`.
+- Key metrics: `cell_count=325757`, `max_non_orthogonality=65.0054`, `max_aspect_ratio=15.1021`, `max_skewness=10.7645`, `highly_skew_face_count=42`, `skew_face_set_count=26`, `max_final_residual=0.0985357`.
+- Skew-face locality: `processor0=11`, `processor3=15` from decomposed `skewFaces` sets.
+- Interpretation: exposing snapControls closes the config/runtime instrumentation gap, but this specific probe worsens the skewness gate relative to the layer-disabled baseline. The remaining blocker is therefore a local motorBike surface/feature-quality issue or a runtime-version meshing difference, not an inert YAML setting.
+
 ## Scientific Status
 
 C04 remains `package_skeleton_created`.
@@ -76,6 +88,7 @@ C04 remains `package_skeleton_created`.
 The repository now has better runtime separation, but the external-aero capability is still not validated:
 
 - mesh quality does not pass the configured smoke threshold, and simple feature/surface/box level reduction does not fix it;
+- config-visible snapControls are now active, but the first snap probe still fails the skewness gate;
 - native forceCoeffs is blocked by local v2112 `sha1` IO behavior;
 - native yPlus has not been reached in a passing run;
 - Cd/Cl tail-window stability is unavailable;
@@ -83,7 +96,7 @@ The repository now has better runtime separation, but the external-aero capabili
 
 ## Next Engineering Work
 
-1. Add a config-visible snap/local-geometry mesh probe rather than relaxing `max_skewness` or globally reducing refinement.
-2. Split native force and native yPlus into separate runtime profiles only after a mesh smoke profile passes.
-3. Run C04 on another OpenFOAM profile, for example OpenFOAM.com v2412, to separate local v2112 behavior from capability design.
+1. Diagnose the local motorBike surface/feature geometry around the recorded skew-face processors before adding more global refinement sweeps.
+2. Run C04 on another OpenFOAM profile, for example OpenFOAM.com v2412, to separate local v2112 meshing/functionObject behavior from capability design.
+3. Split native force and native yPlus into separate runtime profiles only after a mesh smoke profile passes.
 4. Promote C04 only after `checkMesh`, `simpleFoam`, native or explicitly cross-validated force coefficients, and yPlus all pass under a non-diagnostic profile.

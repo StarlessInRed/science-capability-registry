@@ -61,6 +61,17 @@ def test_openfoam_c04_layer0_solver_only_config_disables_layers() -> None:
     assert config["function_objects"]["force_coefficients"]["enabled"] is False
 
 
+def test_openfoam_c04_snap_probe_config_exposes_snap_controls() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112.yaml")
+
+    controls = config["mesh"]["snappy"]["snap_controls"]
+    assert config["case_id"] == "runtime_snap_probe_layer0_wsl_v2112"
+    assert controls["n_smooth_patch"] == 5
+    assert controls["n_solve_iter"] == 100
+    assert controls["implicit_feature_snap"] is True
+    assert config["function_objects"]["force_coefficients"]["enabled"] is False
+
+
 def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
     config["unexpected"] = True

@@ -73,6 +73,8 @@ def test_openfoam_c07_schema_accepts_multi_region_heater_radiation_profile() -> 
     assert config["heat_sources"]["heater"]["source_type"] == "fixed_temperature_boundary"
     assert config["mesh_workflow"]["block_mesh_cells"] == [30, 10, 10]
     assert config["postprocess"]["patch_heat_flux_proxy_summary"] is True
+    assert config["postprocess"]["interface_heat_flux_field_summary"] is True
+    assert config["postprocess"]["heat_flux_validation"]["source"] == "face_field_integration"
 
 
 def test_openfoam_c07_schema_accepts_heater_radiation_perturbation_matrix_configs() -> None:

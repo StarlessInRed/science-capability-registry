@@ -31,6 +31,13 @@ def _strip_line_comments(text: str) -> str:
 
 
 def _extract_counted_lines(text: str, start_index: int = 0) -> tuple[int, list[str]]:
+    tail = text[start_index:].lstrip()
+    compact_match = re.match(r"(\d+)[ \t]*\((.*)\)[ \t]*;?[ \t]*$", tail.splitlines()[0] if tail else "")
+    if compact_match is not None:
+        count = int(compact_match.group(1))
+        body = compact_match.group(2).strip()
+        return count, [body] if body else []
+
     lines = text[start_index:].splitlines()
     for index, line in enumerate(lines):
         count_match = re.fullmatch(r"\s*(\d+)\s*", line)
@@ -52,6 +59,23 @@ def _extract_counted_lines(text: str, start_index: int = 0) -> tuple[int, list[s
     raise ValueError("Could not locate counted OpenFOAM list body")
 
 
+def _extract_named_block(text: str, name: str, start_index: int = 0) -> str:
+    match = re.search(rf"(?m)^\s*{re.escape(name)}\s*\{{", text[start_index:])
+    if match is None:
+        raise ValueError(f"Could not locate OpenFOAM block {name!r}")
+    open_index = start_index + match.end() - 1
+    depth = 0
+    for index in range(open_index, len(text)):
+        char = text[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[open_index + 1 : index]
+    raise ValueError(f"Could not locate closing brace for OpenFOAM block {name!r}")
+
+
 def read_internal_scalars(path: str | Path) -> list[float]:
     text = Path(path).read_text(encoding="utf-8", errors="replace")
     uniform = re.search(rf"internalField\s+uniform\s+({FLOAT_RE})\s*;", text)
@@ -64,6 +88,28 @@ def read_internal_scalars(path: str | Path) -> list[float]:
     values = [float(value) for line in lines for value in re.findall(FLOAT_RE, line)]
     if len(values) != count:
         raise ValueError(f"Expected {count} scalars in {path}, found {len(values)}")
+    return values
+
+
+def read_boundary_scalars(path: str | Path, patch_name: str, entry_name: str = "value", expected_count: int | None = None) -> list[float]:
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    boundary_match = re.search(r"boundaryField\s*\{", text)
+    if boundary_match is None:
+        raise ValueError(f"Could not locate boundaryField in {path}")
+    patch_body = _extract_named_block(text, patch_name, boundary_match.end() - 1)
+    uniform = re.search(rf"\b{re.escape(entry_name)}\s+uniform\s+({FLOAT_RE})\s*;", patch_body)
+    if uniform is not None:
+        value = float(uniform.group(1))
+        return [value] * expected_count if expected_count is not None else [value]
+    marker = re.search(rf"\b{re.escape(entry_name)}\s+nonuniform\s+List<scalar>", patch_body)
+    if marker is None:
+        raise ValueError(f"Could not locate scalar boundary entry {entry_name!r} for patch {patch_name!r} in {path}")
+    count, lines = _extract_counted_lines(patch_body, marker.end())
+    values = [float(value) for line in lines for value in re.findall(FLOAT_RE, line)]
+    if len(values) != count:
+        raise ValueError(f"Expected {count} boundary scalars in {path}, found {len(values)}")
+    if expected_count is not None and len(values) != expected_count:
+        raise ValueError(f"Expected {expected_count} boundary scalars for patch {patch_name!r} in {path}, found {len(values)}")
     return values
 
 

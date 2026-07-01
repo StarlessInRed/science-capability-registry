@@ -422,11 +422,20 @@ def write_conservation_summary(
     output_dir: Path,
     details: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    summary = {
+    owner_cell_proxy = {
         "available": bool(details) and details.get("method") == "boundary_flux_owner_cell_proxy",
     }
     if details:
-        summary.update(details)
+        owner_cell_proxy.update(details)
+    summary = {
+        "available": owner_cell_proxy["available"],
+        "owner_cell_proxy": owner_cell_proxy,
+        "flux_parity": {
+            "available": False,
+            "method": "not_configured",
+            "reason": "native OpenFOAM face flux or independently reviewed face-field parity has not been generated for this run",
+        },
+    }
     path = output_dir / "postprocess" / "conservation_summary.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(summary, indent=2), encoding="utf-8")

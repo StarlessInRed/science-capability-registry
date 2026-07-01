@@ -10,17 +10,26 @@ backend:
   parallel: false
 executable_bindings:
   incompressible_laminar_transient: icoFoam
+  incompressible_laminar_pimple_transient: pimpleFoam
   incompressible_rans_steady: simpleFoam
   vof_free_surface_transient: interFoam
   mesh_block: blockMesh
+  mesh_snappy: snappyHexMesh
+  mesh_mirror: mirrorMesh
   mesh_check: checkMesh
+  mesh_renumber: renumberMesh
   field_initializer: setFields
   postprocess_driver: postProcess
   cht_steady_legacy: chtMultiRegionSimpleFoam
 required_executables:
 - blockMesh
+- snappyHexMesh
+- mirrorMesh
+- renumberMesh
+- redistributePar
 - checkMesh
 - icoFoam
+- pimpleFoam
 - simpleFoam
 - interFoam
 - setFields
@@ -28,8 +37,9 @@ required_executables:
 tutorial_roots:
   c01_lid_driven_cavity: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/icoFoam/cavity/cavity
   c03_pitz_daily: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/simpleFoam/pitzDaily
+  c05_cylinder2d: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   c06_dam_break: /usr/lib/openfoam/openfoam2412/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
 known_limitations:
 - Evidence collected on this host is OpenFOAM.com v2412 under WSL Ubuntu-24.04.
-- Executable and tutorial-root presence were probed; C01/C03/C06 runtime smoke has not yet been rerun on this profile.
+- Executable and tutorial-root presence were probed; C01/C03/C06 runtime smoke replay has passed on this profile, and C05 native forceCoeffs diagnostics use this profile.
 - This profile does not claim Foundation OpenFOAM compatibility.

@@ -433,6 +433,9 @@
         "patch_heat_flux_proxy_summary": {
           "type": "boolean"
         },
+        "interface_heat_flux_field_summary": {
+          "type": "boolean"
+        },
         "heat_flux_validation": {
           "type": "object",
           "additionalProperties": false,
@@ -446,6 +449,7 @@
               "enum": [
                 "proxy_only",
                 "native_openfoam",
+                "face_field_integration",
                 "independent_reference"
               ]
             },
@@ -456,6 +460,7 @@
               "enum": [
                 "not_configured",
                 "native_openfoam",
+                "face_field_integration",
                 "independent_reference"
               ]
             }

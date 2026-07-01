@@ -47,6 +47,27 @@ def test_openfoam_c05_strouhal_requires_lift_peaks() -> None:
     assert strouhal["available"] is False
 
 
+def test_openfoam_c05_reads_openfoam_v2412_force_coefficients_header(tmp_path: Path) -> None:
+    source = tmp_path / "coefficient.dat"
+    source.write_text(
+        "\n".join(
+            [
+                "# Time Cd Cd(f) Cd(r) Cl Cl(f) Cl(r) CmPitch CmRoll CmYaw Cs Cs(f) Cs(r)",
+                "0.0 2.0 1.0 1.0 0.25 0.1 0.15 -0.5 0 0 0 0 0",
+                "0.1 2.5 1.2 1.3 -0.75 -0.4 -0.35 -0.25 0 0 0 0 0",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    rows = read_force_coefficients(source)
+
+    assert rows == [
+        {"time_s": 0.0, "cm": -0.5, "cd": 2.0, "cl": 0.25},
+        {"time_s": 0.1, "cm": -0.25, "cd": 2.5, "cl": -0.75},
+    ]
+
+
 def test_openfoam_c05_strouhal_records_fft_cross_check() -> None:
     frequency_hz = 0.5
     rows = [

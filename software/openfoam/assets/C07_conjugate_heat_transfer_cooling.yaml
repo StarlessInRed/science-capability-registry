@@ -83,6 +83,7 @@ outputs:
   - air_region_temperature_response
   - interface_temperature_jump_proxy
   - interface_heat_flux_balance_proxy
+  - interface_heat_flux_field_mismatch
   - mesh_quality_summary
   - parallel_reconstruction_status
   required_artifacts:
@@ -97,12 +98,13 @@ outputs:
   - region_temperature_summary.csv
   - interface_balance_summary.csv
   - patch_heat_flux_proxy_summary.csv
+  - interface_heat_flux_field_summary.csv
 benchmark:
   source_name: OpenFOAM.com v2112 chtMultiRegionSimpleFoam multiRegionHeaterRadiation tutorial
   source_type: official tutorial and local solver source
   tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
   benchmark_role: Packaged smoke baseline candidate for reusable multi-region CHT capability with explicit solid/fluid regions and radiation view-factor preprocessing.
-  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, the failing cpuCabinet tutorial, and the passing multiRegionHeaterRadiation tutorial. cpuCabinet remains diagnostic evidence because low-rank np=2 runs under both realizableKE and kEpsilon reproduce Time=2 floating-point exceptions. multiRegionHeaterRadiation now has a first-class run schema/config family, dry-run manifest, runtime command path, log parser, radiation artifact checks, metrics.json, validation.json, region temperature CSV, interface proxy CSV, patch heat-flux proxy CSV, a packaged smoke baseline, and three perturbation runtime cases for heater temperature, airflow/boundary velocity, and mesh refinement. A native wallHeatFlux diagnostic was executed for bottomAir, topAir, heater, leftSolid, and rightSolid, but every region failed at postProcess startup with the local v2112 sha1 IO blocker. The capability remains benchmark_candidate because the evidence is short-horizon integration with a Python proxy, not steady convergence, native heat-flux conservation, or independent reference validation.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, the failing cpuCabinet tutorial, and the passing multiRegionHeaterRadiation tutorial. cpuCabinet remains diagnostic evidence because low-rank np=2 runs under both realizableKE and kEpsilon reproduce Time=2 floating-point exceptions. multiRegionHeaterRadiation now has a first-class run schema/config family, dry-run manifest, runtime command path, log parser, radiation artifact checks, metrics.json, validation.json, region temperature CSV, interface proxy CSV, patch heat-flux proxy CSV, field-derived interface heat-rate integration CSV, a packaged smoke baseline, and three perturbation runtime cases for heater temperature, airflow/boundary velocity, and mesh refinement. A native wallHeatFlux diagnostic was executed for bottomAir, topAir, heater, leftSolid, and rightSolid, but every region failed at postProcess startup with the local v2112 sha1 IO blocker. The capability remains benchmark_candidate because the evidence is short-horizon integration with Python/field-derived diagnostics, not steady convergence, native heat-flux conservation, or independent reference validation.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112_cht
     wsl_distro: Ubuntu-24.04
@@ -154,10 +156,10 @@ validation_criteria:
 - Mesh/radiation pipeline must complete the configured `Allrun.pre`, checkMesh, faceAgglomerate, and viewFactorsGen steps before solver execution.
 - Solver baseline must reach the configured end time or iteration count with finite fields, acceptable residuals, and no missing region solves.
 - Temperature fields must remain finite and physically bounded, and heater thermal-driver perturbations must increase peak solid/fluid response in the expected direction.
-- Interface validation must report temperature continuity and patch heat-flux proxies across solid-fluid coupled patches until a stronger native flux extraction is implemented.
+- Interface validation must report temperature continuity, patch heat-flux proxies, and field-derived two-sided patch-gradient heat-rate mismatch across coupled patches until a stronger native flux extraction is implemented.
 - Integration evidence must keep baseline plus perturbations covering thermal driver, airflow or inlet condition, and mesh/decomposition sensitivity; promotion beyond benchmark_candidate still requires steady convergence plus native or independently referenced heat-flux validation.
 - Current runtime debug evidence classifies the cpuCabinet blocker as a reproducible local v2112/tutorial solver path failure after sha1 mitigation and closure comparison, not a validated CHT baseline.
-- Current packaged MHR integration matrix closes the executable-baseline, perturbation, and proxy-artifact gaps but is not a steady-state, native heat-flux-conservation, or external-reference validation.
+- Current packaged MHR integration matrix closes the executable-baseline, perturbation, proxy-artifact, and field-derived heat-rate diagnostic gaps but is not a steady-state, native heat-flux-conservation, or external-reference validation.
 - Current native wallHeatFlux diagnostic fails for all regions with the local OpenFOAM.com v2112 sha1 IO blocker, so native heat-flux closure remains explicitly failed evidence rather than an untested TODO.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run
@@ -168,7 +170,7 @@ integration_targets:
 intern_deliverables:
 - Extend the current C07 integration matrix toward longer steady convergence evidence without hiding physics choices in CLI flags.
 - Keep cpuCabinet as failed diagnostic evidence unless a separate stable runtime path is proven.
-- Replace the Python patch heat-flux proxy with native or independently referenced heat-flux extraction before benchmark promotion; the current v2112 WSL native wallHeatFlux path is failed evidence.
+- Replace the Python/field-derived heat-flux diagnostics with native or independently referenced heat-flux extraction before benchmark promotion; the current v2112 WSL native wallHeatFlux path is failed evidence.
 - Add double-v or reference-value comparison for temperature and heat-rate trends.
 - Keep benchmark_status at benchmark_candidate until native/reference heat-flux evidence and convergence evidence pass.
 card_status: review

@@ -8,7 +8,7 @@
 - runtime profile: `openfoam_com_v2112`
 - WSL distro: `Ubuntu-24.04`
 - config: `configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml`
-- result root: `_results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced_runtime_smoke_wsl_v2112_margin`
+- result root: `_results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced`
 
 ## Runtime Outcome
 
@@ -40,10 +40,10 @@
 
 ## Status Conclusion
 
-The reduced-CFL runtime smoke now closes the previous C08 card blockers for local solver execution, max-Courant control, leading-shock jump sanity, and boundary-flux proxy artifact completeness. C08 still must not be promoted to `benchmark_validated` because configured external/reference shock-position and jump targets are absent, and boundary-flux evidence is an owner-cell Python proxy rather than native OpenFOAM flux parity.
+The reduced-CFL runtime smoke now closes the previous C08 card blockers for local solver execution, max-Courant control, leading-shock jump sanity, smoke-level accepted-baseline reference targets, and boundary-flux proxy artifact completeness. C08 still must not be promoted to `benchmark_validated` because the configured shock-position and jump targets are local smoke samples, not external or independently reviewed references, and boundary-flux evidence is an owner-cell Python proxy rather than native OpenFOAM flux parity.
 
 ## Remaining Work
 
-- Add configured reference targets for shock position, pressure jump, and density jump before benchmark promotion.
+- Replace the local smoke reference targets with external or independently reviewed shock position, pressure jump, and density jump references before benchmark promotion.
 - Add native OpenFOAM flux parity or face-field sampling parity for the boundary-flux proxy.
 - Add a separate downstream/reflected-compression metric if that structure is required beyond the leading-shock smoke gate.

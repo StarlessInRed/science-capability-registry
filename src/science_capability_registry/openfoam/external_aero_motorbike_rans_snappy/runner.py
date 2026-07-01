@@ -26,6 +26,18 @@ def _replace_assignment(text: str, keyword: str, value: str) -> str:
     return re.sub(pattern, rf"\g<1>{value};", text, count=1)
 
 
+def _replace_active_assignment(text: str, keyword: str, value: str) -> str:
+    pattern = rf"(?m)^([ \t]*)(?!//)(?!/\*)({re.escape(keyword)}\s+)[^;]+;"
+    updated, count = re.subn(pattern, lambda match: f"{match.group(1)}{match.group(2)}{value};", text, count=1)
+    if count:
+        return updated
+    commented = re.search(rf"(?m)^([ \t]*)//-?\s*{re.escape(keyword)}\s+[^;]+;", text)
+    if commented:
+        insert_at = commented.end()
+        return text[:insert_at] + f"\n{commented.group(1)}{keyword} {value};" + text[insert_at:]
+    raise ValueError(f"Active OpenFOAM assignment {keyword!r} not found and no commented template entry is available.")
+
+
 def _vector_text(values: list[float]) -> str:
     return f"({values[0]:g} {values[1]:g} {values[2]:g})"
 
@@ -115,13 +127,27 @@ def _patch_snappy_dict(case_dir: Path, config: dict[str, Any]) -> None:
         flags=re.DOTALL,
     )
     text = _replace_assignment(text, "nSurfaceLayers", str(int(snappy["n_surface_layers"])))
+    snap_controls = snappy.get("snap_controls", {})
+    assignment_map = {
+        "n_smooth_patch": ("nSmoothPatch", lambda value: str(int(value))),
+        "tolerance": ("tolerance", lambda value: f"{float(value):g}"),
+        "n_solve_iter": ("nSolveIter", lambda value: str(int(value))),
+        "n_relax_iter": ("nRelaxIter", lambda value: str(int(value))),
+        "n_feature_snap_iter": ("nFeatureSnapIter", lambda value: str(int(value))),
+        "implicit_feature_snap": ("implicitFeatureSnap", _foam_bool),
+        "explicit_feature_snap": ("explicitFeatureSnap", _foam_bool),
+        "multi_region_feature_snap": ("multiRegionFeatureSnap", _foam_bool),
+    }
+    for config_key, (foam_key, formatter) in assignment_map.items():
+        if config_key in snap_controls:
+            text = _replace_active_assignment(text, foam_key, formatter(snap_controls[config_key]))
     _write_text(snappy_path, text)
 
 
 def _patch_mesh_quality_dict(case_dir: Path, config: dict[str, Any]) -> None:
     quality_path = case_dir / "system" / "meshQualityDict"
     text = quality_path.read_text(encoding="utf-8")
-    text = _replace_assignment(text, "minFaceWeight", f"{config['mesh']['quality']['min_face_weight']:g}")
+    text = _replace_active_assignment(text, "minFaceWeight", f"{config['mesh']['quality']['min_face_weight']:g}")
     _write_text(quality_path, text)
 
 

@@ -124,7 +124,8 @@ def test_openfoam_c08_writes_shock_and_conservation_artifacts(tmp_path: Path) ->
     assert Path(metrics["profile_path"]).exists()
     assert Path(metrics["path"]).exists()
     assert conservation["available"] is True
-    assert conservation["method"] == "boundary_flux_owner_cell_proxy"
+    assert conservation["owner_cell_proxy"]["method"] == "boundary_flux_owner_cell_proxy"
+    assert conservation["flux_parity"]["available"] is False
     assert Path(conservation["path"]).exists()
 
 

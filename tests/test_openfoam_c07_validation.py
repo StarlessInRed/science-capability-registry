@@ -84,11 +84,7 @@ def test_openfoam_c07_validation_rejects_missing_radiation_command() -> None:
     assert "radiation_command.planned.viewFactorsGen -region topAir" in failed
 
 
-def test_openfoam_c07_runtime_validation_requires_native_heat_flux_for_promotion(tmp_path: Path) -> None:
-    config = _mhr_config()
-    config["validation"]["gate"] = "targeted-regression"
-    config["outputs"]["expected_outputs"] = []
-    config["radiation"]["required_generated_files"] = []
+def _promotion_metrics(config: dict) -> dict:
     regions = [*config["regions"]["fluid"], *config["regions"]["solid"]]
     commands = [
         *config["mesh_workflow"]["command_sequence"],
@@ -96,7 +92,7 @@ def test_openfoam_c07_runtime_validation_requires_native_heat_flux_for_promotion
         *config["solver"]["command_sequence"],
         *[command for command in config["postprocess"]["command_sequence"] if not command.startswith("python:")],
     ]
-    metrics = {
+    return {
         "runtime": {"commands": [{"command": command, "returncode": 0} for command in commands]},
         "mesh": {"mesh_ok": True},
         "solver": {
@@ -115,11 +111,41 @@ def test_openfoam_c07_runtime_validation_requires_native_heat_flux_for_promotion
             },
             "interfaces": {"available": True},
             "patch_heat_flux_proxy": {"available": True},
+            "interface_heat_flux_field": {
+                "available": True,
+                "max_relative_heat_rate_mismatch": 0.1,
+                "interfaces": [{"interface": config["interfaces"][0]["name"], "relative_heat_rate_mismatch": 0.1}],
+            },
         },
     }
+
+
+def test_openfoam_c07_runtime_validation_rejects_proxy_only_heat_flux_for_promotion(tmp_path: Path) -> None:
+    config = _mhr_config()
+    config["validation"]["gate"] = "targeted-regression"
+    config["outputs"]["expected_outputs"] = []
+    config["radiation"]["required_generated_files"] = []
+    config["postprocess"]["heat_flux_validation"] = {
+        "source": "proxy_only",
+        "native_required_for_promotion": True,
+        "energy_balance_source": "not_configured",
+    }
+    metrics = _promotion_metrics(config)
 
     result = validate_runtime_metrics(metrics, config, tmp_path)
 
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "postprocess.native_heat_flux_required_for_promotion" in failed
     assert "postprocess.energy_balance_required_for_promotion" in failed
+
+
+def test_openfoam_c07_runtime_validation_accepts_face_field_heat_flux_for_promotion(tmp_path: Path) -> None:
+    config = _mhr_config()
+    config["validation"]["gate"] = "targeted-regression"
+    config["outputs"]["expected_outputs"] = []
+    config["radiation"]["required_generated_files"] = []
+    metrics = _promotion_metrics(config)
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert result["passed"] is True

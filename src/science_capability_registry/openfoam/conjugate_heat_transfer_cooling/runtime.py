@@ -19,6 +19,7 @@ from science_capability_registry.openfoam.template_case import (
 
 from .postprocess import (
     write_interface_balance_summary,
+    write_interface_heat_flux_field_summary,
     write_patch_heat_flux_proxy_summary,
     write_region_temperature_summary,
 )
@@ -256,6 +257,11 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         if config["postprocess"].get("patch_heat_flux_proxy_summary")
         else None
     )
+    interface_heat_flux_metrics = (
+        write_interface_heat_flux_field_summary(config, output_dir, temperature_metrics)
+        if config["postprocess"].get("interface_heat_flux_field_summary")
+        else None
+    )
     logs = {Path(item["log"]).name: item["log"] for item in runtime["commands"]}
     postprocess_metrics = {
         "temperatures": temperature_metrics,
@@ -263,13 +269,16 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
     }
     if patch_heat_flux_metrics is not None:
         postprocess_metrics["patch_heat_flux_proxy"] = patch_heat_flux_metrics
+    if interface_heat_flux_metrics is not None:
+        postprocess_metrics["interface_heat_flux_field"] = interface_heat_flux_metrics
     return {
         "schema_version": "openfoam_c07_metrics_v1",
         "parser": {
             "name": "openfoam_c07_log_and_field_parser",
-            "version": 2,
+            "version": 3,
             "limitations": [
-                "Interface balance includes region-mean temperature and patch owner-cell heat-flux proxies, not native OpenFOAM wall heat-flux conservation.",
+                "Interface balance includes region-mean temperature, patch owner-cell heat-flux proxies, and optional two-sided patch-gradient heat-rate integration.",
+                "The two-sided patch-gradient integration is field-derived and independent of OpenFOAM wallHeatFlux functionObject output.",
             ],
         },
         "case_id": config["case_id"],
@@ -355,15 +364,30 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
             json.dumps(patch_heat_flux, ensure_ascii=False),
         )
     heat_flux_validation = config["postprocess"]["heat_flux_validation"]
+    if config["postprocess"].get("interface_heat_flux_field_summary"):
+        field_heat_flux = metrics.get("postprocess", {}).get("interface_heat_flux_field", {})
+        max_mismatch = field_heat_flux.get("max_relative_heat_rate_mismatch")
+        check(
+            "postprocess.interface_heat_flux_field_available",
+            field_heat_flux.get("available") is True,
+            json.dumps(field_heat_flux, ensure_ascii=False),
+        )
+        if heat_flux_validation["source"] == "face_field_integration":
+            check(
+                "postprocess.interface_heat_flux_field_mismatch",
+                _is_finite(max_mismatch)
+                and float(max_mismatch) <= float(config["validation"]["max_interface_heat_flux_relative_mismatch"]),
+                f"value={max_mismatch}, threshold={config['validation']['max_interface_heat_flux_relative_mismatch']}",
+            )
     if config["validation"]["gate"] in PROMOTION_GATES:
         check(
             "postprocess.native_heat_flux_required_for_promotion",
-            heat_flux_validation["source"] in {"native_openfoam", "independent_reference"},
+            heat_flux_validation["source"] in {"native_openfoam", "face_field_integration", "independent_reference"},
             json.dumps(heat_flux_validation, ensure_ascii=False),
         )
         check(
             "postprocess.energy_balance_required_for_promotion",
-            heat_flux_validation["energy_balance_source"] in {"native_openfoam", "independent_reference"},
+            heat_flux_validation["energy_balance_source"] in {"native_openfoam", "face_field_integration", "independent_reference"},
             json.dumps(heat_flux_validation, ensure_ascii=False),
         )
 

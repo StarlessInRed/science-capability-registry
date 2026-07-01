@@ -10,6 +10,21 @@ from science_capability_registry.openfoam.compressible_shock_capturing_forward_s
 )
 
 
+def _owner_cell_conservation(mass: float = 0.0, energy: float = 0.0) -> dict:
+    return {
+        "owner_cell_proxy": {
+            "available": True,
+            "method": "boundary_flux_owner_cell_proxy",
+            "boundary_flux_mass_imbalance_proxy": mass,
+            "boundary_flux_total_energy_imbalance_proxy": energy,
+        },
+        "flux_parity": {
+            "available": False,
+            "method": "not_configured",
+        },
+    }
+
+
 def test_openfoam_c08_manifest_rejects_missing_required_generated_file(tmp_path: Path) -> None:
     config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
     manifest = run(config=config, output_dir=tmp_path, dry_run=True)
@@ -60,12 +75,7 @@ def test_openfoam_c08_runtime_metrics_synthetic_pass(tmp_path: Path) -> None:
                 "pressure_jump_ratio": 5.0,
                 "density_jump_ratio": 3.0,
             },
-            "conservation": {
-                "available": True,
-                "method": "boundary_flux_owner_cell_proxy",
-                "boundary_flux_mass_imbalance_proxy": 0.0,
-                "boundary_flux_total_energy_imbalance_proxy": 0.0,
-            },
+            "conservation": _owner_cell_conservation(),
         },
     }
 
@@ -125,12 +135,7 @@ def test_openfoam_c08_runtime_metrics_rejects_non_shock_jump_ratios(tmp_path: Pa
                 "pressure_jump_ratio": 0.9,
                 "density_jump_ratio": 0.8,
             },
-            "conservation": {
-                "available": True,
-                "method": "boundary_flux_owner_cell_proxy",
-                "boundary_flux_mass_imbalance_proxy": 0.0,
-                "boundary_flux_total_energy_imbalance_proxy": 0.0,
-            },
+            "conservation": _owner_cell_conservation(),
         },
     }
 
@@ -166,12 +171,7 @@ def test_openfoam_c08_runtime_metrics_requires_reference_and_native_flux_for_pro
                 "pressure_jump_ratio": 5.0,
                 "density_jump_ratio": 3.0,
             },
-            "conservation": {
-                "available": True,
-                "method": "boundary_flux_owner_cell_proxy",
-                "boundary_flux_mass_imbalance_proxy": 0.0,
-                "boundary_flux_total_energy_imbalance_proxy": 0.0,
-            },
+            "conservation": _owner_cell_conservation(),
         },
     }
 
@@ -207,12 +207,7 @@ def test_openfoam_c08_runtime_metrics_rejects_smoke_reference_for_promotion(tmp_
                 "pressure_jump_ratio": 7.623675555555555,
                 "density_jump_ratio": 3.2820011603091723,
             },
-            "conservation": {
-                "available": True,
-                "method": "boundary_flux_owner_cell_proxy",
-                "boundary_flux_mass_imbalance_proxy": 0.0,
-                "boundary_flux_total_energy_imbalance_proxy": 0.0,
-            },
+            "conservation": _owner_cell_conservation(),
         },
     }
 
@@ -221,4 +216,134 @@ def test_openfoam_c08_runtime_metrics_rejects_smoke_reference_for_promotion(tmp_
     failed = {item["name"] for item in validation["checks"] if not item["passed"]}
     assert "postprocess.shock_reference_required_for_promotion" not in failed
     assert "postprocess.shock_reference_provenance_required_for_promotion" in failed
+    assert "boundary_flux.native_or_face_flux_parity_required_for_promotion" in failed
+
+
+def test_openfoam_c08_runtime_metrics_accepts_independent_reference_and_face_flux_parity_for_promotion(tmp_path: Path) -> None:
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml")
+    config["validation"]["gate"] = "integration"
+    config["outputs"]["expected_outputs"] = []
+    config["shock_reference"]["source_type"] = "independent_reference"
+    metrics = {
+        "runtime": {
+            "commands": [
+                {"command": "blockMesh", "returncode": 0},
+                {"command": "checkMesh", "returncode": 0},
+                {"command": "rhoCentralFoam", "returncode": 0},
+            ]
+        },
+        "solver": {"started": True, "fatal_error_detected": False, "max_courant": 0.09, "final_time_s": 4.0},
+        "postprocess": {
+            "field_extrema": {
+                "p": {"available": True, "finite": True, "min": 0.5, "max": 10.0},
+                "T": {"available": True, "finite": True, "min": 0.5, "max": 3.0},
+                "rho": {"available": True, "finite": True, "min": 0.5, "max": 4.0},
+                "U": {"available": True, "finite": True, "min": 0.0, "max": 3.0},
+            },
+            "shock": {
+                "available": True,
+                "shock_position_m": 0.425,
+                "pressure_jump_ratio": 7.623675555555555,
+                "density_jump_ratio": 3.2820011603091723,
+            },
+            "conservation": {
+                "owner_cell_proxy": {
+                    "available": True,
+                    "method": "boundary_flux_owner_cell_proxy",
+                    "boundary_flux_mass_imbalance_proxy": 0.0,
+                    "boundary_flux_total_energy_imbalance_proxy": 0.0,
+                },
+                "flux_parity": {
+                    "available": True,
+                    "method": "face_field_integration",
+                    "boundary_flux_mass_imbalance": 0.0,
+                    "boundary_flux_total_energy_imbalance": 0.0,
+                },
+            },
+        },
+    }
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert validation["passed"] is True
+
+
+def test_openfoam_c08_runtime_metrics_rejects_local_regression_baseline_for_promotion(tmp_path: Path) -> None:
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml")
+    config["validation"]["gate"] = "integration"
+    config["outputs"]["expected_outputs"] = []
+    config["shock_reference"]["accepted_baseline_samples"]["status"] = "accepted_regression_baseline"
+    metrics = {
+        "runtime": {
+            "commands": [
+                {"command": "blockMesh", "returncode": 0},
+                {"command": "checkMesh", "returncode": 0},
+                {"command": "rhoCentralFoam", "returncode": 0},
+            ]
+        },
+        "solver": {"started": True, "fatal_error_detected": False, "max_courant": 0.09, "final_time_s": 4.0},
+        "postprocess": {
+            "field_extrema": {
+                "p": {"available": True, "finite": True, "min": 0.5, "max": 10.0},
+                "T": {"available": True, "finite": True, "min": 0.5, "max": 3.0},
+                "rho": {"available": True, "finite": True, "min": 0.5, "max": 4.0},
+                "U": {"available": True, "finite": True, "min": 0.0, "max": 3.0},
+            },
+            "shock": {
+                "available": True,
+                "shock_position_m": 0.425,
+                "pressure_jump_ratio": 7.623675555555555,
+                "density_jump_ratio": 3.2820011603091723,
+            },
+            "conservation": _owner_cell_conservation(),
+        },
+    }
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {item["name"] for item in validation["checks"] if not item["passed"]}
+    assert "postprocess.shock_reference_provenance_required_for_promotion" in failed
+
+
+def test_openfoam_c08_runtime_metrics_rejects_bad_face_flux_parity_for_promotion(tmp_path: Path) -> None:
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml")
+    config["validation"]["gate"] = "integration"
+    config["outputs"]["expected_outputs"] = []
+    config["shock_reference"]["source_type"] = "independent_reference"
+    conservation = _owner_cell_conservation()
+    conservation["flux_parity"] = {
+        "available": True,
+        "method": "face_field_integration",
+        "boundary_flux_mass_imbalance": 1.0,
+        "boundary_flux_total_energy_imbalance": 1.0,
+    }
+    metrics = {
+        "runtime": {
+            "commands": [
+                {"command": "blockMesh", "returncode": 0},
+                {"command": "checkMesh", "returncode": 0},
+                {"command": "rhoCentralFoam", "returncode": 0},
+            ]
+        },
+        "solver": {"started": True, "fatal_error_detected": False, "max_courant": 0.09, "final_time_s": 4.0},
+        "postprocess": {
+            "field_extrema": {
+                "p": {"available": True, "finite": True, "min": 0.5, "max": 10.0},
+                "T": {"available": True, "finite": True, "min": 0.5, "max": 3.0},
+                "rho": {"available": True, "finite": True, "min": 0.5, "max": 4.0},
+                "U": {"available": True, "finite": True, "min": 0.0, "max": 3.0},
+            },
+            "shock": {
+                "available": True,
+                "shock_position_m": 0.425,
+                "pressure_jump_ratio": 7.623675555555555,
+                "density_jump_ratio": 3.2820011603091723,
+            },
+            "conservation": conservation,
+        },
+    }
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {item["name"] for item in validation["checks"] if not item["passed"]}
     assert "boundary_flux.native_or_face_flux_parity_required_for_promotion" in failed

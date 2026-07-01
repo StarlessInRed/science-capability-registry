@@ -66,7 +66,17 @@ def test_openfoam_c04_runtime_metrics_rejects_mesh_force_and_yplus_failures(tmp_
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
     metrics = {
         "runtime": {"commands": [{"command": command, "returncode": 1 if "snappyHexMesh" in command else 0} for command in config["solver"]["command_sequence"]]},
-        "mesh": {"snappy_completed": False, "mesh_ok": False, "cell_count": 10, "max_non_orthogonality": 90.0, "max_aspect_ratio": 130.0, "max_skewness": 9.0},
+        "mesh": {
+            "snappy_completed": False,
+            "mesh_ok": False,
+            "cell_count": 10,
+            "max_non_orthogonality": 90.0,
+            "max_aspect_ratio": 130.0,
+            "max_skewness": 9.0,
+            "highly_skew_face_count": 10,
+            "skew_faces_by_processor": {"processor0": 4, "processor1": 6},
+            "skew_face_set_count": 10,
+        },
         "solver": {"started": True, "fatal_error_detected": True, "max_final_residual": 1.0},
         "postprocess": {
             "force_coefficients": {"available": False},
@@ -78,6 +88,10 @@ def test_openfoam_c04_runtime_metrics_rejects_mesh_force_and_yplus_failures(tmp_
     failed = {item["name"] for item in validation["checks"] if not item["passed"]}
     assert "mesh.snappy_completed" in failed
     assert "mesh.checkMesh_ok" in failed
+    assert "mesh.max_skewness" in failed
+    skew_details = next(item["details"] for item in validation["checks"] if item["name"] == "mesh.max_skewness")
+    assert "highly_skew_face_count" in skew_details
+    assert "skew_faces_by_processor" in skew_details
     assert "solver.no_fatal_error" in failed
     assert "force.available" in failed
     assert "yPlus.available" in failed

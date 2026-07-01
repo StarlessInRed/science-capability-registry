@@ -6,6 +6,7 @@ import yaml
 
 from science_capability_registry.openfoam.conjugate_heat_transfer_cooling.postprocess import (
     write_interface_balance_summary,
+    write_interface_heat_flux_field_summary,
     write_patch_heat_flux_proxy_summary,
     write_region_temperature_summary,
 )
@@ -64,6 +65,35 @@ def _write_uniform_scalar_field(path: Path, value: float) -> None:
 dimensions [0 0 0 1 0 0 0];
 internalField uniform {value:g};
 boundaryField {{}}
+""",
+        encoding="utf-8",
+    )
+
+
+def _write_uniform_scalar_field_with_patch_value(path: Path, value: float, patch_name: str, patch_value: float) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"""FoamFile
+{{
+    version 2.0;
+    format ascii;
+    class volScalarField;
+    object T;
+}}
+dimensions [0 0 0 1 0 0 0];
+internalField uniform {value:g};
+boundaryField
+{{
+    {patch_name}
+    {{
+        type compressible::turbulentTemperatureRadCoupledMixed;
+        value nonuniform List<scalar> 1({patch_value:g});
+    }}
+    walls
+    {{
+        type zeroGradient;
+    }}
+}}
 """,
         encoding="utf-8",
     )
@@ -201,3 +231,57 @@ def test_write_patch_heat_flux_proxy_summary_from_region_patch_meshes(tmp_path: 
     assert row["paired_area_m2"] == 1.0
     assert row["owner_to_neighbour_flux_proxy_W_m2"] > 0.0
     assert row["owner_to_neighbour_heat_rate_proxy_W"] > 0.0
+
+
+def test_write_interface_heat_flux_field_summary_balances_two_patch_sides(tmp_path: Path) -> None:
+    config = _mhr_config()
+    config["regions"] = {"fluid": ["bottomAir"], "solid": ["heater"]}
+    config["materials"]["bottomAir"]["thermal_conductivity_W_m_K"] = 1.0
+    config["materials"]["heater"]["thermal_conductivity_W_m_K"] = 1.0
+    config["interfaces"] = [
+        {
+            "name": "bottomAir_to_heater",
+            "owner_region": "bottomAir",
+            "neighbour_region": "heater",
+            "owner_patch": "bottomAir_to_heater",
+            "neighbour_patch": "heater_to_bottomAir",
+            "temperature_bc": "compressible::turbulentTemperatureRadCoupledMixed",
+        }
+    ]
+    _write_single_cell_region_mesh(
+        tmp_path / "case" / "constant" / "bottomAir" / "polyMesh",
+        0.0,
+        1.0,
+        "bottomAir_to_heater",
+        True,
+    )
+    _write_single_cell_region_mesh(
+        tmp_path / "case" / "constant" / "heater" / "polyMesh",
+        1.0,
+        2.0,
+        "heater_to_bottomAir",
+        False,
+    )
+    _write_uniform_scalar_field_with_patch_value(
+        tmp_path / "case" / "2" / "bottomAir" / "T",
+        320.0,
+        "bottomAir_to_heater",
+        310.0,
+    )
+    _write_uniform_scalar_field_with_patch_value(
+        tmp_path / "case" / "2" / "heater" / "T",
+        300.0,
+        "heater_to_bottomAir",
+        310.0,
+    )
+
+    heat_flux = write_interface_heat_flux_field_summary(config, tmp_path, {"time": "2"})
+
+    assert Path(heat_flux["csv"]).exists()
+    assert heat_flux["available"] is True
+    assert heat_flux["max_relative_heat_rate_mismatch"] == 0.0
+    row = heat_flux["interfaces"][0]
+    assert row["method"] == "face_field_integration"
+    assert row["paired_face_count"] == 1
+    assert row["owner_outward_heat_rate_W"] > 0.0
+    assert row["neighbour_outward_heat_rate_W"] < 0.0

@@ -20,22 +20,45 @@ DMD_FIELD_PROBE = "dmd_field_probe"
 VECTOR_RE = re.compile(r"\(([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\)")
 
 
+def _coefficient_column_map(header_columns: list[str] | None) -> dict[str, int]:
+    if not header_columns:
+        return {"cm": 1, "cd": 2, "cl": 3}
+    columns = {name: index for index, name in enumerate(header_columns)}
+    if {"Cm", "Cd", "Cl"}.issubset(columns):
+        return {"cm": columns["Cm"], "cd": columns["Cd"], "cl": columns["Cl"]}
+    return {
+        "cm": columns.get("CmPitch", columns.get("Cm", -1)),
+        "cd": columns.get("Cd", -1),
+        "cl": columns.get("Cl", -1),
+    }
+
+
 def read_force_coefficients(path: str | Path) -> list[dict[str, float]]:
     rows: list[dict[str, float]] = []
+    header_columns: list[str] | None = None
     with Path(path).open("r", encoding="utf-8") as handle:
         for line in handle:
             stripped = line.strip()
-            if not stripped or stripped.startswith("#"):
+            if not stripped:
+                continue
+            if stripped.startswith("#"):
+                header = stripped.lstrip("#").strip().split()
+                if header and header[0] == "Time":
+                    header_columns = header
                 continue
             parts = stripped.split()
             if len(parts) < 4:
                 continue
+            column_map = _coefficient_column_map(header_columns)
+            if column_map["cd"] < 0 or column_map["cl"] < 0:
+                continue
+            cm = float(parts[column_map["cm"]]) if column_map["cm"] >= 0 else 0.0
             rows.append(
                 {
                     "time_s": float(parts[0]),
-                    "cm": float(parts[1]),
-                    "cd": float(parts[2]),
-                    "cl": float(parts[3]),
+                    "cm": cm,
+                    "cd": float(parts[column_map["cd"]]),
+                    "cl": float(parts[column_map["cl"]]),
                 }
             )
     return rows

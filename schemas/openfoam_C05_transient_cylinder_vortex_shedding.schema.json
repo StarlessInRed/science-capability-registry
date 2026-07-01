@@ -34,7 +34,7 @@
       "properties": {
         "distribution": {"enum": ["openfoam_com"]},
         "version": {"type": "string"},
-        "runtime_profile": {"const": "openfoam_com_v2112"},
+        "runtime_profile": {"enum": ["openfoam_com_v2112", "openfoam_com_v2412"]},
         "tutorial_path": {"type": "string"},
         "source_url": {"type": "string"},
         "bashrc_path": {"type": "string"},

@@ -45,7 +45,12 @@ def test_openfoam_runtime_profile_v2412_bindings() -> None:
     assert profile["distribution"] == "openfoam_com"
     assert profile["version_label"] == "v2412"
     assert profile["backend"]["type"] == "wsl"
+    assert profile["executable_bindings"]["incompressible_laminar_pimple_transient"] == "pimpleFoam"
     assert profile["executable_bindings"]["vof_free_surface_transient"] == "interFoam"
+    assert "pimpleFoam" in profile["required_executables"]
+    assert "snappyHexMesh" in profile["required_executables"]
+    assert "mirrorMesh" in profile["required_executables"]
+    assert "c05_cylinder2d" in profile["tutorial_roots"]
 
 
 def test_openfoam_c01_c03_c06_v2412_configs_bind_profile_roots() -> None:

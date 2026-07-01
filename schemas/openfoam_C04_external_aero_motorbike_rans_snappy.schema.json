@@ -112,7 +112,21 @@
             "surface_refinement_level": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2, "maxItems": 2},
             "feature_level": {"type": "integer", "minimum": 0},
             "refinement_box_level": {"type": "integer", "minimum": 0},
-            "n_surface_layers": {"type": "integer", "minimum": 0}
+            "n_surface_layers": {"type": "integer", "minimum": 0},
+            "snap_controls": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "n_smooth_patch": {"type": "integer", "minimum": 0},
+                "tolerance": {"type": "number", "exclusiveMinimum": 0},
+                "n_solve_iter": {"type": "integer", "minimum": 1},
+                "n_relax_iter": {"type": "integer", "minimum": 1},
+                "n_feature_snap_iter": {"type": "integer", "minimum": 0},
+                "implicit_feature_snap": {"type": "boolean"},
+                "explicit_feature_snap": {"type": "boolean"},
+                "multi_region_feature_snap": {"type": "boolean"}
+              }
+            }
           }
         },
         "quality": {

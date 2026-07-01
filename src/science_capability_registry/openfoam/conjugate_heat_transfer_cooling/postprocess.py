@@ -11,6 +11,7 @@ from typing import Any
 from science_capability_registry.openfoam.field_io import (
     expand_uniform_scalars,
     read_boundary,
+    read_boundary_scalars,
     read_faces,
     read_internal_scalars,
     read_label_list,
@@ -182,6 +183,10 @@ def _patch_temperature_mean(faces: list[PatchSample], temperatures: list[float])
     return _mean(values)
 
 
+def _patch_value_mean(values: list[float]) -> float | None:
+    return _mean(values)
+
+
 def _nearest_sample_pairs(owner_faces: list[PatchSample], neighbour_faces: list[PatchSample]) -> list[tuple[PatchSample, PatchSample, float]]:
     remaining = list(neighbour_faces)
     pairs = []
@@ -195,6 +200,22 @@ def _nearest_sample_pairs(owner_faces: list[PatchSample], neighbour_faces: list[
         neighbour_face = remaining.pop(nearest_index)
         pairs.append((owner_face, neighbour_face, _distance(owner_face.face_center, neighbour_face.face_center)))
     return pairs
+
+
+def _patch_boundary_temperatures(output_dir: Path, region: str, time_name: str, patch_name: str, face_count: int) -> list[float]:
+    field_path = output_dir / "case" / time_name / region / "T"
+    return read_boundary_scalars(field_path, patch_name, "value", expected_count=face_count)
+
+
+def _face_heat_rate_outward(face: PatchSample, cell_temperature: float, patch_temperature: float, conductivity: float) -> float:
+    distance = max(_distance(face.cell_center, face.face_center), 1.0e-12)
+    normal_gradient = (patch_temperature - cell_temperature) / distance
+    return -conductivity * normal_gradient * face.area_m2
+
+
+def _relative_pair_mismatch(owner_heat_rate: float, neighbour_heat_rate: float) -> float:
+    denominator = max(abs(owner_heat_rate), abs(neighbour_heat_rate), 1.0e-30)
+    return abs(owner_heat_rate + neighbour_heat_rate) / denominator
 
 
 def write_region_temperature_summary(
@@ -452,4 +473,182 @@ def write_patch_heat_flux_proxy_summary(
         "csv": str(csv_path),
         "available": bool(rows) and all(row["available"] for row in rows),
         "interfaces": rows,
+    }
+
+
+def write_interface_heat_flux_field_summary(
+    config: dict[str, Any],
+    output_dir: Path,
+    temperature_summary: dict[str, Any],
+) -> dict[str, Any]:
+    """Write an independent two-sided patch-gradient heat-rate balance."""
+
+    time_name = str(temperature_summary.get("time") or _time_dir_name(config, None))
+    rows = []
+    for interface in config.get("interfaces", []):
+        base_row: dict[str, Any] = {
+            "case_id": _case_id(config),
+            "time": time_name,
+            "interface": interface["name"],
+            "owner_region": interface["owner_region"],
+            "neighbour_region": interface["neighbour_region"],
+            "owner_patch": interface["owner_patch"],
+            "neighbour_patch": interface["neighbour_patch"],
+            "method": "face_field_integration",
+        }
+        try:
+            owner_faces = _load_region_patch_samples(output_dir, interface["owner_region"], interface["owner_patch"])
+            neighbour_faces = _load_region_patch_samples(
+                output_dir, interface["neighbour_region"], interface["neighbour_patch"]
+            )
+            owner_temperatures = _patch_cell_temperatures(config, output_dir, interface["owner_region"], time_name)
+            neighbour_temperatures = _patch_cell_temperatures(
+                config, output_dir, interface["neighbour_region"], time_name
+            )
+            owner_patch_temperatures = _patch_boundary_temperatures(
+                output_dir,
+                interface["owner_region"],
+                time_name,
+                interface["owner_patch"],
+                len(owner_faces),
+            )
+            neighbour_patch_temperatures = _patch_boundary_temperatures(
+                output_dir,
+                interface["neighbour_region"],
+                time_name,
+                interface["neighbour_patch"],
+                len(neighbour_faces),
+            )
+            owner_face_indices = {face.face_index: index for index, face in enumerate(owner_faces)}
+            neighbour_face_indices = {face.face_index: index for index, face in enumerate(neighbour_faces)}
+            pairs = _nearest_sample_pairs(owner_faces, neighbour_faces)
+            if not pairs:
+                raise ValueError("No patch-face pairs are available.")
+            owner_k = _region_conductivity(config, interface["owner_region"])
+            neighbour_k = _region_conductivity(config, interface["neighbour_region"])
+            owner_heat_rates = []
+            neighbour_heat_rates = []
+            pair_mismatches = []
+            pairing_distances = []
+            for owner_face, neighbour_face, pairing_distance in pairs:
+                owner_patch_index = owner_face_indices[owner_face.face_index]
+                neighbour_patch_index = neighbour_face_indices[neighbour_face.face_index]
+                owner_heat_rate = _face_heat_rate_outward(
+                    owner_face,
+                    owner_temperatures[owner_face.owner_cell],
+                    owner_patch_temperatures[owner_patch_index],
+                    owner_k,
+                )
+                neighbour_heat_rate = _face_heat_rate_outward(
+                    neighbour_face,
+                    neighbour_temperatures[neighbour_face.owner_cell],
+                    neighbour_patch_temperatures[neighbour_patch_index],
+                    neighbour_k,
+                )
+                owner_heat_rates.append(owner_heat_rate)
+                neighbour_heat_rates.append(neighbour_heat_rate)
+                pair_mismatches.append(_relative_pair_mismatch(owner_heat_rate, neighbour_heat_rate))
+                pairing_distances.append(pairing_distance)
+            owner_heat_rate_sum = fsum(owner_heat_rates)
+            neighbour_heat_rate_sum = fsum(neighbour_heat_rates)
+            net_heat_rate = owner_heat_rate_sum + neighbour_heat_rate_sum
+            denominator = max(abs(owner_heat_rate_sum), abs(neighbour_heat_rate_sum), 1.0e-30)
+            rows.append(
+                {
+                    **base_row,
+                    "available": True,
+                    "owner_patch_face_count": len(owner_faces),
+                    "neighbour_patch_face_count": len(neighbour_faces),
+                    "paired_face_count": len(pairs),
+                    "owner_area_m2": fsum(face.area_m2 for face in owner_faces),
+                    "neighbour_area_m2": fsum(face.area_m2 for face in neighbour_faces),
+                    "owner_patch_value_mean_T_K": _patch_value_mean(owner_patch_temperatures),
+                    "neighbour_patch_value_mean_T_K": _patch_value_mean(neighbour_patch_temperatures),
+                    "owner_conductivity_W_m_K": owner_k,
+                    "neighbour_conductivity_W_m_K": neighbour_k,
+                    "owner_outward_heat_rate_W": owner_heat_rate_sum,
+                    "neighbour_outward_heat_rate_W": neighbour_heat_rate_sum,
+                    "net_interface_heat_rate_W": net_heat_rate,
+                    "relative_heat_rate_mismatch": abs(net_heat_rate) / denominator,
+                    "max_pair_relative_mismatch": max(pair_mismatches),
+                    "mean_pairing_distance_m": _mean(pairing_distances),
+                    "max_pairing_distance_m": max(pairing_distances),
+                    "failure_reason": "",
+                }
+            )
+        except (OSError, ValueError, IndexError) as exc:
+            rows.append(
+                {
+                    **base_row,
+                    "available": False,
+                    "owner_patch_face_count": 0,
+                    "neighbour_patch_face_count": 0,
+                    "paired_face_count": 0,
+                    "owner_area_m2": None,
+                    "neighbour_area_m2": None,
+                    "owner_patch_value_mean_T_K": None,
+                    "neighbour_patch_value_mean_T_K": None,
+                    "owner_conductivity_W_m_K": None,
+                    "neighbour_conductivity_W_m_K": None,
+                    "owner_outward_heat_rate_W": None,
+                    "neighbour_outward_heat_rate_W": None,
+                    "net_interface_heat_rate_W": None,
+                    "relative_heat_rate_mismatch": None,
+                    "max_pair_relative_mismatch": None,
+                    "mean_pairing_distance_m": None,
+                    "max_pairing_distance_m": None,
+                    "failure_reason": str(exc),
+                }
+            )
+
+    post_dir = output_dir / "postprocess"
+    post_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = post_dir / "interface_heat_flux_field_summary.csv"
+    with csv_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = DictWriter(
+            handle,
+            fieldnames=[
+                "case_id",
+                "time",
+                "interface",
+                "owner_region",
+                "neighbour_region",
+                "owner_patch",
+                "neighbour_patch",
+                "method",
+                "available",
+                "owner_patch_face_count",
+                "neighbour_patch_face_count",
+                "paired_face_count",
+                "owner_area_m2",
+                "neighbour_area_m2",
+                "owner_patch_value_mean_T_K",
+                "neighbour_patch_value_mean_T_K",
+                "owner_conductivity_W_m_K",
+                "neighbour_conductivity_W_m_K",
+                "owner_outward_heat_rate_W",
+                "neighbour_outward_heat_rate_W",
+                "net_interface_heat_rate_W",
+                "relative_heat_rate_mismatch",
+                "max_pair_relative_mismatch",
+                "mean_pairing_distance_m",
+                "max_pairing_distance_m",
+                "failure_reason",
+            ],
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+
+    return {
+        "csv": str(csv_path),
+        "available": bool(rows) and all(row["available"] for row in rows),
+        "interfaces": rows,
+        "max_relative_heat_rate_mismatch": max(
+            (
+                float(row["relative_heat_rate_mismatch"])
+                for row in rows
+                if row["available"] and row["relative_heat_rate_mismatch"] is not None
+            ),
+            default=None,
+        ),
     }

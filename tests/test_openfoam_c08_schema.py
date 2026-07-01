@@ -23,6 +23,9 @@ def test_openfoam_c08_configs_match_schema() -> None:
             assert config["validation"]["gate"] == "static-readiness"
         if path.name == "cfl_reduced.yaml":
             assert config["validation"]["gate"] == "smoke"
+            assert config["shock_reference"]["source_type"] == "local_runtime_smoke"
+            assert config["shock_reference"]["accepted_baseline_samples"]["status"] == "smoke_reference_only"
+            assert config["shock_reference"]["flux_parity_policy"] == "native_or_face_flux_required_for_promotion"
 
 
 def test_openfoam_c08_schema_rejects_unknown_top_level_key() -> None:

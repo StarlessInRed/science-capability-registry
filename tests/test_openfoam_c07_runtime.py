@@ -138,6 +138,18 @@ def _minimal_metrics(config: dict, *, residual: float = 1.0e-5, max_temperature:
                 }
             ],
         }
+    if config["postprocess"].get("interface_heat_flux_field_summary"):
+        postprocess["interface_heat_flux_field"] = {
+            "available": True,
+            "max_relative_heat_rate_mismatch": 0.1,
+            "interfaces": [
+                {
+                    "interface": config["interfaces"][0]["name"],
+                    "method": "face_field_integration",
+                    "relative_heat_rate_mismatch": 0.1,
+                }
+            ],
+        }
     return {
         "runtime": {"commands": [{"command": command, "returncode": 0} for command in [
             *config["mesh_workflow"]["command_sequence"],
