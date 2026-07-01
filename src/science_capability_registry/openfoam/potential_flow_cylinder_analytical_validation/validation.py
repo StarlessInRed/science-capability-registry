@@ -70,7 +70,8 @@ def validate_manifest(
     _check(
         checks,
         "postprocess.sample_policy.finite_domain_strategy",
-        sample_policy["finite_domain_error_strategy"] == "unbounded_analytic_solution_with_masked_sampling",
+        sample_policy["finite_domain_error_strategy"]
+        in {"unbounded_analytic_solution_with_masked_sampling", "finite_domain_corrected_reference_required"},
         json.dumps(sample_policy, ensure_ascii=False),
     )
     error_norm_policy = config["postprocess"]["error_norm_policy"]
@@ -132,10 +133,19 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     velocity_linf = field.get("velocity_linf_error")
     pressure_l2 = field.get("pressure_l2_error")
     cp_linf = cp.get("cp_linf_error")
-    _check(checks, "postprocess.velocity_l2_error", _is_finite(velocity_l2) and float(velocity_l2) <= float(config["validation"]["max_velocity_l2_error"]), f"value={velocity_l2}")
-    _check(checks, "postprocess.velocity_linf_error", _is_finite(velocity_linf) and float(velocity_linf) <= float(config["validation"]["max_velocity_linf_error"]), f"value={velocity_linf}")
-    _check(checks, "postprocess.pressure_l2_error", _is_finite(pressure_l2) and float(pressure_l2) <= float(config["validation"]["max_pressure_l2_error"]), f"value={pressure_l2}")
-    _check(checks, "postprocess.cp_linf_error", _is_finite(cp_linf) and float(cp_linf) <= float(config["validation"]["max_cp_linf_error"]), f"value={cp_linf}")
+    strategy = config["postprocess"]["sample_policy"]["finite_domain_error_strategy"]
+    if strategy == "unbounded_analytic_solution_with_masked_sampling":
+        _check(checks, "postprocess.velocity_l2_error", _is_finite(velocity_l2) and float(velocity_l2) <= float(config["validation"]["max_velocity_l2_error"]), f"value={velocity_l2}")
+        _check(checks, "postprocess.velocity_linf_error", _is_finite(velocity_linf) and float(velocity_linf) <= float(config["validation"]["max_velocity_linf_error"]), f"value={velocity_linf}")
+        _check(checks, "postprocess.pressure_l2_error", _is_finite(pressure_l2) and float(pressure_l2) <= float(config["validation"]["max_pressure_l2_error"]), f"value={pressure_l2}")
+        _check(checks, "postprocess.cp_linf_error", _is_finite(cp_linf) and float(cp_linf) <= float(config["validation"]["max_cp_linf_error"]), f"value={cp_linf}")
+    else:
+        _check(
+            checks,
+            "postprocess.finite_domain_reference_required",
+            all(_is_finite(value) for value in [velocity_l2, velocity_linf, pressure_l2, cp_linf]),
+            json.dumps({"strategy": strategy, "velocity_l2_error": velocity_l2, "velocity_linf_error": velocity_linf, "pressure_l2_error": pressure_l2, "cp_linf_error": cp_linf}, ensure_ascii=False),
+        )
 
     for rel_path in config["outputs"].get("expected_outputs", []):
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
@@ -146,6 +156,8 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
-        "scope": "local OpenFOAM C02 runtime and analytical potential-flow postprocess",
+        "scope": "local OpenFOAM C02 runtime and analytical potential-flow postprocess"
+        if config["postprocess"]["sample_policy"]["finite_domain_error_strategy"] == "unbounded_analytic_solution_with_masked_sampling"
+        else "local OpenFOAM C02 runtime diagnostic; finite-domain corrected reference is required before analytical validation",
         "checks": checks,
     }

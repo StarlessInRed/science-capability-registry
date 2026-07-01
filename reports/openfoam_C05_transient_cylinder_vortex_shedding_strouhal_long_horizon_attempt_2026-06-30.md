@@ -14,7 +14,7 @@
 
 ## 关键修正
 
-本次发现早期 C05 config 将官方 `cylinder2D` template 误标为 `D=1 m`、厚度 `1 m`、大域 `[-15, 30] x [-15, 15]`。实际由生成后的 `polyMesh` 读得：
+早期 C05 config 将官方 `cylinder2D` template 误标为 `D=1 m`、厚度 `1 m`、大域 `[-15, 30] x [-15, 15]`。实际由生成后的 `polyMesh` 读取得到：
 
 - cylinder diameter: approximately `0.12 m`
 - 2D thickness: approximately `0.015 m`
@@ -32,14 +32,14 @@
 - `maxCo = 0.5`
 - `maxDeltaT = 0.001`
 
-同时 validation 增加了 force sample count、force time span、finite value、lift peak count、period coefficient of variation、lift amplitude 等质量门槛，并将 final-time 检查改为允许一个配置时间步量级的尾差。
+同时 validation 增加 force sample count、force time span、finite value、lift peak count、period coefficient of variation、lift amplitude 和 frequency-method cross-check 等质量门槛，并将 final-time 检查改为允许一个配置时间步量级的尾差。
 
 ## 结果
 
 修正几何后的 `_003` runtime 未通过 integration gate，但失败已收敛为 Strouhal target mismatch。
 
-- `./Allrun.pre` return code: 0
-- `pimpleFoam` return code: 0
+- `./Allrun.pre` return code: `0`
+- `pimpleFoam` return code: `0`
 - final time: `7.999830037232331`
 - max Courant number: `0.4933629867730591`
 - max final residual: `0.005050025490524501`
@@ -52,19 +52,24 @@
 - lift peak count: `7`
 - mean period: `0.8666666666668581 s`
 - period CV: `0.01359820733058574`
-- estimated Strouhal: `0.13846153846150788`
+- primary method: `lift_peak_period`
+- primary estimated Strouhal: `0.13846153846150788`
+- cross-check method: `lift_fft`
+- cross-check estimated Strouhal: `0.13999999999997378`
+- frequency relative delta: approximately `0.0111`
 - configured target range: `[0.16, 0.24]`
 - validation status: failed
-- failed check after final-time tolerance fix: `postprocess.strouhal_target_range`
+- failed check after refreshed postprocess: `postprocess.strouhal_target_range`
 
 The earlier `_002` diagnostic run is retained as failure evidence for the geometry-scale error: it used config `D=1` against the actual `D≈0.12` mesh, reached final time 30 s, but failed `solver.max_courant` and produced a nonsensical Strouhal estimate under the wrong reference diameter.
 
 ## 判定
 
-C05 已关闭两个工程卡点：
+C05 已关闭三个工程卡点：
 
 - local WSL runtime 可以完成 long-horizon `pimpleFoam` 求解并生成 force CSV。
 - config 中的 official template 几何尺度已修正为与生成 mesh 一致。
+- 当前 `_003` 证据已由最新 postprocess/validation 刷新，`lift_peak_period` 与 `lift_fft` 均可用且相互一致。
 
 但 C05 仍不能进入 benchmark validation：
 
@@ -72,7 +77,7 @@ C05 已关闭两个工程卡点：
 - Python patch-surface proxy 的 Strouhal estimate 低于当前 `0.16-0.24` target range。
 - 还没有 native forceCoeffs parity、DMD frequency parity、mesh/time-step sensitivity 或外部 reference comparison。
 
-因此 `benchmark_status` 应设为 `validation_failed`，直到 Strouhal reference、force extraction parity 和敏感性矩阵被进一步闭合。
+因此 `benchmark_status` 保持 `validation_failed`，直到 Strouhal reference、force extraction parity 和敏感性矩阵被进一步闭合。
 
 ## 后续任务
 

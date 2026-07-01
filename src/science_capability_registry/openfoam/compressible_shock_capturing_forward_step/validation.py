@@ -26,6 +26,18 @@ def _relative_error(value: Any, reference: Any) -> float | None:
     return abs(float(value) - float(reference)) / abs(float(reference))
 
 
+def _has_promotion_grade_shock_reference(reference: dict[str, Any]) -> bool:
+    source_type = reference.get("source_type")
+    if source_type in {"external_benchmark", "independent_reference"}:
+        return True
+    accepted = reference.get("accepted_baseline_samples")
+    return (
+        isinstance(accepted, dict)
+        and source_type == "local_runtime_smoke"
+        and accepted.get("status") == "accepted_regression_baseline"
+    )
+
+
 def validate_manifest(
     manifest: dict[str, Any],
     config: dict[str, Any],
@@ -138,6 +150,12 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
             checks,
             "postprocess.shock_reference_required_for_promotion",
             reference_targets_present,
+            json.dumps(reference, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "postprocess.shock_reference_provenance_required_for_promotion",
+            reference_targets_present and _has_promotion_grade_shock_reference(reference),
             json.dumps(reference, ensure_ascii=False),
         )
 

@@ -222,7 +222,7 @@
             "shock_position_m": {"type": "number"},
             "pressure_jump_ratio": {"type": "number"},
             "density_jump_ratio": {"type": "number"},
-            "status": {"enum": ["smoke_reference_only"]}
+            "status": {"enum": ["smoke_reference_only", "accepted_regression_baseline"]}
           }
         }
       }

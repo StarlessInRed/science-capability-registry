@@ -19,8 +19,12 @@ def test_openfoam_c04_configs_match_schema() -> None:
         assert config["capability_id"] == "cfd.openfoam.external_aero_motorbike_rans_snappy"
         assert config["solver"]["name"] == "simpleFoam"
         assert config["mesh"]["generator"] == "blockMesh_surfaceFeatureExtract_snappyHexMesh"
-        assert config["function_objects"]["force_coefficients"]["enabled"] is True
-        assert config["function_objects"]["y_plus"]["required"] is True
+        if config["postprocess"]["force_extraction_source"] == "not_required":
+            assert config["function_objects"]["force_coefficients"]["enabled"] is False
+            assert config["function_objects"]["y_plus"]["required"] is False
+        else:
+            assert config["function_objects"]["force_coefficients"]["enabled"] is True
+            assert config["function_objects"]["y_plus"]["required"] is True
 
 
 def test_openfoam_c04_runtime_smoke_config_targets_wsl_v2112() -> None:
@@ -33,6 +37,28 @@ def test_openfoam_c04_runtime_smoke_config_targets_wsl_v2112() -> None:
     commands = "\n".join(config["solver"]["command_sequence"])
     for expected in ["snappyHexMesh", "checkMesh", "simpleFoam", "postProcess -latestTime -func yPlus"]:
         assert expected in commands
+
+
+def test_openfoam_c04_solver_only_config_disables_native_postprocess() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_solver_only_wsl_v2112.yaml")
+
+    assert config["case_id"] == "runtime_solver_only_wsl_v2112"
+    assert config["postprocess"]["force_extraction_source"] == "not_required"
+    assert config["function_objects"]["force_coefficients"]["enabled"] is False
+    assert config["function_objects"]["y_plus"]["required"] is False
+    commands = "\n".join(config["solver"]["command_sequence"])
+    assert "simpleFoam" in commands
+    assert "postProcess -latestTime -func yPlus" not in commands
+
+
+def test_openfoam_c04_layer0_solver_only_config_disables_layers() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112.yaml")
+
+    assert config["case_id"] == "runtime_layer0_solver_only_wsl_v2112"
+    assert config["mesh"]["snappy"]["add_layers"] is False
+    assert config["mesh"]["snappy"]["n_surface_layers"] == 0
+    assert config["numerics"]["control"]["end_time_iterations"] == 5
+    assert config["function_objects"]["force_coefficients"]["enabled"] is False
 
 
 def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:

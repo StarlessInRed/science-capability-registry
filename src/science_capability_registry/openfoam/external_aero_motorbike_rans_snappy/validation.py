@@ -57,10 +57,16 @@ def validate_manifest(
     _check(checks, "solver_commands.simpleFoam", any("simpleFoam" in command for command in solver_commands), json.dumps(solver_commands, ensure_ascii=False))
     _check(checks, "mesh.quality_thresholds", all(float(mesh_quality[key]) > 0 for key in ["max_non_orthogonality", "max_skewness", "max_aspect_ratio"]) and int(mesh_quality["min_cell_count"]) > 0, json.dumps(mesh_quality, ensure_ascii=False))
     force = function_objects["force_coefficients"]
-    _check(checks, "forceCoeffs.enabled", force["enabled"] is True, json.dumps(force, ensure_ascii=False))
-    _check(checks, "forceCoeffs.patch_declared", "motorBikeGroup" in force["patches"], json.dumps(force, ensure_ascii=False))
-    _check(checks, "forceCoeffs.normalization", float(geometry["reference_area_m2"]) > 0.0 and float(config["material"]["density_kg_m3"]) > 0.0 and float(config["material"]["inlet_velocity_m_s"]) > 0.0, json.dumps(geometry, ensure_ascii=False))
-    _check(checks, "yPlus.contract", function_objects["y_plus"]["required"] is True and float(turbulence["wall_function_y_plus_min"]) < float(turbulence["wall_function_y_plus_max"]), json.dumps(turbulence, ensure_ascii=False))
+    if force["enabled"] is True:
+        _check(checks, "forceCoeffs.enabled", True, json.dumps(force, ensure_ascii=False))
+        _check(checks, "forceCoeffs.patch_declared", "motorBikeGroup" in force["patches"], json.dumps(force, ensure_ascii=False))
+        _check(checks, "forceCoeffs.normalization", float(geometry["reference_area_m2"]) > 0.0 and float(config["material"]["density_kg_m3"]) > 0.0 and float(config["material"]["inlet_velocity_m_s"]) > 0.0, json.dumps(geometry, ensure_ascii=False))
+    else:
+        _check(checks, "forceCoeffs.not_required", config["postprocess"]["force_extraction_source"] == "not_required", json.dumps(force, ensure_ascii=False))
+    if function_objects["y_plus"]["required"] is True:
+        _check(checks, "yPlus.contract", float(turbulence["wall_function_y_plus_min"]) < float(turbulence["wall_function_y_plus_max"]), json.dumps(turbulence, ensure_ascii=False))
+    else:
+        _check(checks, "yPlus.not_required", "y_plus_min_max_mean" not in config["postprocess"]["required_metrics"], json.dumps(function_objects["y_plus"], ensure_ascii=False))
     _check(checks, "scope.no_runtime_claim", "no OpenFOAM solver execution" in manifest.get("scope", ""), manifest.get("scope", ""))
 
     for rel_path in config["validation"]["required_generated_files"]:
@@ -95,6 +101,7 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     _check(checks, "mesh.checkMesh_ok", mesh.get("mesh_ok") is True, json.dumps(mesh, ensure_ascii=False))
     _check(checks, "mesh.cell_count", int(mesh.get("cell_count", 0)) >= int(config["mesh"]["quality"]["min_cell_count"]), json.dumps(mesh, ensure_ascii=False))
     _check(checks, "mesh.max_non_orthogonality", _is_finite(mesh.get("max_non_orthogonality")) and float(mesh["max_non_orthogonality"]) <= float(config["mesh"]["quality"]["max_non_orthogonality"]), json.dumps(mesh, ensure_ascii=False))
+    _check(checks, "mesh.max_aspect_ratio", _is_finite(mesh.get("max_aspect_ratio")) and float(mesh["max_aspect_ratio"]) <= float(config["mesh"]["quality"]["max_aspect_ratio"]), json.dumps(mesh, ensure_ascii=False))
     _check(checks, "mesh.max_skewness", _is_finite(mesh.get("max_skewness")) and float(mesh["max_skewness"]) <= float(config["mesh"]["quality"]["max_skewness"]), json.dumps(mesh, ensure_ascii=False))
 
     _check(checks, "solver.started", solver.get("started") is True, json.dumps(solver, ensure_ascii=False))
@@ -102,15 +109,21 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     residual = solver.get("max_final_residual")
     _check(checks, "solver.final_residual", _is_finite(residual) and float(residual) <= float(config["validation"]["max_final_residual"]), f"value={residual}")
 
-    _check(checks, "force.available", forces.get("available") is True, json.dumps(forces, ensure_ascii=False))
-    _check(checks, "force.cd_finite", _is_finite(forces.get("cd_tail_mean")), json.dumps(forces, ensure_ascii=False))
-    _check(checks, "force.cl_finite", _is_finite(forces.get("cl_tail_mean")), json.dumps(forces, ensure_ascii=False))
-    _check(checks, "force.cd_stability", _is_finite(forces.get("cd_tail_std")) and float(forces["cd_tail_std"]) <= float(config["validation"]["max_force_coefficient_std"]), json.dumps(forces, ensure_ascii=False))
-    _check(checks, "force.cl_stability", _is_finite(forces.get("cl_tail_std")) and float(forces["cl_tail_std"]) <= float(config["validation"]["max_force_coefficient_std"]), json.dumps(forces, ensure_ascii=False))
+    if config["function_objects"]["force_coefficients"]["enabled"]:
+        _check(checks, "force.available", forces.get("available") is True, json.dumps(forces, ensure_ascii=False))
+        _check(checks, "force.cd_finite", _is_finite(forces.get("cd_tail_mean")), json.dumps(forces, ensure_ascii=False))
+        _check(checks, "force.cl_finite", _is_finite(forces.get("cl_tail_mean")), json.dumps(forces, ensure_ascii=False))
+        _check(checks, "force.cd_stability", _is_finite(forces.get("cd_tail_std")) and float(forces["cd_tail_std"]) <= float(config["validation"]["max_force_coefficient_std"]), json.dumps(forces, ensure_ascii=False))
+        _check(checks, "force.cl_stability", _is_finite(forces.get("cl_tail_std")) and float(forces["cl_tail_std"]) <= float(config["validation"]["max_force_coefficient_std"]), json.dumps(forces, ensure_ascii=False))
+    else:
+        _check(checks, "force.not_required", forces.get("required") is False and forces.get("available") is False, json.dumps(forces, ensure_ascii=False))
 
-    _check(checks, "yPlus.available", y_plus.get("available") is True, json.dumps(y_plus, ensure_ascii=False))
-    _check(checks, "yPlus.finite", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and _is_finite(y_plus.get("mean")), json.dumps(y_plus, ensure_ascii=False))
-    _check(checks, "yPlus.range", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and float(y_plus["min"]) >= float(config["validation"]["min_y_plus"]) and float(y_plus["max"]) <= float(config["validation"]["max_y_plus"]), json.dumps(y_plus, ensure_ascii=False))
+    if config["function_objects"]["y_plus"]["required"]:
+        _check(checks, "yPlus.available", y_plus.get("available") is True, json.dumps(y_plus, ensure_ascii=False))
+        _check(checks, "yPlus.finite", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and _is_finite(y_plus.get("mean")), json.dumps(y_plus, ensure_ascii=False))
+        _check(checks, "yPlus.range", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and float(y_plus["min"]) >= float(config["validation"]["min_y_plus"]) and float(y_plus["max"]) <= float(config["validation"]["max_y_plus"]), json.dumps(y_plus, ensure_ascii=False))
+    else:
+        _check(checks, "yPlus.not_required", y_plus.get("required") is False and y_plus.get("available") is False, json.dumps(y_plus, ensure_ascii=False))
 
     for rel_path in config["outputs"].get("expected_outputs", []):
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:

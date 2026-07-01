@@ -21,6 +21,14 @@ def test_openfoam_c02_configs_match_schema() -> None:
         assert config["analytical_reference"]["surface_cp_formula"] == "Cp(theta) = 1 - 4*sin(theta)^2"
 
 
+def test_openfoam_c02_finite_domain_diagnostic_config_declares_reference_gap() -> None:
+    config = load_case_config("configs/openfoam/potential_flow_cylinder_analytical_validation/finite_domain_diagnostic_wsl_v2112.yaml")
+
+    assert config["case_id"] == "finite_domain_diagnostic_wsl_v2112"
+    assert config["validation"]["matrix_role"] == "finite_domain_diagnostic"
+    assert config["postprocess"]["sample_policy"]["finite_domain_error_strategy"] == "finite_domain_corrected_reference_required"
+
+
 def test_openfoam_c02_schema_rejects_unknown_top_level_key() -> None:
     config = load_case_config("configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml")
     config["unexpected"] = True

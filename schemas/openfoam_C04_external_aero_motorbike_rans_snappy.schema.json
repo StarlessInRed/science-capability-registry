@@ -225,7 +225,7 @@
       "additionalProperties": false,
       "required": ["force_extraction_source", "force_tail_window_iterations", "required_metrics"],
       "properties": {
-        "force_extraction_source": {"enum": ["openfoam_forceCoeffs", "python_proxy_explicitly_marked"]},
+        "force_extraction_source": {"enum": ["openfoam_forceCoeffs", "python_proxy_explicitly_marked", "not_required"]},
         "force_tail_window_iterations": {"type": "integer", "minimum": 1},
         "required_metrics": {"type": "array", "items": {"type": "string"}, "minItems": 1}
       }
@@ -252,7 +252,7 @@
         "min_y_plus": {"type": "number", "minimum": 0},
         "required_generated_files": {"type": "array", "items": {"type": "string"}},
         "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
-        "matrix_role": {"enum": ["baseline", "snappy_refinement_level_changed", "inlet_speed_scaled", "yaw_or_crossflow_optional"]},
+        "matrix_role": {"enum": ["baseline", "snappy_refinement_level_changed", "inlet_speed_scaled", "yaw_or_crossflow_optional", "solver_only_runtime_isolation"]},
         "compare_to": {"type": "string"},
         "expected_trend": {
           "type": "object",

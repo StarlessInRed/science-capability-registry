@@ -34,6 +34,10 @@ def _replace_vector_assignment(text: str, keyword: str, vector: list[float]) -> 
     return _replace_assignment(text, keyword, _vector_text(vector))
 
 
+def _foam_bool(value: bool) -> str:
+    return "true" if value else "false"
+
+
 def _write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
@@ -69,9 +73,12 @@ def _patch_control_dict(case_dir: Path, config: dict[str, Any]) -> None:
     text = _replace_assignment(text, "endTime", f"{config['numerics']['control']['end_time_iterations']:g}")
     text = _replace_assignment(text, "writeInterval", f"{config['numerics']['control']['write_interval']:g}")
     text = _replace_assignment(text, "writeFormat", "ascii")
+    functions_block = "functions\n{\n    #include \"forceCoeffs\"\n}"
+    if not config["function_objects"]["force_coefficients"]["enabled"]:
+        functions_block = "functions\n{}"
     text = re.sub(
         r"functions\s*\{.*?\n\}",
-        "functions\n{\n    #include \"forceCoeffs\"\n}",
+        functions_block,
         text,
         count=1,
         flags=re.DOTALL,
@@ -79,10 +86,51 @@ def _patch_control_dict(case_dir: Path, config: dict[str, Any]) -> None:
     _write_text(control, text)
 
 
+def _patch_snappy_dict(case_dir: Path, config: dict[str, Any]) -> None:
+    snappy_path = case_dir / "system" / "snappyHexMeshDict"
+    text = snappy_path.read_text(encoding="utf-8")
+    snappy = config["mesh"]["snappy"]
+    text = _replace_assignment(text, "castellatedMesh", _foam_bool(snappy["castellated_mesh"]))
+    text = _replace_assignment(text, "snap", _foam_bool(snappy["snap"]))
+    text = _replace_assignment(text, "addLayers", _foam_bool(snappy["add_layers"]))
+    text = re.sub(
+        r'(file\s+"motorBike\.eMesh"\s*;\s*level\s+)\d+(;)',
+        rf"\g<1>{int(snappy['feature_level'])}\2",
+        text,
+        count=1,
+    )
+    surface_level = f"({int(snappy['surface_refinement_level'][0])} {int(snappy['surface_refinement_level'][1])})"
+    text = re.sub(
+        r"(motorBike\s*\{.*?level\s+)\([^)]+\)(;)",
+        rf"\g<1>{surface_level}\2",
+        text,
+        count=1,
+        flags=re.DOTALL,
+    )
+    text = re.sub(
+        r"(refinementBox\s*\{.*?levels\s+\(\(1E15\s+)\d+(\)\);)",
+        rf"\g<1>{int(snappy['refinement_box_level'])}\2",
+        text,
+        count=1,
+        flags=re.DOTALL,
+    )
+    text = _replace_assignment(text, "nSurfaceLayers", str(int(snappy["n_surface_layers"])))
+    _write_text(snappy_path, text)
+
+
+def _patch_mesh_quality_dict(case_dir: Path, config: dict[str, Any]) -> None:
+    quality_path = case_dir / "system" / "meshQualityDict"
+    text = quality_path.read_text(encoding="utf-8")
+    text = _replace_assignment(text, "minFaceWeight", f"{config['mesh']['quality']['min_face_weight']:g}")
+    _write_text(quality_path, text)
+
+
 def _patch_case_files(output_dir: Path, config: dict[str, Any]) -> None:
     case_dir = output_dir / "case"
     _prepare_zero_dir(case_dir, config["template"]["zero_source_dir"])
     _patch_control_dict(case_dir, config)
+    _patch_snappy_dict(case_dir, config)
+    _patch_mesh_quality_dict(case_dir, config)
 
     initial = case_dir / "0" / "include" / "initialConditions"
     initial_text = initial.read_text(encoding="utf-8")
@@ -114,6 +162,11 @@ def _generated_files(output_dir: Path) -> list[str]:
 
 
 def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: list[str]) -> dict[str, Any]:
+    postprocess_commands = []
+    if config["function_objects"]["force_coefficients"]["enabled"]:
+        postprocess_commands.append("python:write_force_metrics")
+    if config["function_objects"]["y_plus"]["required"]:
+        postprocess_commands.append("python:write_y_plus_summary")
     return {
         "capability_id": config["capability_id"],
         "case_id": config["case_id"],
@@ -136,7 +189,7 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "generated_files": generated_files,
         "mesh_commands": config["mesh"]["workflow"],
         "solver_commands": config["solver"]["command_sequence"],
-        "postprocess_commands": ["python:write_force_metrics", "python:write_y_plus_summary"],
+        "postprocess_commands": postprocess_commands,
         "expected_outputs": config["outputs"]["expected_outputs"],
         "validation_targets": config["validation"],
         "scope": "dry-run manifest and generated case files; no OpenFOAM solver execution",

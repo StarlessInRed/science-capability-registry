@@ -144,6 +144,24 @@ evidence:
   limitations:
   - Analytical sampling and finite-domain effects require review before benchmark promotion.
   - Mesh-refinement analytical error trend has not been validated.
+- evidence_id: openfoam_C02_finite_domain_diagnostic_2026-07-01
+  capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
+  asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml
+  evidence_kind: runtime_diagnostic_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C02_finite_domain_diagnostic_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/finite_domain_diagnostic_wsl_v2112.yaml
+  - schemas/openfoam_C02_potential_flow_cylinder_analytical_validation.schema.json
+  - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/runtime.py
+  - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/potential_flow_cylinder_analytical_validation/finite_domain_diagnostic_wsl_v2112/
+  scope: Local WSL OpenFOAM.com v2112 C02 diagnostic validates solver execution, artifact completeness, and finite analytical-error extraction without claiming unbounded-cylinder analytical pass.
+  limitations:
+  - Strict unbounded analytical validation remains failed.
+  - Corrected finite-domain reference or domain-expanded convergence evidence is still required for benchmark promotion.
 - evidence_id: openfoam_C03_benchmark_validation
   capability_id: cfd.openfoam.backward_facing_step_rans_internal_flow
   asset_path: software/openfoam/assets/C03_backward_facing_step_rans_internal_flow.yaml
@@ -194,6 +212,28 @@ evidence:
   limitations:
   - Cd/Cl, forceCoeffs tail-window, residual convergence, and y+ artifacts are not available because simpleFoam stops before writing them.
   - checkMesh reports failed mesh quality with max skewness above the configured smoke threshold.
+- evidence_id: openfoam_C04_solver_only_diagnostics_2026-07-01
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: runtime_diagnostic_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C04_motorbike_runtime_diagnostics_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_solver_only_wsl_v2112.yaml
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runner.py
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runtime.py
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_solver_only_wsl_v2112/
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112/
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse45_solver_only_probe/
+  scope: Local WSL OpenFOAM.com v2112 solver-only diagnostics split forceCoeffs sha1 behavior from simpleFoam stability and mesh skewness.
+  limitations:
+  - Layer-disabled solver-only smoke reaches five simpleFoam iterations, but checkMesh still fails max skewness.
+  - Native forceCoeffs and yPlus remain unvalidated.
+  - The coarse refinement probe worsens skewness and is not promoted to committed config.
 - evidence_id: openfoam_C06_benchmark_validation
   capability_id: cfd.openfoam.dam_break_vof_free_surface
   asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml
@@ -302,10 +342,10 @@ evidence:
   runtime_evidence_paths:
   - _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112_20260630_002/
   - _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112_20260630_003/
-  scope: Corrected-geometry OpenFOAM.com v2112 cylinder2D long-horizon Python patch-surface force proxy run completes pimpleFoam and force extraction but fails the configured Strouhal target range.
+  scope: Corrected-geometry OpenFOAM.com v2112 cylinder2D long-horizon Python patch-surface force proxy run completes pimpleFoam and force extraction, records lift_peak_period plus lift_fft frequency estimates, and fails the configured Strouhal target range.
   limitations:
   - Python force proxy is not native forceCoeffs parity.
-  - Current Strouhal estimate is below the configured target range and lacks DMD/reference and mesh/time-step sensitivity confirmation.
+  - Current Strouhal estimate is below the configured target range; lift_fft agrees with the low estimate, but native forceCoeffs, DMD/reference, and mesh/time-step sensitivity confirmation remain pending.
 - evidence_id: openfoam_C07_low_rank_runtime_diagnostics_2026-06-30
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
@@ -390,6 +430,23 @@ evidence:
   scope: Packaged OpenFOAM.com v2112 multiRegionHeaterRadiation CHT baseline plus heater-temperature, airflow, and mesh-refinement perturbation cases complete to Time=2 with metrics, validation, temperature summaries, and patch heat-flux proxy artifacts.
   limitations:
   - Short-horizon integration only; patch heat-flux is a Python owner-cell proxy and not native heat-flux conservation or external-reference validation.
+- evidence_id: openfoam_C07_native_wall_heat_flux_diagnostic_2026-07-01
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: runtime_debug_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C07_native_wall_heat_flux_diagnostic_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runtime.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/postprocess.py
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112/
+  scope: Native postProcess wallHeatFlux was attempted for all packaged multiRegionHeaterRadiation regions and failed with the local OpenFOAM.com v2112 sha1 IO blocker.
+  limitations:
+  - This is failed diagnostic evidence, not native heat-flux validation.
+  - C07 remains proxy-only for heat-flux evidence until another runtime/version or independent reference path succeeds.
 - evidence_id: openfoam_C08_static_readiness_2026-06-30
   capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
   asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
@@ -436,6 +493,7 @@ evidence:
   primary_evidence_path: reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
   supporting_paths:
   - configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml
+  - reports/openfoam_C08_reference_shock_closure_2026-07-01.md
   - reports/openfoam_C02_C04_C07_C08_runtime_closure_gaps_2026-07-01.md
   - schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json
   - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/runtime.py
@@ -447,8 +505,25 @@ evidence:
   scope: Local WSL OpenFOAM.com v2112 C08 reduced-CFL runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4 and passes max-Courant, leading-shock jump sanity, field sanity, artifact completeness, and boundary-flux owner-cell proxy checks.
   limitations:
   - Boundary-flux evidence is an owner-cell Python proxy, not native OpenFOAM rhoPhi/phi parity.
-  - Shock reference targets remain configured-reference placeholders; benchmark promotion still requires external or accepted reference values.
+  - Shock reference targets are local accepted-baseline smoke samples; benchmark promotion still requires external or independently reviewed reference values.
   - Only the leading-shock smoke metric is validated; downstream/reflected-compression metrics remain future work if required.
+- evidence_id: openfoam_C08_reference_shock_closure_2026-07-01
+  capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
+  asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
+  evidence_kind: reference_closure_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C08_reference_shock_closure_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml
+  - reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
+  scope: C08 reduced-CFL config now carries accepted-baseline shock position and jump-ratio samples sufficient for smoke-level reference closure.
+  limitations:
+  - Accepted-baseline samples come from local runtime smoke, not an external benchmark.
+  - Native or face-field flux parity remains required before benchmark promotion.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

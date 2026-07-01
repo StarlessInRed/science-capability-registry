@@ -231,7 +231,7 @@
         "max_cp_linf_error": {"type": "number", "exclusiveMinimum": 0},
         "required_generated_files": {"type": "array", "items": {"type": "string"}},
         "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
-        "matrix_role": {"enum": ["baseline", "mesh_refinement", "inlet_speed_scaled", "farfield_domain_expanded"]},
+        "matrix_role": {"enum": ["baseline", "mesh_refinement", "inlet_speed_scaled", "farfield_domain_expanded", "finite_domain_diagnostic"]},
         "compare_to": {"type": "string"},
         "expected_trend": {
           "type": "object",

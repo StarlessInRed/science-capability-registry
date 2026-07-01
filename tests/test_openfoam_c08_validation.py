@@ -179,3 +179,46 @@ def test_openfoam_c08_runtime_metrics_requires_reference_and_native_flux_for_pro
     failed = {item["name"] for item in validation["checks"] if not item["passed"]}
     assert "postprocess.shock_reference_required_for_promotion" in failed
     assert "boundary_flux.native_or_face_flux_parity_required_for_promotion" in failed
+
+
+def test_openfoam_c08_runtime_metrics_rejects_smoke_reference_for_promotion(tmp_path: Path) -> None:
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml")
+    config["validation"]["gate"] = "integration"
+    config["outputs"]["expected_outputs"] = []
+    metrics = {
+        "runtime": {
+            "commands": [
+                {"command": "blockMesh", "returncode": 0},
+                {"command": "checkMesh", "returncode": 0},
+                {"command": "rhoCentralFoam", "returncode": 0},
+            ]
+        },
+        "solver": {"started": True, "fatal_error_detected": False, "max_courant": 0.09, "final_time_s": 4.0},
+        "postprocess": {
+            "field_extrema": {
+                "p": {"available": True, "finite": True, "min": 0.5, "max": 10.0},
+                "T": {"available": True, "finite": True, "min": 0.5, "max": 3.0},
+                "rho": {"available": True, "finite": True, "min": 0.5, "max": 4.0},
+                "U": {"available": True, "finite": True, "min": 0.0, "max": 3.0},
+            },
+            "shock": {
+                "available": True,
+                "shock_position_m": 0.425,
+                "pressure_jump_ratio": 7.623675555555555,
+                "density_jump_ratio": 3.2820011603091723,
+            },
+            "conservation": {
+                "available": True,
+                "method": "boundary_flux_owner_cell_proxy",
+                "boundary_flux_mass_imbalance_proxy": 0.0,
+                "boundary_flux_total_energy_imbalance_proxy": 0.0,
+            },
+        },
+    }
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {item["name"] for item in validation["checks"] if not item["passed"]}
+    assert "postprocess.shock_reference_required_for_promotion" not in failed
+    assert "postprocess.shock_reference_provenance_required_for_promotion" in failed
+    assert "boundary_flux.native_or_face_flux_parity_required_for_promotion" in failed

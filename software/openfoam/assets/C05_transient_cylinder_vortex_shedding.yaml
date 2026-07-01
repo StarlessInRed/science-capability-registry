@@ -85,7 +85,7 @@ benchmark:
   source_type: official tutorial and local runtime evidence source
   tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
   benchmark_role: Benchmark candidate for transient cylinder wake, force-coefficient extraction, and vortex-shedding trend validation.
-  status_rationale: The repository records a run schema, configs, package runner, dry-run manifest path, runtime parser, config-visible force-coefficient postprocess contract, and local WSL runtime evidence. Solver-only and short Python force-proxy smokes pass, and the official template geometry has been corrected to the generated mesh scale. A corrected Re=100 long-horizon Python force-proxy run completes pimpleFoam and writes a 320-row force CSV, but fails the configured Strouhal target range with St=0.13846 against [0.16, 0.24]. Native forceCoeffs still fails at functionObject startup with local v2112 sha1 IO behavior, so benchmark validation remains failed until native/DMD/reference parity and sensitivity evidence are produced.
+  status_rationale: The repository records a run schema, configs, package runner, dry-run manifest path, runtime parser, config-visible force-coefficient postprocess contract, and local WSL runtime evidence. Solver-only and short Python force-proxy smokes pass, and the official template geometry has been corrected to the generated mesh scale. A corrected Re=100 long-horizon Python force-proxy run completes pimpleFoam, writes a 320-row force CSV, and now records lift_peak_period plus lift_fft frequency estimates; both methods agree at St around 0.14, below the configured [0.16, 0.24] target range. Native forceCoeffs still fails at functionObject startup with local v2112 sha1 IO behavior, so benchmark validation remains failed until native/DMD/reference parity and sensitivity evidence are produced.
   local_source_evidence:
     runtime_profile: openfoam_com_v2112
     wsl_distro: Ubuntu-24.04
@@ -116,7 +116,7 @@ validation_criteria:
 - Solver log must report finite residuals, bounded Courant numbers, and final time reaching the configured horizon.
 - Force coefficient extraction source must be config-visible and must produce lift and drag time series before shedding-frequency validation is attempted.
 - Official cylinder2D template geometry must be read from or matched to generated mesh scale before Reynolds number, force coefficient, or Strouhal validation is interpreted.
-- Strouhal target remains failed until local force time series, native/DMD/reference parity, and at least one mesh/time-step sensitivity case pass.
+- Strouhal target remains failed until local force time series, native/DMD/reference parity, and at least one mesh/time-step sensitivity case pass; the current lift_fft cross-check agrees with the low Python proxy estimate and does not justify relaxing the target.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run
   input_schema: schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json

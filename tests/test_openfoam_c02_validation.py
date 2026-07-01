@@ -115,3 +115,37 @@ def test_openfoam_c02_runtime_validation_checks_analytical_thresholds(tmp_path: 
 
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "postprocess.cp_linf_error" in failed
+
+
+def test_openfoam_c02_runtime_validation_allows_finite_domain_diagnostic_strategy(tmp_path: Path) -> None:
+    config = _baseline_config()
+    config["outputs"]["expected_outputs"] = []
+    config["postprocess"]["sample_policy"]["finite_domain_error_strategy"] = "finite_domain_corrected_reference_required"
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "residual_history": [{"field": "Phi", "final": 1e-8}],
+        },
+        "postprocess": {
+            "analytical": {
+                "field": {
+                    "available": True,
+                    "velocity_l2_error": 1.16,
+                    "velocity_linf_error": 6.91,
+                    "pressure_l2_error": 0.13,
+                },
+                "surface_cp": {
+                    "available": True,
+                    "cp_linf_error": 1.62,
+                },
+            }
+        },
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert result["passed"] is True
+    passed = {check["name"] for check in result["checks"] if check["passed"]}
+    assert "postprocess.finite_domain_reference_required" in passed

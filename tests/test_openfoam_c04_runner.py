@@ -57,6 +57,40 @@ def test_openfoam_c04_runner_dry_run_patches_force_coefficients_and_inlet_speed(
     assert "Aref            0.75;" in force
 
 
+def test_openfoam_c04_runner_solver_only_dry_run_omits_force_functions(tmp_path: Path) -> None:
+    result = run(
+        config_path=Path("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_solver_only_wsl_v2112.yaml"),
+        output_dir=tmp_path,
+        dry_run=True,
+        backend="dry_run_only",
+    )
+
+    assert result["validation"]["passed"] is True
+    assert result["postprocess_commands"] == []
+    control = (tmp_path / "case/system/controlDict").read_text(encoding="utf-8")
+    assert "functions\n{}" in control
+    assert '#include "forceCoeffs"' not in control
+
+
+def test_openfoam_c04_runner_applies_snappy_config_to_dictionary(tmp_path: Path) -> None:
+    result = run(
+        config_path=Path("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112.yaml"),
+        output_dir=tmp_path,
+        dry_run=True,
+        backend="dry_run_only",
+    )
+
+    assert result["validation"]["passed"] is True
+    snappy = (tmp_path / "case/system/snappyHexMeshDict").read_text(encoding="utf-8")
+    assert "castellatedMesh true;" in snappy
+    assert "snap            true;" in snappy
+    assert "addLayers       false;" in snappy
+    assert "level (5 6);" in snappy
+    assert "level 6;" in snappy
+    assert "levels ((1E15 4));" in snappy
+    assert "nSurfaceLayers 0;" in snappy
+
+
 def test_openfoam_c04_cli_forwards_runtime_arguments(monkeypatch) -> None:
     captured = {}
 

@@ -103,6 +103,7 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
     analytical = metrics.get("postprocess", {}).get("analytical", {})
     field = analytical.get("field", {})
     cp = analytical.get("surface_cp", {})
+    strategy = config["postprocess"]["sample_policy"]["finite_domain_error_strategy"]
     status = "passed" if validation["passed"] else "failed"
     lines = [
         f"# OpenFOAM C02 {config['case_id']} runtime report",
@@ -113,10 +114,13 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
         f"- velocity L2 error: `{field.get('velocity_l2_error')}`",
         f"- pressure L2 error: `{field.get('pressure_l2_error')}`",
         f"- Cp Linf error: `{cp.get('cp_linf_error')}`",
+        f"- finite-domain strategy: `{strategy}`",
         "",
         "## Scope",
         "",
-        "This report covers local potentialFoam execution and Python analytical comparison against cylinder potential-flow formulas.",
+        "This report covers local potentialFoam execution and Python analytical comparison against cylinder potential-flow formulas."
+        if strategy == "unbounded_analytic_solution_with_masked_sampling"
+        else "This report covers local potentialFoam execution and diagnostic finite-error extraction only; a finite-domain corrected reference is required before analytical validation.",
     ]
     (output_dir / "validation_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

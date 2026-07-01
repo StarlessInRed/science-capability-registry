@@ -19,7 +19,8 @@ RESIDUAL_RE = re.compile(
     rf"Final residual =\s*(?P<final>{FLOAT_RE}),\s+No Iterations\s+(?P<iterations>\d+)"
 )
 CELL_COUNT_RE = re.compile(r"cells:\s+(\d+)")
-NON_ORTHO_RE = re.compile(rf"Max\s+non-orthogonality\s+=\s+({FLOAT_RE})")
+NON_ORTHO_RE = re.compile(rf"(?:Max\s+non-orthogonality\s+=|Mesh\s+non-orthogonality\s+Max:)\s*({FLOAT_RE})")
+ASPECT_RE = re.compile(rf"Max\s+aspect\s+ratio\s+=\s+({FLOAT_RE})")
 SKEW_RE = re.compile(rf"Max\s+skewness\s+=\s+({FLOAT_RE})")
 
 
@@ -51,6 +52,7 @@ def parse_simplefoam_log(log_text: str) -> dict[str, Any]:
 def parse_mesh_logs(snappy_log: str, check_mesh_log: str) -> dict[str, Any]:
     cell_match = CELL_COUNT_RE.search(check_mesh_log)
     non_ortho_match = NON_ORTHO_RE.search(check_mesh_log)
+    aspect_match = ASPECT_RE.search(check_mesh_log)
     skew_match = SKEW_RE.search(check_mesh_log)
     return {
         "snappy_completed": "Finished meshing" in snappy_log or "End" in snappy_log,
@@ -58,6 +60,7 @@ def parse_mesh_logs(snappy_log: str, check_mesh_log: str) -> dict[str, Any]:
         "fatal_error_detected": "FOAM FATAL" in check_mesh_log or "Failed" in check_mesh_log,
         "cell_count": int(cell_match.group(1)) if cell_match else 0,
         "max_non_orthogonality": float(non_ortho_match.group(1)) if non_ortho_match else math.nan,
+        "max_aspect_ratio": float(aspect_match.group(1)) if aspect_match else math.nan,
         "max_skewness": float(skew_match.group(1)) if skew_match else math.nan,
     }
 
@@ -83,13 +86,29 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         check_mesh_log.read_text(encoding="utf-8") if check_mesh_log.exists() else "",
     )
     solver_metrics = parse_simplefoam_log(simplefoam_log.read_text(encoding="utf-8") if simplefoam_log.exists() else "")
-    force_metrics = write_force_metrics(config, output_dir)
-    y_plus_log = _command_log(runtime, "yPlus", output_dir)
-    y_plus_rows = read_y_plus_log(y_plus_log) if y_plus_log.exists() else []
-    if y_plus_rows:
-        y_plus_metrics = write_y_plus_summary(y_plus_rows, output_dir / "postprocess" / "yplus_summary.csv")
+    if config["function_objects"]["force_coefficients"]["enabled"]:
+        force_metrics = write_force_metrics(config, output_dir)
     else:
-        y_plus_metrics = {"available": False, "reason": "OpenFOAM yPlus log summary was not found or could not be parsed."}
+        force_metrics = {
+            "available": False,
+            "required": False,
+            "source": config["postprocess"]["force_extraction_source"],
+            "reason": "forceCoeffs disabled for solver-only runtime isolation.",
+        }
+    if config["function_objects"]["y_plus"]["required"]:
+        y_plus_log = _command_log(runtime, "yPlus", output_dir)
+        y_plus_rows = read_y_plus_log(y_plus_log) if y_plus_log.exists() else []
+        if y_plus_rows:
+            y_plus_metrics = write_y_plus_summary(y_plus_rows, output_dir / "postprocess" / "yplus_summary.csv")
+        else:
+            y_plus_metrics = {"available": False, "reason": "OpenFOAM yPlus log summary was not found or could not be parsed."}
+    else:
+        y_plus_metrics = {
+            "available": False,
+            "required": False,
+            "source": config["function_objects"]["y_plus"]["source_policy"],
+            "reason": "yPlus disabled for solver-only runtime isolation.",
+        }
     return {
         "schema_version": "openfoam_c04_metrics_v1",
         "parser": {
