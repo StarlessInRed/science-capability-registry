@@ -1,0 +1,49 @@
+asset_id: C08_workbench_parameter_integration
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD workflow
+capability_name: Workbench parameter integration
+problem_type:
+  category: Workbench project, parameter, and Fluent result handoff
+  description: Treat Workbench tutorials as engineering problem-definition and parameter-integration workflows rather than standalone Fluent solver benchmarks.
+physics:
+  model_class:
+  - Workbench-driven Fluent setup
+  - parameter and result handoff
+  governing_parameters:
+    design_point: configurable
+    input_parameter_names: configurable
+    output_parameter_names: configurable
+inputs:
+  source_candidates:
+  - Fluent_Workbench_Tutorial_Package/workbench_parameter.zip
+  - Fluent_Workbench_Tutorial_Package/workbench_elbow.zip
+outputs:
+  required_artifacts:
+  - workbench_project_manifest.json
+  - parameter_table.csv
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - design_point_count
+  - parameter_roundtrip_count
+  - result_extraction_count
+benchmark:
+  source_name: Fluent Workbench Tutorial Package
+  source_type: official Workbench tutorial package
+  benchmark_role: Engineering workflow integration seed, not a physics benchmark.
+  status_rationale: Candidate selected for Workbench parameter and problem-definition integration after executable profile is configured.
+validation_criteria:
+- Workbench gate must be separate from standalone Fluent batch gate.
+- Smoke validation must prove parameter and result handoff artifacts exist.
+- GUI/headless and project-state blockers must be recorded as runtime-profile failures.
+integration_targets:
+  workflow_stage: cfd.fluent.workbench_parameter_integration
+  runtime_target: _results/fluent/workbench_parameter_integration/
+intern_deliverables:
+- Define Workbench project manifest contract.
+- Detect headless Workbench availability before runtime.
+- Compare Workbench tutorial output with standalone Fluent metrics only when workflows are homologous.
+card_status: review
+benchmark_status: benchmark_candidate

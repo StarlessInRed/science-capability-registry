@@ -1,0 +1,52 @@
+asset_id: C02_verification_reference_validation
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD
+capability_name: verification reference validation
+problem_type:
+  category: analytical, experimental, or documented verification target
+  description: Bind Fluent runtime outputs to a defensible reference from the Fluid Dynamics Verification Manual before claiming benchmark validation.
+physics:
+  model_class:
+  - verification benchmark
+  - analytical or documented reference comparison
+  governing_parameters:
+    reference_case: selectable
+    error_norm: configurable
+    mesh_or_time_refinement: configurable
+inputs:
+  source_candidates:
+  - ansys_fluid_dynamics_verification_manual.pdf
+  run_schema_targets:
+  - reference_source
+  - geometry_homology_policy
+  - error_thresholds
+  - output_sampling_policy
+outputs:
+  required_artifacts:
+  - reference_manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - reference_error_l2
+  - reference_error_linf
+  - convergence_rate
+benchmark:
+  source_name: Ansys Fluid Dynamics Verification Manual
+  source_type: verification manual
+  benchmark_role: Candidate source for benchmark promotion once a runnable Fluent case is matched.
+  status_rationale: Verification source identified, but runnable case mapping has not yet been selected.
+validation_criteria:
+- Reference geometry, boundary conditions, units, and sampling must be declared before numeric thresholds are applied.
+- Tutorial replay must not be promoted to benchmark without reference homology.
+- Validation must record error norms and unverified risks.
+integration_targets:
+  workflow_stage: cfd.fluent.verification_reference_validation
+  runtime_target: _results/fluent/verification_reference_validation/
+intern_deliverables:
+- Extract one simple verification target from the manual.
+- Map it to a self-generated Fluent case or official runnable case.
+- Add reference error and convergence validation.
+card_status: review
+benchmark_status: benchmark_candidate

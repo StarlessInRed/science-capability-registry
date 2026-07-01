@@ -1,0 +1,48 @@
+profile_id: local_fluent_preflight
+software: Fluent
+profile_role: runtime_discovery
+status: executable_detected_outside_path
+user_context:
+  local_fluent_environment_confirmed_by_user: true
+  confirmation_date: '2026-07-02'
+discovery:
+  path_commands_checked:
+  - fluent
+  - ansysfluent
+  - runwb2
+  - ansysedt
+  common_install_roots_checked:
+  - Program Files/ANSYS Inc
+  env_or_start_menu_probe:
+    ansys_version_family: v251
+    product_version: '25.1'
+    fluent_executable: found
+    workbench_executable: found
+    aedt_executable: found_optional
+  result: executables_found_by_local_probe_but_not_on_path
+execution_policy:
+  require_configured_fluent_executable: true
+  require_configured_workbench_executable_for_workbench_cases: true
+  do_not_launch_gui_in_smoke: true
+  do_not_run_large_tutorial_zip_before_seed_contract: true
+  committed_profile_must_not_store_local_drive_paths: true
+expected_fields_for_runtime_profile:
+  fluent_executable_env: FLUENT_EXE
+  workbench_executable_env: RUNWB2_EXE
+  ansys_root_env: AWP_ROOT251
+  fluent_batch_dimension: 3ddp
+  fluent_batch_flags:
+  - -g
+  journal_argument: -i
+  license_profile: user_local
+  output_root: _results/fluent/
+local_runtime_notes:
+  - Fluent and Workbench 2025 R1/v251 were detected on this machine outside PATH.
+  - The exact executable paths are intentionally omitted from the committed profile; use local environment variables or an ignored machine profile before runtime smoke.
+  - No license checkout, Fluent batch launch, Workbench launch, or solver case execution has been performed by this profile.
+failure_modes:
+  - fluent_executable_not_found
+  - license_unavailable
+  - workbench_headless_not_available
+  - physics_module_not_licensed
+  - tutorial_zip_requires_gui_or_dsco_workflow

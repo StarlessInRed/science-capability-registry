@@ -1,0 +1,1 @@
+"""Fluent capability seed contracts."""

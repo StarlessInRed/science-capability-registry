@@ -1,0 +1,59 @@
+asset_id: C01_steady_internal_flow_runtime
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD
+capability_name: steady internal flow runtime
+problem_type:
+  category: steady incompressible or weakly compressible internal flow
+  description: Establish the minimum Fluent batch runtime loop for reading a case or mesh, running iterations, extracting residual and mass-balance metrics, and writing validation artifacts.
+physics:
+  model_class:
+  - steady internal flow
+  - pressure-based CFD setup
+  - residual and conservation monitoring
+  governing_parameters:
+    inlet_velocity: configurable
+    outlet_pressure: configurable
+    wall_condition: configurable
+    turbulence_model: configurable
+inputs:
+  source_candidates:
+  - Fluent_tutorial_case/ch07/elbow
+  - Fluent_tutorial_case/ch07/nozzle
+  - Fluent_Tutorial_Package/introduction.zip
+  run_schema_targets:
+  - case_or_mesh_source
+  - journal_template
+  - iteration_budget
+  - residual_thresholds
+  - mass_imbalance_threshold
+outputs:
+  required_artifacts:
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - max_residual
+  - mass_imbalance_fraction
+  - pressure_drop
+  - completed_iteration_count
+benchmark:
+  source_name: Fluent tutorial internal-flow candidates
+  source_type: official and legacy tutorial evidence
+  benchmark_role: Runtime smoke seed; not a benchmark truth source.
+  status_rationale: Candidate seed selected for establishing Fluent batch/journal/runtime envelope before broader replay.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- Runtime must be config-first and must not hardcode Fluent executable paths.
+- Smoke gate must read or generate a case, execute a bounded iteration budget, and emit metrics.json and validation.json.
+- Reports must separate Fluent runtime success from verification/manual benchmark validation.
+integration_targets:
+  workflow_stage: cfd.fluent.steady_internal_flow_runtime
+  runtime_target: _results/fluent/steady_internal_flow_runtime/
+intern_deliverables:
+- Implement Fluent journal contract for read-case/read-mesh and bounded iterations.
+- Parse transcript residuals and report mass imbalance.
+- Add official replay comparison after self-generated smoke exists.
+card_status: review
+benchmark_status: benchmark_candidate

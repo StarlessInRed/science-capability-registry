@@ -1,0 +1,49 @@
+asset_id: C06_sliding_rotating_mesh
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD
+capability_name: sliding and rotating mesh
+problem_type:
+  category: rotating machinery, sliding mesh, and moving-zone transient workflow
+  description: Capture Fluent moving/rotating mesh setup, runtime, and periodic or transient output validation.
+physics:
+  model_class:
+  - rotating reference frame
+  - sliding mesh transient
+  governing_parameters:
+    rotation_rate: configurable
+    moving_zone: configurable
+    time_step: configurable
+inputs:
+  source_candidates:
+  - Fluent_Tutorial_Package/sliding_mesh.zip
+  - legacy_2020_r2_unique/single_rotating.zip
+outputs:
+  required_artifacts:
+  - rotating_zone_manifest.json
+  - transient_history.csv
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - completed_revolutions
+  - monitored_periodicity_error
+  - max_residual
+benchmark:
+  source_name: Fluent sliding mesh and legacy single rotating candidates
+  source_type: tutorial and legacy supplement
+  benchmark_role: Moving-mesh smoke and workflow-learning seed.
+  status_rationale: Candidate selected to cover motion interfaces and time-history extraction.
+validation_criteria:
+- Runtime must prove moving-zone settings are visible in the manifest before solver execution is claimed.
+- Time-history comparison must separate setup failure from transient numerical failure.
+- Legacy source must remain labeled and not be promoted as 2025 R1 official tutorial evidence.
+integration_targets:
+  workflow_stage: cfd.fluent.sliding_rotating_mesh
+  runtime_target: _results/fluent/sliding_rotating_mesh/
+intern_deliverables:
+- Build moving-zone manifest extraction.
+- Add official/legacy replay comparison.
+- Record module or license blockers for rotating machinery features.
+card_status: review
+benchmark_status: benchmark_candidate

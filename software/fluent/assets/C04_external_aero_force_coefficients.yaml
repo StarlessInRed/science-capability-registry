@@ -1,0 +1,49 @@
+asset_id: C04_external_aero_force_coefficients
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD
+capability_name: external aero force coefficients
+problem_type:
+  category: external aerodynamics and force/coefficient extraction
+  description: Run or replay Fluent external-aero cases and extract Cd, Cl, Cp, and reference-data comparison artifacts.
+physics:
+  model_class:
+  - external aerodynamics
+  - compressible or incompressible RANS as configured
+  governing_parameters:
+    angle_of_attack: configurable
+    inlet_mach_or_velocity: configurable
+    turbulence_model: configurable
+inputs:
+  source_candidates:
+  - Fluent_Tutorial_Package/fluent_aero_tutorial.zip
+  - Fluent_Tutorial_Package/sedan_2m.zip
+outputs:
+  required_artifacts:
+  - force_history.csv
+  - pressure_coefficient.csv
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - drag_coefficient
+  - lift_coefficient
+  - cp_error
+benchmark:
+  source_name: Fluent aero tutorial package with reference CSV candidates
+  source_type: official tutorial package
+  benchmark_role: Candidate external-aero replay and reference-data comparison.
+  status_rationale: fluent_aero_tutorial.zip contains reference CSV files, making it a strong C04 seed after runtime profile closure.
+validation_criteria:
+- Force and Cp outputs must be extracted through canonical metric names.
+- Reference CSV comparison must state geometry and condition homology.
+- Smoke pass must not claim mesh-independent aero benchmark.
+integration_targets:
+  workflow_stage: cfd.fluent.external_aero_force_coefficients
+  runtime_target: _results/fluent/external_aero_force_coefficients/
+intern_deliverables:
+- Build force/Cp parser for Fluent reports and reference CSV.
+- Add AoA or case-variant comparison once replay works.
+- Record license/module/runtime blockers if aero workflow cannot run headless.
+card_status: review
+benchmark_status: benchmark_candidate

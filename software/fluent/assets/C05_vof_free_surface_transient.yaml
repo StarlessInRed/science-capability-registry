@@ -1,0 +1,50 @@
+asset_id: C05_vof_free_surface_transient
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD
+capability_name: VOF free-surface transient
+problem_type:
+  category: transient multiphase free-surface flow
+  description: Validate Fluent VOF/free-surface transient behavior through bounded volume fraction, interface motion, and conservation metrics.
+physics:
+  model_class:
+  - VOF multiphase
+  - transient free-surface flow
+  governing_parameters:
+    time_step: configurable
+    volume_fraction_field: configurable
+    gravity: configurable
+inputs:
+  source_candidates:
+  - Fluent_Tutorial_Package/vof.zip
+  - Fluent_tutorial_case/ch10/dambreak
+  - Fluent_tutorial_case/ch10/tank
+outputs:
+  required_artifacts:
+  - phase_volume_history.csv
+  - interface_position.csv
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - max_volume_fraction_overshoot
+  - phase_volume_error
+  - final_time
+benchmark:
+  source_name: Fluent VOF and legacy dam-break/tank tutorials
+  source_type: official and legacy tutorial evidence
+  benchmark_role: Transient multiphase smoke and later targeted-regression seed.
+  status_rationale: Candidate selected for complex transient physics after C01 runtime envelope exists.
+validation_criteria:
+- Volume fraction must remain bounded within configured tolerance.
+- Transient gate must record final time, time-step count, and conservation metrics.
+- Tutorial replay must not be treated as external dam-break validation without reference evidence.
+integration_targets:
+  workflow_stage: cfd.fluent.vof_free_surface_transient
+  runtime_target: _results/fluent/vof_free_surface_transient/
+intern_deliverables:
+- Implement transient monitor extraction.
+- Compare self-generated VOF case with official replay.
+- Classify time-step, initialization, and interface parser failures.
+card_status: review
+benchmark_status: benchmark_candidate

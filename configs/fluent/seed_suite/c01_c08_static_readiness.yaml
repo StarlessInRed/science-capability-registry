@@ -1,0 +1,450 @@
+capability_id: cfd.fluent.seed_suite
+case_id: c01_c08_seed_suite_static_readiness
+description: Static readiness contract for the first Fluent C01-C08 capability-learning seed suite.
+fluent:
+  runtime_profile: local_fluent_preflight
+  runtime_profile_config: configs/fluent/runtime_profiles/local_fluent_preflight.yaml
+  vendor: Ansys
+  product: Fluent
+  version_family: 2025_R1
+backend:
+  type: dry_run_only
+  timeout_s: 60
+source_library:
+  source_root: AgentKnowledge/case_library/fluent/cases/official_tutorials
+  tutorial_package: Fluent_Tutorial_Package
+  workbench_package: Fluent_Workbench_Tutorial_Package
+  verification_manual: ansys_fluid_dynamics_verification_manual.pdf
+learning_loop:
+  required_modes:
+  - self_generated
+  - official_replay
+  - comparison
+  mismatch_classes:
+  - geometry
+  - mesh
+  - boundary_condition
+  - model
+  - material_unit
+  - initialization
+  - transient_timestep
+  - postprocess_parser
+  - runtime_profile
+  - tutorial_reference
+seed_cases:
+- seed_id: C01
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  capability_slug: steady_internal_flow_runtime
+  benchmark_status: benchmark_candidate
+  problem_definition: Steady internal flow runtime baseline for Fluent batch, journal, residual, mass-balance, and report export.
+  governing_model: Pressure-based steady internal CFD with configurable incompressible or weakly compressible settings.
+  boundary_conditions:
+  - velocity inlet or mass-flow inlet
+  - pressure outlet
+  - no-slip wall
+  initial_conditions:
+  - initialized velocity and pressure field from Fluent initialization policy
+  mesh_discretization:
+  - legacy elbow or nozzle mesh for first replay
+  - generated internal-channel mesh for self-generated smoke
+  solver_setup:
+  - bounded iteration budget
+  - residual monitors
+  - mass-flow report definitions
+  input_parameters:
+  - inlet_velocity
+  - outlet_pressure
+  - iteration_budget
+  - residual_thresholds
+  output_quantities:
+  - max_residual
+  - mass_imbalance_fraction
+  - pressure_drop
+  - completed_iteration_count
+  benchmark_source:
+    source_role: runtime_smoke_seed
+    primary_candidates:
+    - Fluent_tutorial_case/ch07/elbow
+    - Fluent_tutorial_case/ch07/nozzle
+    - Fluent_Tutorial_Package/introduction.zip
+  validation_criteria:
+  - manifest includes configured runtime profile and source path
+  - metrics include residual, mass balance, pressure drop, and iteration count
+  - runtime success is not promoted to verification benchmark
+  perturbation_axes:
+  - inlet_velocity
+  - mesh_resolution
+  - residual_threshold
+  replay_paths:
+    self_generated: generated internal channel journal
+    official_replay: legacy elbow or nozzle replay
+    comparison: residual and mass-balance metric comparison
+  risks:
+  - DSCO workflows may require Workbench or meshing support
+  - legacy case version may require Fluent upgrade conversion
+- seed_id: C02
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  capability_slug: verification_reference_validation
+  benchmark_status: benchmark_candidate
+  problem_definition: Bind a runnable Fluent case to a verification-manual reference before benchmark promotion.
+  governing_model: Analytical, experimental, or documented CFD verification case selected from the verification manual.
+  boundary_conditions:
+  - reference-specific inlet, outlet, wall, or far-field boundaries
+  initial_conditions:
+  - reference-specific initialization declared before solving
+  mesh_discretization:
+  - reference-homologous mesh family
+  - refinement levels for error trend when required
+  solver_setup:
+  - solver settings matched to the reference model class
+  - canonical sampling locations for error norms
+  input_parameters:
+  - reference_case_id
+  - geometry_homology_policy
+  - error_thresholds
+  - sampling_policy
+  output_quantities:
+  - reference_error_l2
+  - reference_error_linf
+  - convergence_rate
+  benchmark_source:
+    source_role: verification_reference
+    primary_candidates:
+    - ansys_fluid_dynamics_verification_manual.pdf
+  validation_criteria:
+  - geometry, boundary conditions, units, and sampling are declared before thresholds
+  - tutorial replay is not promoted without reference homology
+  - error norms and unverified risks are recorded
+  perturbation_axes:
+  - mesh_refinement
+  - time_refinement
+  - sampling_location
+  replay_paths:
+    self_generated: reference-homologous Fluent case generated from config
+    official_replay: selected official or local runnable reference case if available
+    comparison: reference error and homology classification
+  risks:
+  - verification manual may not include direct runnable payloads
+  - reference extraction can fail due to geometry or unit mismatch
+- seed_id: C03
+  asset_path: software/fluent/assets/C03_mesh_convergence_trend.yaml
+  capability_slug: mesh_convergence_trend
+  benchmark_status: benchmark_candidate
+  problem_definition: Validate mesh, adaptation, and numerical trend behavior rather than one fixed tutorial mesh.
+  governing_model: Configured CFD model with repeated mesh or adaptation levels and monitored quantities.
+  boundary_conditions:
+  - inherited from the selected base case
+  initial_conditions:
+  - consistent initialization across refinement levels
+  mesh_discretization:
+  - at least three mesh or adaptation levels before targeted-regression promotion
+  solver_setup:
+  - identical model and solver settings across refinement levels except declared perturbations
+  input_parameters:
+  - refinement_levels
+  - adaptation_strategy
+  - monitored_quantities
+  output_quantities:
+  - cell_count
+  - monitored_quantity_delta
+  - residual_trend
+  benchmark_source:
+    source_role: tutorial_and_generated_regression
+    primary_candidates:
+    - Fluent_Tutorial_Package/fluent_adaptation.zip
+    - C01 self-generated perturbation cases
+  validation_criteria:
+  - at least three levels are represented
+  - expected numerical or physical trend is explained
+  - mesh-quality, solver, and parser failures are classified separately
+  perturbation_axes:
+  - global_cell_size
+  - boundary_layer_resolution
+  - adaptation_threshold
+  replay_paths:
+    self_generated: mesh refinement matrix from a simple base case
+    official_replay: adaptation tutorial replay
+    comparison: trend and sensitivity comparison
+  risks:
+  - tutorial adaptation target may not be homologous to generated base case
+  - one scalar convergence metric can hide local field errors
+- seed_id: C04
+  asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  capability_slug: external_aero_force_coefficients
+  benchmark_status: benchmark_candidate
+  problem_definition: External aerodynamics replay or generation with force and pressure-coefficient extraction.
+  governing_model: External aero CFD with configurable incompressible, compressible, or RANS model settings.
+  boundary_conditions:
+  - far-field or velocity inlet
+  - pressure outlet or far-field outlet
+  - no-slip vehicle or wing wall
+  initial_conditions:
+  - initialized flow field at configured speed or Mach number
+  mesh_discretization:
+  - official aero meshes or generated external-flow mesh with declared reference area
+  solver_setup:
+  - force reports
+  - pressure coefficient sampling
+  - residual and monitor convergence checks
+  input_parameters:
+  - angle_of_attack
+  - inlet_mach_or_velocity
+  - turbulence_model
+  - reference_area
+  output_quantities:
+  - drag_coefficient
+  - lift_coefficient
+  - pressure_coefficient_error
+  benchmark_source:
+    source_role: tutorial_reference_csv_candidate
+    primary_candidates:
+    - Fluent_Tutorial_Package/fluent_aero_tutorial.zip
+    - Fluent_Tutorial_Package/sedan_2m.zip
+  validation_criteria:
+  - force and Cp outputs use canonical metric names
+  - reference CSV comparison states geometry and condition homology
+  - smoke pass does not claim mesh-independent aero benchmark
+  perturbation_axes:
+  - angle_of_attack
+  - inlet_velocity_or_mach
+  - mesh_resolution
+  replay_paths:
+    self_generated: generated external-flow case with force reports
+    official_replay: aero tutorial replay with reference CSV extraction
+    comparison: force and Cp trend comparison
+  risks:
+  - reference areas and force directions can be inconsistent across sources
+  - aero package may require large meshes or modules
+- seed_id: C05
+  asset_path: software/fluent/assets/C05_vof_free_surface_transient.yaml
+  capability_slug: vof_free_surface_transient
+  benchmark_status: benchmark_candidate
+  problem_definition: Transient VOF/free-surface behavior with boundedness, interface motion, and conservation checks.
+  governing_model: Volume-of-fluid transient multiphase flow with gravity and interface tracking.
+  boundary_conditions:
+  - wall boundaries
+  - pressure outlet or open boundary when configured
+  initial_conditions:
+  - initial volume-fraction region
+  - gravity vector
+  mesh_discretization:
+  - official VOF mesh or generated free-surface mesh with interface resolution policy
+  solver_setup:
+  - transient time stepping
+  - Courant or time-step monitor
+  - volume-fraction reports
+  input_parameters:
+  - time_step
+  - final_time
+  - gravity
+  - initial_liquid_region
+  output_quantities:
+  - max_volume_fraction_overshoot
+  - phase_volume_error
+  - interface_position
+  - final_time
+  benchmark_source:
+    source_role: transient_multiphase_seed
+    primary_candidates:
+    - Fluent_Tutorial_Package/vof.zip
+    - Fluent_tutorial_case/ch10/dambreak
+    - Fluent_tutorial_case/ch10/tank
+  validation_criteria:
+  - volume fraction remains bounded within tolerance
+  - final time, time-step count, and conservation metrics are recorded
+  - tutorial replay is not treated as external dam-break validation
+  perturbation_axes:
+  - time_step
+  - mesh_resolution
+  - initial_liquid_height
+  replay_paths:
+    self_generated: simple VOF tank or dam-break setup
+    official_replay: VOF or legacy transient replay
+    comparison: interface and conservation trend comparison
+  risks:
+  - transient runtimes may be expensive
+  - interface extraction can depend on postprocess sampling choices
+- seed_id: C06
+  asset_path: software/fluent/assets/C06_sliding_rotating_mesh.yaml
+  capability_slug: sliding_rotating_mesh
+  benchmark_status: benchmark_candidate
+  problem_definition: Rotating or sliding mesh setup, moving-zone manifest, and transient history extraction.
+  governing_model: Rotating reference frame or sliding mesh transient CFD with moving zones.
+  boundary_conditions:
+  - inlet and outlet flow boundaries as configured
+  - wall and periodic or interface boundaries
+  initial_conditions:
+  - initialized flow field and moving-zone state
+  mesh_discretization:
+  - moving-zone mesh and stationary-zone interface
+  solver_setup:
+  - rotating-zone settings
+  - transient or steady rotating-frame policy
+  - periodic or revolution-based monitor
+  input_parameters:
+  - rotation_rate
+  - moving_zone
+  - time_step
+  output_quantities:
+  - completed_revolutions
+  - monitored_periodicity_error
+  - max_residual
+  benchmark_source:
+    source_role: moving_mesh_seed
+    primary_candidates:
+    - Fluent_Tutorial_Package/sliding_mesh.zip
+    - legacy_2020_r2_unique/single_rotating.zip
+  validation_criteria:
+  - moving-zone settings are visible in the manifest
+  - setup failure is separated from transient numerical failure
+  - legacy source remains labeled before promotion
+  perturbation_axes:
+  - rotation_rate
+  - time_step
+  - interface_resolution
+  replay_paths:
+    self_generated: generated rotating-disk or rotor-stator setup
+    official_replay: sliding mesh tutorial or legacy rotating case
+    comparison: moving-zone and time-history comparison
+  risks:
+  - rotating machinery features may be license or module gated
+  - legacy case format may require conversion
+- seed_id: C07
+  asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  capability_slug: heat_transfer_energy_balance
+  benchmark_status: benchmark_candidate
+  problem_definition: Thermal Fluent workflows validated by temperature ranges, heat rate, and energy-balance checks.
+  governing_model: Energy-equation CFD with optional conjugate or battery thermal workflow depending on source.
+  boundary_conditions:
+  - inlet temperature
+  - wall heat flux or coupled thermal wall
+  - outlet pressure or flow boundary
+  initial_conditions:
+  - initialized flow and temperature field
+  mesh_discretization:
+  - heat-transfer mesh with wall and thermal-region resolution policy
+  solver_setup:
+  - energy equation enabled
+  - heat-rate reports
+  - temperature extrema extraction
+  input_parameters:
+  - inlet_temperature
+  - wall_heat_flux
+  - material_properties
+  output_quantities:
+  - min_temperature
+  - max_temperature
+  - heat_rate_balance_error
+  benchmark_source:
+    source_role: heat_transfer_seed
+    primary_candidates:
+    - Fluent_Tutorial_Package/2d_heat_exchanger_optimizer.zip
+    - Fluent_Tutorial_Package/effusion_cooling.zip
+    - Fluent_Tutorial_Package/battery_cell.zip
+    - Fluent_Tutorial_Package/battery_pack.zip
+  validation_criteria:
+  - temperature, heat flux, and energy-balance quantities use canonical names
+  - thermal smoke is separated from CHT benchmark validation
+  - material and unit mismatches are classified explicitly
+  perturbation_axes:
+  - inlet_temperature
+  - heat_flux
+  - material_property
+  replay_paths:
+    self_generated: generated heat-transfer channel or heat-exchanger setup
+    official_replay: heat-transfer tutorial replay
+    comparison: temperature and energy-balance comparison
+  risks:
+  - CHT-adjacent workflows may need different setup routes
+  - thermal units and material properties are common mismatch sources
+- seed_id: C08
+  asset_path: software/fluent/assets/C08_workbench_parameter_integration.yaml
+  capability_slug: workbench_parameter_integration
+  benchmark_status: benchmark_candidate
+  problem_definition: Workbench project, parameter, and Fluent result handoff as a workflow integration seed.
+  governing_model: Workbench-driven Fluent setup with design-point and result parameter exchange.
+  boundary_conditions:
+  - inherited from the Workbench project
+  initial_conditions:
+  - inherited from the Workbench project or replay script
+  mesh_discretization:
+  - Workbench geometry, mesh, or archived project payload
+  solver_setup:
+  - batch Workbench script
+  - design point update
+  - parameter table export
+  input_parameters:
+  - design_point
+  - input_parameter_names
+  - output_parameter_names
+  output_quantities:
+  - design_point_count
+  - parameter_roundtrip_count
+  - result_extraction_count
+  benchmark_source:
+    source_role: workflow_integration_seed
+    primary_candidates:
+    - Fluent_Workbench_Tutorial_Package/workbench_parameter.zip
+    - Fluent_Workbench_Tutorial_Package/workbench_elbow.zip
+  validation_criteria:
+  - Workbench gate is separated from standalone Fluent batch gate
+  - parameter and result handoff artifacts exist
+  - GUI, headless, and project-state blockers are recorded as runtime-profile failures
+  perturbation_axes:
+  - design_point
+  - input_parameter
+  - mesh_or_geometry_parameter
+  replay_paths:
+    self_generated: generated Workbench journal or project handoff when supported
+    official_replay: Workbench tutorial package replay
+    comparison: parameter and result roundtrip comparison
+  risks:
+  - Workbench headless scripting availability is not yet validated
+  - project archive state can obscure solver settings
+outputs:
+  output_dir: _results/fluent/seed_suite/c01_c08_seed_suite_static_readiness
+  expected_outputs:
+  - seed_suite_manifest.json
+  - seed_cases.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_seed_ids:
+  - C01
+  - C02
+  - C03
+  - C04
+  - C05
+  - C06
+  - C07
+  - C08
+  required_modes:
+  - self_generated
+  - official_replay
+  - comparison
+  required_seed_fields:
+  - problem_definition
+  - governing_model
+  - boundary_conditions
+  - initial_conditions
+  - mesh_discretization
+  - solver_setup
+  - input_parameters
+  - output_quantities
+  - benchmark_source
+  - validation_criteria
+  - perturbation_axes
+  - replay_paths
+  - risks
+  required_artifacts:
+  - seed_suite_manifest.json
+  - seed_cases.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no Fluent solver runtime is claimed by this dry-run
+  - no tutorial replay is promoted to benchmark validation
+  - no local executable path is required or stored in this config

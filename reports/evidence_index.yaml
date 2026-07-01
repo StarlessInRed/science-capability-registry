@@ -1232,3 +1232,52 @@ evidence:
   scope: Final OpenFOAM C01-C08 freeze review before moving to Fluent and MATLAB-driven COMSOL asset directions.
   limitations:
   - Freezes current registry-local case scope only; does not claim all external benchmarks or double-v gates are complete.
+- evidence_id: fluent_C01_C08_source_intake_2026-07-02
+  capability_id: cfd.fluent.source_intake
+  asset_path: software/fluent/capability_map.md
+  evidence_kind: governance_closure_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/fluent_source_intake_2026-07-02.md
+  supporting_paths:
+  - software/fluent/capability_map.md
+  - software/fluent/examples_index.md
+  - software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  - software/fluent/assets/C02_verification_reference_validation.yaml
+  - software/fluent/assets/C03_mesh_convergence_trend.yaml
+  - software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  - software/fluent/assets/C05_vof_free_surface_transient.yaml
+  - software/fluent/assets/C06_sliding_rotating_mesh.yaml
+  - software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  - software/fluent/assets/C08_workbench_parameter_integration.yaml
+  - configs/fluent/runtime_profiles/local_fluent_preflight.yaml
+  - reports/fluent_self_replay_learning_loop_2026-07-02.md
+  - tasks/fluent_C01_C08_seed_intake_intern_task.md
+  runtime_evidence_paths: []
+  scope: Fluent C01-C08 source intake converts official tutorial packages, verification manual, Workbench tutorial package, and legacy direct cases into benchmark-candidate seed assets.
+  limitations:
+  - Governance and source-intake evidence only; no Fluent solver runtime, tutorial replay, or numerical benchmark validation is claimed.
+  - Local executable discovery is recorded as profile context, but committed configs do not store machine-specific drive-letter paths.
+- evidence_id: fluent_C01_C08_seed_suite_static_readiness_2026-07-02
+  capability_id: cfd.fluent.seed_suite
+  asset_path: software/fluent/capability_map.md
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C01_C08_seed_suite_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/seed_suite/c01_c08_static_readiness.yaml
+  - schemas/fluent_seed_suite.schema.json
+  - src/science_capability_registry/fluent/seed_suite/config.py
+  - src/science_capability_registry/fluent/seed_suite/runner.py
+  - src/science_capability_registry/fluent/seed_suite/validation.py
+  - src/science_capability_registry/fluent/seed_suite/report.py
+  - tests/test_fluent_seed_suite_schema.py
+  - tests/test_fluent_seed_suite_runner.py
+  - tests/test_fluent_capability_map.py
+  runtime_evidence_paths:
+  - _results/fluent/seed_suite/c01_c08_seed_suite_static_readiness/
+  scope: Fluent C01-C08 seed-suite schema, config, dry-run manifest generation, artifact completeness, and static pytest coverage.
+  limitations:
+  - Static-readiness evidence only; Fluent is not launched and no license checkout, tutorial replay, or solver metrics are claimed.
+  - Benchmark promotion remains blocked until C01 smoke and later per-seed runtime/reference evidence exist.

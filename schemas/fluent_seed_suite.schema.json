@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_seed_suite.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C01-C08 seed-suite static readiness config.",
+  "title": "Fluent Seed Suite Static Readiness Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "fluent",
+    "backend",
+    "source_library",
+    "learning_loop",
+    "seed_cases",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.seed_suite"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "fluent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "vendor", "product", "version_family"],
+      "properties": {
+        "runtime_profile": {"const": "local_fluent_preflight"},
+        "runtime_profile_config": {"type": "string", "minLength": 1},
+        "vendor": {"const": "Ansys"},
+        "product": {"const": "Fluent"},
+        "version_family": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "dry_run_only"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "source_library": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_root", "tutorial_package", "workbench_package", "verification_manual"],
+      "properties": {
+        "source_root": {"type": "string", "minLength": 1},
+        "tutorial_package": {"type": "string", "minLength": 1},
+        "workbench_package": {"type": "string", "minLength": 1},
+        "verification_manual": {"type": "string", "minLength": 1}
+      }
+    },
+    "learning_loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_modes", "mismatch_classes"],
+      "properties": {
+        "required_modes": {
+          "type": "array",
+          "items": {"enum": ["self_generated", "official_replay", "comparison"]},
+          "minItems": 3,
+          "uniqueItems": true
+        },
+        "mismatch_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "geometry",
+              "mesh",
+              "boundary_condition",
+              "model",
+              "material_unit",
+              "initialization",
+              "transient_timestep",
+              "postprocess_parser",
+              "runtime_profile",
+              "tutorial_reference"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "seed_cases": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/seed_case"}
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "seed_suite_manifest.json",
+              "seed_cases.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_seed_ids",
+        "required_modes",
+        "required_seed_fields",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "required_seed_ids": {
+          "type": "array",
+          "items": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]},
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "required_modes": {
+          "type": "array",
+          "items": {"enum": ["self_generated", "official_replay", "comparison"]},
+          "minItems": 3,
+          "uniqueItems": true
+        },
+        "required_seed_fields": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "problem_definition",
+              "governing_model",
+              "boundary_conditions",
+              "initial_conditions",
+              "mesh_discretization",
+              "solver_setup",
+              "input_parameters",
+              "output_quantities",
+              "benchmark_source",
+              "validation_criteria",
+              "perturbation_axes",
+              "replay_paths",
+              "risks"
+            ]
+          },
+          "minItems": 13,
+          "uniqueItems": true
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "seed_suite_manifest.json",
+              "seed_cases.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        },
+        "no_claims": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    },
+    "seed_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed_id",
+        "asset_path",
+        "capability_slug",
+        "benchmark_status",
+        "problem_definition",
+        "governing_model",
+        "boundary_conditions",
+        "initial_conditions",
+        "mesh_discretization",
+        "solver_setup",
+        "input_parameters",
+        "output_quantities",
+        "benchmark_source",
+        "validation_criteria",
+        "perturbation_axes",
+        "replay_paths",
+        "risks"
+      ],
+      "properties": {
+        "seed_id": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]},
+        "asset_path": {"type": "string", "pattern": "^software/fluent/assets/[A-Za-z0-9_/-]+\\.yaml$"},
+        "capability_slug": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "benchmark_status": {"const": "benchmark_candidate"},
+        "problem_definition": {"type": "string", "minLength": 1},
+        "governing_model": {"type": "string", "minLength": 1},
+        "boundary_conditions": {"$ref": "#/$defs/non_empty_string_array"},
+        "initial_conditions": {"$ref": "#/$defs/non_empty_string_array"},
+        "mesh_discretization": {"$ref": "#/$defs/non_empty_string_array"},
+        "solver_setup": {"$ref": "#/$defs/non_empty_string_array"},
+        "input_parameters": {"$ref": "#/$defs/non_empty_string_array"},
+        "output_quantities": {"$ref": "#/$defs/non_empty_string_array"},
+        "benchmark_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_role", "primary_candidates"],
+          "properties": {
+            "source_role": {"type": "string", "minLength": 1},
+            "primary_candidates": {"$ref": "#/$defs/non_empty_string_array"}
+          }
+        },
+        "validation_criteria": {"$ref": "#/$defs/non_empty_string_array"},
+        "perturbation_axes": {"$ref": "#/$defs/non_empty_string_array"},
+        "replay_paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["self_generated", "official_replay", "comparison"],
+          "properties": {
+            "self_generated": {"type": "string", "minLength": 1},
+            "official_replay": {"type": "string", "minLength": 1},
+            "comparison": {"type": "string", "minLength": 1}
+          }
+        },
+        "risks": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+asset_id: C07_heat_transfer_energy_balance
+software: Fluent
+source_url: https://www.ansys.com/products/fluids/ansys-fluent
+domain: CFD
+capability_name: heat transfer energy balance
+problem_type:
+  category: heat transfer, CHT-adjacent, and thermal energy balance
+  description: Validate Fluent thermal workflows using temperature ranges, heat flux, and energy-balance metrics.
+physics:
+  model_class:
+  - heat transfer
+  - energy equation
+  - optional CHT or battery thermal workflow
+  governing_parameters:
+    inlet_temperature: configurable
+    wall_heat_flux: configurable
+    material_properties: configurable
+inputs:
+  source_candidates:
+  - Fluent_Tutorial_Package/2d_heat_exchanger_optimizer.zip
+  - Fluent_Tutorial_Package/effusion_cooling.zip
+  - Fluent_Tutorial_Package/battery_cell.zip
+  - Fluent_Tutorial_Package/battery_pack.zip
+outputs:
+  required_artifacts:
+  - heat_rate_summary.json
+  - temperature_extrema.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - min_temperature
+  - max_temperature
+  - heat_rate_balance_error
+benchmark:
+  source_name: Fluent heat-transfer tutorial candidates
+  source_type: official tutorial package
+  benchmark_role: Thermal smoke and energy-balance validation seed.
+  status_rationale: Candidate selected for energy equation and heat-transfer postprocess coverage.
+validation_criteria:
+- Temperature, heat flux, and energy-balance quantities must use canonical names.
+- Reports must separate thermal runtime smoke from CHT benchmark validation.
+- Material/unit mismatches must be classified explicitly.
+integration_targets:
+  workflow_stage: cfd.fluent.heat_transfer_energy_balance
+  runtime_target: _results/fluent/heat_transfer_energy_balance/
+intern_deliverables:
+- Implement heat-rate and temperature parser.
+- Compare self-generated heat-transfer case with tutorial replay.
+- Add material/unit mismatch diagnostics.
+card_status: review
+benchmark_status: benchmark_candidate
