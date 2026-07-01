@@ -38,13 +38,13 @@ solver:
   - surfaceFeatureExtract
   - blockMesh
   - decomposePar -decomposeParDict system/decomposeParDict.6
-  - mpirun -np 6 snappyHexMesh -overwrite -parallel -decomposeParDict system/decomposeParDict.6
-  - mpirun -np 6 topoSet -parallel -decomposeParDict system/decomposeParDict.6
-  - for d in processor*; do rm -rf "$d/0"; cp -r 0 "$d/0"; done
-  - mpirun -np 6 patchSummary -parallel -decomposeParDict system/decomposeParDict.6
-  - mpirun -np 6 potentialFoam -writephi -parallel -decomposeParDict system/decomposeParDict.6
-  - mpirun -np 6 checkMesh -writeFields '(nonOrthoAngle)' -constant -parallel -decomposeParDict system/decomposeParDict.6
-  - mpirun -np 6 simpleFoam -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 snappyHexMesh -overwrite -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 topoSet -parallel -decomposeParDict system/decomposeParDict.6
+  - rm -rf processor0/0 processor1/0 processor2/0 processor3/0 processor4/0 processor5/0; cp -r 0 processor0/0; cp -r 0 processor1/0; cp -r 0 processor2/0; cp -r 0 processor3/0; cp -r 0 processor4/0; cp -r 0 processor5/0
+  - mpirun --oversubscribe -np 6 patchSummary -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 potentialFoam -writephi -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 checkMesh -writeFields '(nonOrthoAngle)' -constant -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 simpleFoam -parallel -decomposeParDict system/decomposeParDict.6
   - reconstructParMesh -constant
   - reconstructPar -latestTime
   - postProcess -latestTime -func yPlus
@@ -73,9 +73,9 @@ mesh:
   - surfaceFeatureExtract
   - blockMesh
   - decomposePar
-  - mpirun -np 6 snappyHexMesh -overwrite -parallel
-  - mpirun -np 6 topoSet -parallel
-  - mpirun -np 6 checkMesh -parallel
+  - mpirun --oversubscribe -np 6 snappyHexMesh -overwrite -parallel
+  - mpirun --oversubscribe -np 6 topoSet -parallel
+  - mpirun --oversubscribe -np 6 checkMesh -parallel
   snappy:
     castellated_mesh: true
     snap: true
@@ -186,9 +186,9 @@ outputs:
   - validation.json
   - validation_report.md
   - logs/log.01_surfaceFeatureExtract
-  - logs/log.04_mpirun_-np_6_snappyHexMesh_-overwrite_-parallel_-decomposeParDict_system_decomposeParDict.6
-  - logs/log.09_mpirun_-np_6_checkMesh_-writeFields_nonOrthoAngle_-constant_-parallel_-decomposeParDict_system_d
-  - logs/log.10_mpirun_-np_6_simpleFoam_-parallel_-decomposeParDict_system_decomposeParDict.6
+  - logs/log.04_mpirun_--oversubscribe_-np_6_snappyHexMesh_-overwrite_-parallel_-decomposeParDict_system_decompo
+  - logs/log.09_mpirun_--oversubscribe_-np_6_checkMesh_-writeFields_nonOrthoAngle_-constant_-parallel_-decompose
+  - logs/log.10_mpirun_--oversubscribe_-np_6_simpleFoam_-parallel_-decomposeParDict_system_decomposeParDict.6
   - logs/log.13_postProcess_-latestTime_-func_yPlus
   - postprocess/force_coefficients.csv
   - postprocess/yplus_summary.csv

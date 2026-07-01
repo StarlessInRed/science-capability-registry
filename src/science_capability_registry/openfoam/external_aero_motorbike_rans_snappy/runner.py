@@ -68,6 +68,7 @@ def _patch_control_dict(case_dir: Path, config: dict[str, Any]) -> None:
     text = control.read_text(encoding="utf-8")
     text = _replace_assignment(text, "endTime", f"{config['numerics']['control']['end_time_iterations']:g}")
     text = _replace_assignment(text, "writeInterval", f"{config['numerics']['control']['write_interval']:g}")
+    text = _replace_assignment(text, "writeFormat", "ascii")
     text = re.sub(
         r"functions\s*\{.*?\n\}",
         "functions\n{\n    #include \"forceCoeffs\"\n}",

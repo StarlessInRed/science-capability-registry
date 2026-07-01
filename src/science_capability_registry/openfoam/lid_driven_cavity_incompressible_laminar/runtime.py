@@ -186,14 +186,21 @@ def execute_wsl_runtime(config: dict[str, Any], output_dir: Path) -> dict[str, A
     return execute_command_sequence(config, output_dir)
 
 
+def _runtime_log_path(runtime: dict[str, Any], command: str, output_dir: Path) -> Path:
+    match = next((item for item in runtime.get("commands", []) if item.get("command") == command), None)
+    if match and match.get("log"):
+        return Path(match["log"])
+    return output_dir / "logs" / f"log.{command.split()[0]}"
+
+
 def build_runtime_metrics(
     config: dict[str, Any],
     output_dir: Path,
     runtime: dict[str, Any],
 ) -> dict[str, Any]:
     logs = {Path(item["log"]).name: item["log"] for item in runtime["commands"]}
-    solver_log = output_dir / "logs" / "log.icoFoam"
-    check_mesh_log = output_dir / "logs" / "log.checkMesh"
+    solver_log = _runtime_log_path(runtime, "icoFoam", output_dir)
+    check_mesh_log = _runtime_log_path(runtime, "checkMesh", output_dir)
     solver_metrics = parse_icofoam_log(
         solver_log.read_text(encoding="utf-8") if solver_log.exists() else ""
     )
@@ -309,6 +316,12 @@ def validate_runtime_metrics(
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
             continue
         path = output_dir / rel_path
+        if rel_path == "logs/log.blockMesh":
+            path = _runtime_log_path(metrics["runtime"], "blockMesh", output_dir)
+        elif rel_path == "logs/log.checkMesh":
+            path = _runtime_log_path(metrics["runtime"], "checkMesh", output_dir)
+        elif rel_path == "logs/log.icoFoam":
+            path = _runtime_log_path(metrics["runtime"], "icoFoam", output_dir)
         check(
             f"artifact.expected.{rel_path}",
             path.exists() and path.stat().st_size > 0,
@@ -339,8 +352,13 @@ def validate_runtime_metrics(
             json.dumps(stats, ensure_ascii=False),
         )
 
-    for rel_path in ["logs/log.blockMesh", "logs/log.checkMesh", "logs/log.icoFoam", "metrics.json"]:
-        path = output_dir / rel_path
+    required_artifacts = {
+        "logs/log.blockMesh": _runtime_log_path(metrics["runtime"], "blockMesh", output_dir),
+        "logs/log.checkMesh": _runtime_log_path(metrics["runtime"], "checkMesh", output_dir),
+        "logs/log.icoFoam": _runtime_log_path(metrics["runtime"], "icoFoam", output_dir),
+        "metrics.json": output_dir / "metrics.json",
+    }
+    for rel_path, path in required_artifacts.items():
         check(
             f"artifact.{rel_path}",
             path.exists() and path.stat().st_size > 0,
@@ -368,6 +386,7 @@ def write_runtime_report(
 ) -> None:
     solver = metrics["solver"]
     status = "passed" if validation["passed"] else "failed"
+    logs = metrics.get("artifacts", {}).get("logs", {})
     lines = [
         f"# OpenFOAM C01 {config['case_id']} runtime report",
         "",
@@ -385,9 +404,9 @@ def write_runtime_report(
         "- `manifest.json`",
         "- `metrics.json`",
         "- `validation.json`",
-        "- `logs/log.blockMesh`",
-        "- `logs/log.checkMesh`",
-        "- `logs/log.icoFoam`",
+        f"- blockMesh log: `{logs.get('log.01_blockMesh', logs.get('log.blockMesh', ''))}`",
+        f"- checkMesh log: `{logs.get('log.02_checkMesh', logs.get('log.checkMesh', ''))}`",
+        f"- icoFoam log: `{logs.get('log.03_icoFoam', logs.get('log.icoFoam', ''))}`",
         "- `postprocess/centerline_vertical_Ux.csv`",
         "- `postprocess/centerline_horizontal_Uy.csv`",
         "",

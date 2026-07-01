@@ -94,7 +94,7 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
   benchmark_role: Benchmark candidate for external aerodynamics, snappyHexMesh quality, forces, and wall-function checks.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C04 run schema, baseline and inlet-speed perturbation configs, package runner, dry-run manifest validation, force/y+ postprocess contracts, and static-readiness tests. It remains below benchmark_validated until local snappyHexMesh/checkMesh/simpleFoam runtime evidence plus forceCoeffs and y+ validation pass.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C04 run schema, baseline and inlet-speed perturbation configs, package runner, dry-run manifest validation, force/y+ postprocess contracts, static-readiness tests, and a local runtime smoke attempt. The runtime attempt reaches snappyHexMesh/topoSet/patchSummary/potentialFoam/checkMesh, then fails on mesh skewness and local v2112 sha1 IO during simpleFoam/forceCoeffs startup. It remains below benchmark_validated until local snappyHexMesh/checkMesh/simpleFoam runtime evidence plus forceCoeffs and y+ validation pass.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose geometry, snappyHexMesh refinement, turbulence model, force reference area, wall-function settings, and y+ thresholds.
@@ -115,6 +115,7 @@ integration_targets:
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
 intern_deliverables:
 - Extend the C04 package from static-readiness to local WSL mesh/solver smoke using the official motorBike tutorial.
+- Current local WSL v2112 runtime evidence is failed, not absent: resolve mesh skewness and v2112 sha1/forceCoeffs startup before claiming Cd/Cl or y+ validation.
 - Implement runtime y+ extraction through native `postProcess -func yPlus` or an explicitly marked proxy.
 - Promote only after snappyHexMesh/checkMesh/simpleFoam runtime, forceCoeffs, Cd/Cl tail-window stability, and y+ validation pass.
 - Keep benchmark_status below benchmark_validated until local runtime and force/y+ evidence pass.

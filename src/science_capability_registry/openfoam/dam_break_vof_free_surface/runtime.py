@@ -67,10 +67,20 @@ def execute_wsl_runtime(config: dict[str, Any], output_dir: Path) -> dict[str, A
     return execute_command_sequence(config, output_dir)
 
 
+def _runtime_log_path(runtime: dict[str, Any], command: str, output_dir: Path) -> Path:
+    match = next(
+        (item for item in runtime.get("commands", []) if item.get("command") == command),
+        None,
+    )
+    if match and match.get("log"):
+        return Path(match["log"])
+    return output_dir / "logs" / f"log.{command.split()[0]}"
+
+
 def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dict[str, Any]) -> dict[str, Any]:
     logs = {Path(item["log"]).name: item["log"] for item in runtime["commands"]}
-    solver_log = output_dir / "logs" / "log.interFoam"
-    check_mesh_log = output_dir / "logs" / "log.checkMesh"
+    solver_log = _runtime_log_path(runtime, "interFoam", output_dir)
+    check_mesh_log = _runtime_log_path(runtime, "checkMesh", output_dir)
     solver_metrics = parse_interfoam_log(solver_log.read_text(encoding="utf-8") if solver_log.exists() else "")
     check_mesh_metrics = parse_check_mesh_log(check_mesh_log.read_text(encoding="utf-8") if check_mesh_log.exists() else "")
     postprocess_metrics = write_vof_metrics(config, output_dir) if solver_metrics.get("final_time") is not None else {}
@@ -125,6 +135,14 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
             continue
         path = output_dir / rel_path
+        if rel_path == "logs/log.blockMesh":
+            path = _runtime_log_path(metrics["runtime"], "blockMesh", output_dir)
+        elif rel_path == "logs/log.setFields":
+            path = _runtime_log_path(metrics["runtime"], "setFields", output_dir)
+        elif rel_path == "logs/log.checkMesh":
+            path = _runtime_log_path(metrics["runtime"], "checkMesh", output_dir)
+        elif rel_path == "logs/log.interFoam":
+            path = _runtime_log_path(metrics["runtime"], "interFoam", output_dir)
         check(f"artifact.expected.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
     return {"passed": all(item["passed"] for item in checks), "gate": config["validation"]["gate"], "scope": "local WSL OpenFOAM C06 runtime with Python alpha-field postprocess", "checks": checks}
 
@@ -133,6 +151,7 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
     status = "passed" if validation["passed"] else "failed"
     solver = metrics["solver"]
     post = metrics.get("postprocess", {})
+    logs = metrics.get("artifacts", {}).get("logs", {})
     lines = [
         f"# OpenFOAM C06 {config['case_id']} runtime report",
         "",
@@ -144,6 +163,10 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
         f"- max alpha Courant: {solver.get('max_alpha_courant_number')}",
         f"- final front x: {post.get('front', {}).get('front_x_m')}",
         f"- water volume relative error: {post.get('volume', {}).get('relative_error')}",
+        f"- blockMesh log: {logs.get('log.01_blockMesh', logs.get('log.blockMesh', ''))}",
+        f"- setFields log: {logs.get('log.02_setFields', logs.get('log.setFields', ''))}",
+        f"- checkMesh log: {logs.get('log.03_checkMesh', logs.get('log.checkMesh', ''))}",
+        f"- interFoam log: {logs.get('log.04_interFoam', logs.get('log.interFoam', ''))}",
         "",
         "## Scope",
         "",

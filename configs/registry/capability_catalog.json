@@ -275,7 +275,8 @@
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "openfoam_C04_static_readiness_2026-06-30"
+        "openfoam_C04_static_readiness_2026-06-30",
+        "openfoam_C04_runtime_smoke_attempt_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -288,9 +289,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "openfoam_C04_static_readiness_2026-06-30"
+      "dispatch_status": "runtime_smoke_failed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "openfoam_C04_runtime_smoke_attempt_2026-07-01"
     },
     {
       "capability_id": "cfd.openfoam.transient_cylinder_vortex_shedding",

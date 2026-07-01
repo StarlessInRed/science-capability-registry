@@ -134,11 +134,12 @@ evidence:
   supporting_paths:
   - configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml
   - configs/openfoam/potential_flow_cylinder_analytical_validation/baseline_wsl_v2112.yaml
+  - reports/openfoam_C02_C04_C07_C08_runtime_closure_gaps_2026-07-01.md
   - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/runtime.py
   - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/postprocess.py
   - src/science_capability_registry/openfoam/potential_flow_cylinder_analytical_validation/validation.py
   runtime_evidence_paths:
-  - _results/openfoam/potential_flow_cylinder_analytical_validation/baseline_runtime_smoke_wsl_v2112/
+  - _results/openfoam/potential_flow_cylinder_analytical_validation/baseline_wsl_v2112/
   scope: Local WSL OpenFOAM.com v2112 C02 runtime completes blockMesh and potentialFoam but fails configured analytical velocity and Cp thresholds.
   limitations:
   - Analytical sampling and finite-domain effects require review before benchmark promotion.
@@ -175,6 +176,24 @@ evidence:
   limitations:
   - No snappyHexMesh, checkMesh, or simpleFoam runtime metrics have been promoted in this report.
   - No Cd/Cl, forceCoeffs tail-window, mesh-quality, or y+ runtime evidence has been validated yet.
+- evidence_id: openfoam_C04_runtime_smoke_attempt_2026-07-01
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C02_C04_C07_C08_runtime_closure_gaps_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112.yaml
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runner.py
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runtime.py
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/validation.py
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112/
+  scope: Local WSL OpenFOAM.com v2112 motorBike runtime progresses through snappyHexMesh, topoSet, patchSummary, potentialFoam, and checkMesh, then fails simpleFoam/native forceCoeffs closure with a v2112 sha1 IO error and mesh skewness above the configured threshold.
+  limitations:
+  - Cd/Cl, forceCoeffs tail-window, residual convergence, and y+ artifacts are not available because simpleFoam stops before writing them.
+  - checkMesh reports failed mesh quality with max skewness above the configured smoke threshold.
 - evidence_id: openfoam_C06_benchmark_validation
   capability_id: cfd.openfoam.dam_break_vof_free_surface
   asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml
@@ -338,11 +357,13 @@ evidence:
   primary_evidence_path: reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_baseline_smoke_2026-06-30.md
   supporting_paths:
   - configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml
+  - reports/openfoam_C02_C04_C07_C08_runtime_closure_gaps_2026-07-01.md
   - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runner.py
   - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runtime.py
   - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/postprocess.py
   runtime_evidence_paths:
   - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_002/
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112/
   scope: Packaged OpenFOAM.com v2112 multiRegionHeaterRadiation CHT smoke completes configured preprocessing, radiation view-factor setup, solver execution to Time=2, and machine-readable metrics/validation/postprocess artifacts.
   limitations:
   - Short-horizon smoke only; not steady-state convergence, patch heat-flux conservation, or perturbation-matrix validation.
@@ -415,12 +436,14 @@ evidence:
   primary_evidence_path: reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
   supporting_paths:
   - configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml
+  - reports/openfoam_C02_C04_C07_C08_runtime_closure_gaps_2026-07-01.md
   - schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json
   - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/runtime.py
   - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/postprocess.py
   - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/validation.py
   runtime_evidence_paths:
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced_runtime_smoke_wsl_v2112_margin/
+  - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
   scope: Local WSL OpenFOAM.com v2112 C08 reduced-CFL runtime completes blockMesh, checkMesh, and rhoCentralFoam to Time=4 and passes max-Courant, leading-shock jump sanity, field sanity, artifact completeness, and boundary-flux owner-cell proxy checks.
   limitations:
   - Boundary-flux evidence is an owner-cell Python proxy, not native OpenFOAM rhoPhi/phi parity.

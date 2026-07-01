@@ -79,10 +79,20 @@ def execute_wsl_runtime(config: dict[str, Any], output_dir: Path) -> dict[str, A
     return execute_command_sequence(config, output_dir)
 
 
+def _runtime_log_path(runtime: dict[str, Any], command: str, output_dir: Path) -> Path:
+    match = next(
+        (item for item in runtime.get("commands", []) if item.get("command") == command),
+        None,
+    )
+    if match and match.get("log"):
+        return Path(match["log"])
+    return output_dir / "logs" / f"log.{command.split()[0]}"
+
+
 def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dict[str, Any]) -> dict[str, Any]:
     logs = {Path(item["log"]).name: item["log"] for item in runtime["commands"]}
-    solver_log = output_dir / "logs" / "log.simpleFoam"
-    check_mesh_log = output_dir / "logs" / "log.checkMesh"
+    solver_log = _runtime_log_path(runtime, "simpleFoam", output_dir)
+    check_mesh_log = _runtime_log_path(runtime, "checkMesh", output_dir)
     solver_metrics = parse_simplefoam_log(solver_log.read_text(encoding="utf-8") if solver_log.exists() else "")
     check_mesh_metrics = parse_check_mesh_log(check_mesh_log.read_text(encoding="utf-8") if check_mesh_log.exists() else "")
     postprocess_metrics = write_flow_metrics(config, output_dir) if solver_metrics.get("final_time") is not None else {}
@@ -164,6 +174,12 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
         if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
             continue
         path = output_dir / rel_path
+        if rel_path == "logs/log.blockMesh":
+            path = _runtime_log_path(metrics["runtime"], "blockMesh", output_dir)
+        elif rel_path == "logs/log.checkMesh":
+            path = _runtime_log_path(metrics["runtime"], "checkMesh", output_dir)
+        elif rel_path == "logs/log.simpleFoam":
+            path = _runtime_log_path(metrics["runtime"], "simpleFoam", output_dir)
         check(f"artifact.expected.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
     return {
         "passed": all(item["passed"] for item in checks),
@@ -177,6 +193,7 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
     status = "passed" if validation["passed"] else "failed"
     solver = metrics["solver"]
     post = metrics.get("postprocess", {})
+    logs = metrics.get("artifacts", {}).get("logs", {})
     lines = [
         f"# OpenFOAM C03 {config['case_id']} runtime report",
         "",
@@ -193,9 +210,9 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
         "- manifest.json",
         "- metrics.json",
         "- validation.json",
-        "- logs/log.blockMesh",
-        "- logs/log.checkMesh",
-        "- logs/log.simpleFoam",
+        f"- blockMesh log: {logs.get('log.01_blockMesh', logs.get('log.blockMesh', ''))}",
+        f"- checkMesh log: {logs.get('log.02_checkMesh', logs.get('log.checkMesh', ''))}",
+        f"- simpleFoam log: {logs.get('log.03_simpleFoam', logs.get('log.simpleFoam', ''))}",
         "- postprocess/velocity_profiles.csv",
         "- postprocess/lower_wall_shear.csv",
         "- postprocess/pressure_coefficient.csv",
