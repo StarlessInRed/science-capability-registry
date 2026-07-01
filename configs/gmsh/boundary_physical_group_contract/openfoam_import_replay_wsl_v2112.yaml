@@ -61,7 +61,7 @@ downstream_boundary_map:
     domain: cell_zone
 downstream_import_replay:
   enabled: true
-  source_summary_path: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112_20260630_003/downstream_import_summary.json
+  source_summary_path: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112/downstream_import_summary.json
   expected_boundary_names:
   - inlet
   - outlet

@@ -477,7 +477,8 @@
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02"
+        "gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02",
+        "gmsh_C02_boundary_physical_group_contract_runtime_smoke_2026-07-02"
       ],
       "result_contract": {
         "required_files": [
@@ -489,9 +490,9 @@
         "report_file": "validation_report.md",
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "gmsh_C02_boundary_physical_group_contract_runtime_smoke_2026-07-02"
     },
     {
       "capability_id": "meshing.gmsh.mesh_refinement_quality_trend",
@@ -505,7 +506,8 @@
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02"
+        "gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02",
+        "gmsh_C03_mesh_refinement_quality_trend_runtime_smoke_2026-07-02"
       ],
       "result_contract": {
         "required_files": [
@@ -517,9 +519,9 @@
         "report_file": "validation_report.md",
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "gmsh_C03_mesh_refinement_quality_trend_runtime_smoke_2026-07-02"
     },
     {
       "capability_id": "meshing.gmsh.cad_import_geometry_healing",
@@ -533,7 +535,8 @@
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02"
+        "gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02",
+        "gmsh_C04_cad_import_geometry_healing_runtime_smoke_2026-07-02"
       ],
       "result_contract": {
         "required_files": [
@@ -545,9 +548,9 @@
         "report_file": "validation_report.md",
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "gmsh_C04_cad_import_geometry_healing_runtime_smoke_2026-07-02"
     },
     {
       "capability_id": "meshing.gmsh.boundary_layer_size_field_meshing",
@@ -561,7 +564,8 @@
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02"
+        "gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02",
+        "gmsh_C05_boundary_layer_size_field_meshing_runtime_smoke_2026-07-02"
       ],
       "result_contract": {
         "required_files": [
@@ -573,9 +577,9 @@
         "report_file": "validation_report.md",
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "gmsh_C05_boundary_layer_size_field_meshing_runtime_smoke_2026-07-02"
     },
     {
       "capability_id": "meshing.gmsh.multi_solver_mesh_export_contract",
@@ -589,7 +593,8 @@
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02"
+        "gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02",
+        "gmsh_C06_multi_solver_mesh_export_contract_runtime_smoke_2026-07-02"
       ],
       "result_contract": {
         "required_files": [
@@ -601,9 +606,9 @@
         "report_file": "validation_report.md",
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "gmsh_C06_multi_solver_mesh_export_contract_runtime_smoke_2026-07-02"
     }
   ]
 }

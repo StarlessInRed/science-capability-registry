@@ -46,7 +46,7 @@ benchmark:
   source_name: Gmsh CAD import and OpenCASCADE geometry kernel documentation
   source_type: official documentation
   benchmark_role: Candidate benchmark for robust CAD-to-mesh preprocessing with traceable entity identities.
-  status_rationale: Package skeleton created. CAD import introduces geometry-kernel and source-file variability, so C04 currently registers only a static generated-smoke contract with schema/config/package validation, entity-map expectations, and healing-operation visibility.
+  status_rationale: Package skeleton created. CAD import introduces geometry-kernel and source-file variability, so C04 currently registers schema/config/package validation plus generated BREP and STEP export/re-open smokes with entity-map expectations and healing-operation visibility. This is runtime smoke evidence for redistributable generated CAD fixtures, not an external CAD healing benchmark.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema exposes CAD format, unit policy, import tolerance, healing operations, entity-map expectations, and entity rebinding rules.
@@ -60,10 +60,10 @@ integration_targets:
   package_entrypoint: science_capability_registry.gmsh.cad_import_geometry_healing:run
   runtime_target: _results/gmsh/cad_import_geometry_healing/
 intern_deliverables:
-- Extend the generated-smoke contract into one small CAD smoke file or generated CAD runtime with redistributable provenance.
+- Maintain generated BREP and STEP smoke fixtures with redistributable provenance.
 - Keep import tolerance, healing operations, and physical group rebinding in config.
 - Maintain entity-map summary before mesh generation.
-- Maintain failure cases for unassigned faces, duplicate/sliver entities, and entity-map loss.
+- Add external/repo CAD fixture failure cases for unassigned faces, duplicate/sliver entities, and entity-map loss before benchmark promotion.
 - Keep large CAD files and generated meshes out of Git.
 card_status: review
 benchmark_status: package_skeleton_created

@@ -156,7 +156,7 @@ def validate_export_contract(config: dict[str, Any]) -> dict[str, Any]:
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
-        "scope": "Gmsh multi-solver export/import contract; no solver import command execution",
+        "scope": "Gmsh multi-solver export/import contract with replay/lightweight importer observations",
         "checks": checks,
         "details": {
             "target_ids": target_ids,

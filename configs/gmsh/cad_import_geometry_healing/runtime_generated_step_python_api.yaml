@@ -1,0 +1,96 @@
+capability_id: meshing.gmsh.cad_import_geometry_healing
+case_id: runtime_generated_step_python_api
+description: Gmsh Python API generated STEP export/import smoke with entity-map rebinding.
+gmsh:
+  runtime_profile: cad_healing_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: python_api
+  timeout_s: 120
+cad_source:
+  source_kind: generated_smoke
+  cad_format: step
+  source_ref: generated://rectangle-channel-2d-step
+  unit: m
+  import_tolerance_m: 1.0e-6
+  provenance: generated STEP exported and re-opened by the C04 runtime smoke
+healing_operations:
+- operation_id: sew_faces
+  operation: sew_faces
+  enabled: true
+  tolerance_m: 1.0e-6
+- operation_id: remove_duplicates
+  operation: remove_duplicates
+  enabled: true
+  tolerance_m: 1.0e-6
+entity_map_expectations:
+  imported_entities:
+    points: 4
+    curves: 4
+    surfaces: 1
+    volumes: 0
+  modified_entity_count: 0
+  deleted_entity_count: 0
+  new_entity_count: 0
+  critical_faces:
+  - entity_id: inlet_curve
+    physical_group: inlet
+    role: inlet
+    assigned: true
+  - entity_id: outlet_curve
+    physical_group: outlet
+    role: outlet
+    assigned: true
+  - entity_id: wall_curves
+    physical_group: wall
+    role: wall
+    assigned: true
+physical_group_rebinding:
+  required_groups:
+  - inlet
+  - outlet
+  - wall
+  unassigned_entity_count: 0
+  duplicate_or_sliver_count: 0
+meshability_thresholds:
+  max_unassigned_entity_count: 0
+  max_duplicate_or_sliver_count: 0
+outputs:
+  output_dir: _results/gmsh/cad_import_geometry_healing/runtime_generated_step_python_api
+  expected_outputs:
+  - cad_import_manifest.json
+  - entity_map.json
+  - healing_report.json
+  - meshability_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  required_physical_groups:
+  - inlet
+  - outlet
+  - wall
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - cad_source
+  - healing_operations
+  - entity_map_expectations
+  - physical_group_rebinding
+  - meshability_thresholds
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - cad_import_manifest.json
+  - entity_map.json
+  - healing_report.json
+  - meshability_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

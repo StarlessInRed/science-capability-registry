@@ -1,5 +1,7 @@
 # Gmsh C02-C06 Runtime Smoke Closure
 
+> 2026-07-02 P1 update: 本报告是第一轮 runtime/replay closure；后续 `reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md` 已补 fresh OpenFOAM import backed observation、generated STEP smoke 和 `meshio_fem_import`。本报告中的 replay/fixture 限制保留为历史边界。
+
 ## 结论
 
 Gmsh C02-C06 已在 static-ready package skeleton 之外补齐一轮最小 runtime/replay smoke 证据。此轮不把所有能力提升为 benchmark validated；它的目的，是把真实 Gmsh Python API、已有 OpenFOAM import 证据、generated CAD smoke 和 multi-solver consumability fixture 串起来，证明下一阶段可以从 static contract 进入 runtime promotion。

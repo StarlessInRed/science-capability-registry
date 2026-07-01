@@ -17,8 +17,8 @@ SCHEMA_ID = "schemas/gmsh_C06_multi_solver_mesh_export_contract.schema.json"
 
 def _resolve_observation(config: dict[str, Any], observation: dict[str, Any]) -> dict[str, Any]:
     path = repo_relative_path(observation["source_summary_path"])
-    data = json.loads(path.read_text(encoding="utf-8"))
     if observation["summary_kind"] == "openfoam_downstream_import":
+        data = json.loads(path.read_text(encoding="utf-8"))
         poly_mesh = data.get("polyMesh", {})
         counts = poly_mesh.get("counts", {})
         return {
@@ -31,6 +31,7 @@ def _resolve_observation(config: dict[str, Any], observation: dict[str, Any]) ->
             "structural_checks": poly_mesh.get("structural_checks", {}),
         }
     if observation["summary_kind"] == "gmsh_mesh_summary_fixture":
+        data = json.loads(path.read_text(encoding="utf-8"))
         level_summaries = data.get("level_summaries", [])
         selected = level_summaries[-1] if level_summaries else {}
         physical_groups = selected.get("physical_groups", {})
@@ -45,6 +46,34 @@ def _resolve_observation(config: dict[str, Any], observation: dict[str, Any]) ->
                 "has_nodes": int(selected.get("node_count", 0)) > 0,
                 "has_elements": int(selected.get("element_count", 0)) > 0,
                 "coordinates_finite": selected.get("coordinates_finite") is True,
+            },
+        }
+    if observation["summary_kind"] == "meshio_fem_import":
+        try:
+            import meshio
+        except ModuleNotFoundError as exc:
+            raise RuntimeError("meshio is required for C06 meshio_fem_import observations.") from exc
+        mesh = meshio.read(path)
+        cell_counts = {cell_block.type: int(len(cell_block.data)) for cell_block in mesh.cells}
+        boundary_names = sorted(
+            name
+            for name in mesh.cell_sets_dict
+            if name != "gmsh:bounding_entities"
+        )
+        element_count = sum(cell_counts.values())
+        return {
+            "target_id": observation["target_id"],
+            "summary_kind": observation["summary_kind"],
+            "source_summary_path": observation["source_summary_path"],
+            "status": observation["expected_status"] if mesh.points.size and element_count else "failed",
+            "boundary_names": boundary_names,
+            "element_count": element_count,
+            "cell_counts": cell_counts,
+            "structural_checks": {
+                "has_points": int(len(mesh.points)) > 0,
+                "has_cells": element_count > 0,
+                "has_field_data": bool(mesh.field_data),
+                "has_named_cell_sets": bool(boundary_names),
             },
         }
     raise ValueError(f"Unsupported import observation kind: {observation['summary_kind']!r}")
@@ -92,7 +121,7 @@ def _write_export_artifacts(output_dir: Path, config: dict[str, Any]) -> list[st
         "successful_import_count": sum(1 for item in observations if item.get("status") == "passed"),
         "targets": config["export_targets"],
         "observations": observations,
-        "scope": "replay/fixture observations; no new downstream solver command executed by C06",
+        "scope": "OpenFOAM replay plus lightweight downstream importer observations; no downstream physics solve executed by C06",
     }
     (output_dir / "solver_import_summary.json").write_text(json.dumps(import_summary, indent=2), encoding="utf-8")
     return ["export_manifest.json", "format_matrix.csv", "solver_import_summary.json"]
@@ -119,8 +148,13 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
             "static-contract:build export_manifest.json",
             "static-contract:build format_matrix.csv",
             "static-contract:build solver_import_summary.json",
+            *(
+                f"meshio:read {item['source_summary_path']}"
+                for item in config.get("import_observations", [])
+                if item["summary_kind"] == "meshio_fem_import"
+            ),
         ],
-        "scope": "static multi-solver export contract; no import command execution",
+        "scope": "multi-solver export contract with replay/lightweight importer observations",
     }
 
 

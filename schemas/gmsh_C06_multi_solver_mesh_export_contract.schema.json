@@ -113,7 +113,7 @@
         "required": ["target_id", "summary_kind", "source_summary_path", "expected_status"],
         "properties": {
           "target_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-          "summary_kind": {"enum": ["openfoam_downstream_import", "gmsh_mesh_summary_fixture"]},
+          "summary_kind": {"enum": ["openfoam_downstream_import", "gmsh_mesh_summary_fixture", "meshio_fem_import"]},
           "source_summary_path": {"type": "string", "minLength": 1},
           "expected_status": {"const": "passed"}
         }

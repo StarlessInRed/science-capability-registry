@@ -64,15 +64,17 @@ def _run_python_api(output_dir: Path, config: dict[str, Any]) -> tuple[dict[str,
     length = 4.0
     height = 1.0
     output_dir.mkdir(parents=True, exist_ok=True)
-    brep_path = output_dir / "generated_rectangle.brep"
+    cad_format = config["cad_source"]["cad_format"]
+    cad_suffix = ".step" if cad_format == "step" else ".brep"
+    cad_path = output_dir / f"generated_rectangle{cad_suffix}"
     gmsh.initialize()
     try:
         gmsh.model.add("c04_export")
         gmsh.model.occ.addRectangle(0.0, 0.0, 0.0, length, height)
         gmsh.model.occ.synchronize()
-        gmsh.write(str(brep_path))
+        gmsh.write(str(cad_path))
         gmsh.clear()
-        gmsh.open(str(brep_path))
+        gmsh.open(str(cad_path))
         gmsh.model.occ.synchronize()
         for operation in config["healing_operations"]:
             if operation["enabled"] and operation["operation"] == "remove_duplicates":
@@ -125,10 +127,11 @@ def _run_python_api(output_dir: Path, config: dict[str, Any]) -> tuple[dict[str,
     )
     _write_cad_artifacts(output_dir, runtime_config)
     runtime_summary = {
-        "generated_brep": str(brep_path),
+        "generated_cad": str(cad_path),
+        "cad_format": cad_format,
         "entities": entities,
         "assigned_groups": assigned_groups,
-        "scope": "generated BREP export and re-open smoke",
+        "scope": f"generated {cad_format.upper()} export and re-open smoke",
     }
     (output_dir / "cad_import_manifest.json").write_text(
         json.dumps(
@@ -141,7 +144,7 @@ def _run_python_api(output_dir: Path, config: dict[str, Any]) -> tuple[dict[str,
         ),
         encoding="utf-8",
     )
-    return runtime_config, ["generated_rectangle.brep", "cad_import_manifest.json", "entity_map.json", "healing_report.json", "meshability_summary.json"]
+    return runtime_config, [cad_path.name, "cad_import_manifest.json", "entity_map.json", "healing_report.json", "meshability_summary.json"]
 
 
 def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: list[str]) -> dict[str, Any]:

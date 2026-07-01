@@ -1091,3 +1091,144 @@ evidence:
   - C02 and part of C06 replay existing OpenFOAM import evidence instead of rerunning OpenFOAM commands.
   - C06 FEM-oriented target is a Gmsh mesh-summary fixture parser, not a true FEniCSx or CalculiX runtime.
   - C04 uses generated BREP export/re-open smoke, not an external CAD healing benchmark.
+- evidence_id: gmsh_C02_boundary_physical_group_contract_runtime_smoke_2026-07-02
+  capability_id: meshing.gmsh.boundary_physical_group_contract
+  asset_path: software/gmsh/assets/C02_boundary_physical_group_contract.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112.yaml
+  - configs/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112.yaml
+  - src/science_capability_registry/gmsh/boundary_physical_group_contract/runner.py
+  runtime_evidence_paths:
+  - _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112/
+  - _results/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112/
+  scope: C02 boundary physical group smoke backed by a freshly regenerated C01 OpenFOAM gmshToFoam import summary.
+  limitations:
+  - Boundary contract smoke only; no downstream CFD physics validation is claimed.
+- evidence_id: gmsh_C03_mesh_refinement_quality_trend_runtime_smoke_2026-07-02
+  capability_id: meshing.gmsh.mesh_refinement_quality_trend
+  asset_path: software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/mesh_refinement_quality_trend/runtime_rectangle_channel_python_api.yaml
+  - src/science_capability_registry/gmsh/mesh_refinement_quality_trend/runner.py
+  - src/science_capability_registry/gmsh/mesh_summary.py
+  runtime_evidence_paths:
+  - _results/gmsh/mesh_refinement_quality_trend/runtime_rectangle_channel_python_api/
+  scope: C03 Gmsh Python API refinement smoke with coarse, baseline, and fine meshes plus mesh-quality summaries.
+  limitations:
+  - Mesh-quality smoke only; no downstream solver accuracy validation is claimed.
+- evidence_id: gmsh_C04_cad_import_geometry_healing_runtime_smoke_2026-07-02
+  capability_id: meshing.gmsh.cad_import_geometry_healing
+  asset_path: software/gmsh/assets/C04_cad_import_geometry_healing.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/cad_import_geometry_healing/runtime_generated_occ_python_api.yaml
+  - configs/gmsh/cad_import_geometry_healing/runtime_generated_step_python_api.yaml
+  - src/science_capability_registry/gmsh/cad_import_geometry_healing/runner.py
+  runtime_evidence_paths:
+  - _results/gmsh/cad_import_geometry_healing/runtime_generated_occ_python_api/
+  - _results/gmsh/cad_import_geometry_healing/runtime_generated_step_python_api/
+  scope: C04 generated BREP and STEP export/re-open CAD smoke with entity-map rebinding.
+  limitations:
+  - Generated CAD fixture smoke only; external CAD healing benchmark remains future promotion work.
+- evidence_id: gmsh_C05_boundary_layer_size_field_meshing_runtime_smoke_2026-07-02
+  capability_id: meshing.gmsh.boundary_layer_size_field_meshing
+  asset_path: software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/boundary_layer_size_field_meshing/runtime_distance_threshold_python_api.yaml
+  - src/science_capability_registry/gmsh/boundary_layer_size_field_meshing/runner.py
+  - src/science_capability_registry/gmsh/mesh_summary.py
+  runtime_evidence_paths:
+  - _results/gmsh/boundary_layer_size_field_meshing/runtime_distance_threshold_python_api/
+  scope: C05 Gmsh Distance/Threshold size-field runtime smoke for near-wall refinement.
+  limitations:
+  - Does not claim CFD y+ band or wall-function certification.
+- evidence_id: gmsh_C06_multi_solver_mesh_export_contract_runtime_smoke_2026-07-02
+  capability_id: meshing.gmsh.multi_solver_mesh_export_contract
+  asset_path: software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture.yaml
+  - src/science_capability_registry/gmsh/multi_solver_mesh_export_contract/runner.py
+  - src/science_capability_registry/gmsh/multi_solver_mesh_export_contract/validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture/
+  scope: C06 OpenFOAM import observation plus meshio FEM importer smoke for multi-solver consumability.
+  limitations:
+  - meshio is not a FEniCSx or CalculiX solver runtime; solver-specific physics validation remains downstream work.
+- evidence_id: gmsh_P1_runtime_promotion_closure_2026-07-02
+  capability_id: meshing.gmsh.runtime_promotion_closure
+  asset_path: software/gmsh/capability_map.md
+  evidence_kind: runtime_smoke_closure_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112.yaml
+  - configs/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112.yaml
+  - configs/gmsh/cad_import_geometry_healing/runtime_generated_step_python_api.yaml
+  - configs/gmsh/cad_import_geometry_healing/runtime_generated_occ_python_api.yaml
+  - configs/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture.yaml
+  - src/science_capability_registry/gmsh/cad_import_geometry_healing/runner.py
+  - src/science_capability_registry/gmsh/multi_solver_mesh_export_contract/runner.py
+  runtime_evidence_paths:
+  - _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112/
+  - _results/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112/
+  - _results/gmsh/cad_import_geometry_healing/runtime_generated_step_python_api/
+  - _results/gmsh/cad_import_geometry_healing/runtime_generated_occ_python_api/
+  - _results/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture/
+  scope: Gmsh P1 runtime promotion closure for fresh OpenFOAM import backed C02/C06 observations, generated STEP/BREP CAD smoke, and meshio FEM importer smoke.
+  limitations:
+  - meshio is a lightweight FEM mesh importer, not a FEniCSx or CalculiX solver runtime.
+  - Generated STEP/BREP fixtures do not replace external CAD healing benchmarks.
+  - OpenFOAM import remains local WSL OpenFOAM.com v2112 smoke evidence, not cross-machine double-v.
+- evidence_id: scientific_capability_failure_lessons_2026-07-02
+  capability_id: registry.failure_learning.cross_asset
+  asset_path: reports/scientific_capability_failure_lessons_2026-07-02.md
+  evidence_kind: governance_learning_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/scientific_capability_failure_lessons_2026-07-02.md
+  supporting_paths:
+  - reports/openfoam_failure_ledger.yaml
+  - reports/openfoam_failure_lessons_2026-07-01.md
+  - reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md
+  - reports/evidence_index.yaml
+  runtime_evidence_paths: []
+  scope: Cross-asset failure-learning report distilling OpenFOAM and Gmsh construction failures into reusable rules for Fluent and MATLAB-driven COMSOL.
+  limitations:
+  - Governance and learning evidence only; does not add new solver validation.
+- evidence_id: openfoam_C01_C08_final_freeze_review_2026-07-02
+  capability_id: cfd.openfoam.final_freeze_review
+  asset_path: software/openfoam/capability_map.md
+  evidence_kind: governance_closure_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C01_C08_final_freeze_review_2026-07-02.md
+  supporting_paths:
+  - software/openfoam/capability_map.md
+  - software/openfoam/examples_index.md
+  - reports/openfoam_failure_ledger.yaml
+  - reports/openfoam_C01_C08_case_freeze_closure_2026-07-01.md
+  - reports/openfoam_C01_C08_pause_closure_2026-07-01.md
+  runtime_evidence_paths: []
+  scope: Final OpenFOAM C01-C08 freeze review before moving to Fluent and MATLAB-driven COMSOL asset directions.
+  limitations:
+  - Freezes current registry-local case scope only; does not claim all external benchmarks or double-v gates are complete.

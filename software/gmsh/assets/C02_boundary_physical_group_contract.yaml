@@ -44,13 +44,13 @@ benchmark:
   source_name: Gmsh physical groups and elementary entities documentation
   source_type: official documentation
   benchmark_role: Candidate benchmark for proving that mesh boundary names and roles survive generation and downstream solver import.
-  status_rationale: Package skeleton created. C01 already proves basic physical-group generation and OpenFOAM import smoke; C02 now separates the boundary semantic contract from geometry generation with schema/config/package dry-run validation so future solvers can reject missing, renamed, duplicated, or dimension-mismatched groups before runtime.
+  status_rationale: Package skeleton created. C01 already proves basic physical-group generation and OpenFOAM import smoke; C02 now separates the boundary semantic contract from geometry generation with schema/config/package validation, negative validation, and a fresh-import-backed OpenFOAM boundary replay so future solvers can reject missing, renamed, duplicated, or dimension-mismatched groups before runtime.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema exposes physical group name, dimension, solver-facing role, required/optional status, and downstream aliases.
 - Validation must reject missing required groups, duplicate names with conflicting dimensions, and unknown downstream roles.
 - Current static-readiness gate must write manifest.json, physical_group_map.json, boundary_contract.json, metrics.json, validation.json, and validation_report.md with validation.passed=true.
-- Downstream import smoke must prove boundary names survive conversion into at least one solver format before benchmark validation promotion.
+- Downstream import smoke currently proves boundary names survive conversion into OpenFOAM polyMesh; benchmark validation promotion still requires broader solver-family or perturbation evidence.
 - Reports must separate Gmsh physical-group generation success from downstream solver boundary-condition validity.
 integration_targets:
   workflow_stage: meshing.gmsh.boundary_physical_group_contract
@@ -61,7 +61,7 @@ intern_deliverables:
 - Extend the current schema/config for additional solver families after OpenFOAM mapping is stable.
 - Keep dry-run manifest validation before solver import.
 - Maintain negative tests for missing, duplicated, renamed, and dimension-mismatched boundary groups.
-- Add at least one downstream import smoke after schema validation is stable.
-- Promote only after downstream import evidence exists; current catalog status is static_ready, not benchmark_validated.
+- Maintain the fresh OpenFOAM import backed replay and add renamed-boundary negative replay before promotion.
+- Keep current catalog status below benchmark_validated until solver-family coverage or perturbation evidence exists.
 card_status: review
 benchmark_status: package_skeleton_created

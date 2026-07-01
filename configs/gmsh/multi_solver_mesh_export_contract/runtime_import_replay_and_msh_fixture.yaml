@@ -1,6 +1,6 @@
 capability_id: meshing.gmsh.multi_solver_mesh_export_contract
 case_id: runtime_import_replay_and_msh_fixture
-description: Replay OpenFOAM import evidence and a Gmsh mesh-summary fixture as C06 multi-solver consumability smoke evidence.
+description: Replay freshly regenerated OpenFOAM import evidence and run meshio FEM import over a Gmsh .msh file as C06 multi-solver consumability smoke evidence.
 gmsh:
   runtime_profile: multi_solver_export_contract
   source_url: https://gmsh.info/doc/texinfo/gmsh.html
@@ -33,7 +33,7 @@ export_targets:
   - wall
   expected_element_count_min: 240
   max_element_count_delta_fraction: 0.02
-- target_id: gmsh_msh_fixture_fem
+- target_id: meshio_msh_fem_import
   solver_family: fem
   target_solver: generic
   export_format: msh2
@@ -47,11 +47,11 @@ export_targets:
 import_observations:
 - target_id: openfoam_gmshToFoam
   summary_kind: openfoam_downstream_import
-  source_summary_path: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112_20260630_003/downstream_import_summary.json
+  source_summary_path: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112/downstream_import_summary.json
   expected_status: passed
-- target_id: gmsh_msh_fixture_fem
-  summary_kind: gmsh_mesh_summary_fixture
-  source_summary_path: _results/gmsh/mesh_refinement_quality_trend/runtime_rectangle_channel_python_api/mesh_quality_summary.json
+- target_id: meshio_msh_fem_import
+  summary_kind: meshio_fem_import
+  source_summary_path: _results/gmsh/mesh_refinement_quality_trend/runtime_rectangle_channel_python_api/levels/fine/case.msh
   expected_status: passed
 outputs:
   output_dir: _results/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture
@@ -67,7 +67,7 @@ validation:
   gate: smoke
   required_target_ids:
   - openfoam_gmshToFoam
-  - gmsh_msh_fixture_fem
+  - meshio_msh_fem_import
   required_boundary_names:
   - inlet
   - outlet

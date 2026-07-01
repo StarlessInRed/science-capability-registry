@@ -38,3 +38,12 @@ Gmsh C02-C06 均已进入 static-ready package skeleton，并具备一轮最小 
 3. C06：用 C02+C03 的稳定 mesh 做真实多求解器 export/import smoke。
 4. C05：接入真实 boundary-layer/size-field generation，服务 CFD wall-adjacent mesh。
 5. C04：接入真实 CAD import/healing runtime，因为来源格式和几何异常更多，需要更强 failure ledger。
+
+## 2026-07-02 P1 runtime promotion closure
+
+- C02：已由本轮重新执行的 C01 OpenFOAM `gmshToFoam` import 支撑 boundary contract replay。
+- C03：已接入真实 Gmsh Python API mesh quality summary，形成 refinement runtime smoke。
+- C06：已由 OpenFOAM import observation 加 `meshio_fem_import` 形成两类 solver-family consumability smoke。
+- C05：已接入 Distance/Threshold size-field runtime，服务 CFD wall-adjacent mesh；不声称 y+ 合格。
+- C04：已接入 generated BREP 和 generated STEP import/re-open runtime；外部 CAD healing benchmark 仍是 promotion work。
+- 证据入口：`reports/gmsh_P1_runtime_promotion_closure_2026-07-02.md`。

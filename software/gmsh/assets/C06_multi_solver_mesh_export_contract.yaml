@@ -46,13 +46,13 @@ benchmark:
   source_name: Gmsh mesh formats and solver import evidence
   source_type: official documentation plus downstream solver smoke candidates
   benchmark_role: Candidate benchmark for proving that Gmsh-generated meshes are consumable by more than one solver ecosystem.
-  status_rationale: Package skeleton created. C01 already has OpenFOAM import and solve smoke, and C06 now generalizes that evidence into a config-first multi-solver export/import contract while keeping true import smokes separate from static-readiness.
+  status_rationale: Package skeleton created. C01 already has OpenFOAM import and solve smoke, and C06 now generalizes that evidence into a config-first multi-solver export/import contract with fresh-import-backed OpenFOAM replay plus meshio FEM importer smoke. This proves lightweight multi-family consumability, while solver-specific physics and FEniCSx/CalculiX runtime remain downstream promotion work.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema exposes source mesh, export formats, solver targets, unit policy, orientation policy, and import smoke status.
 - Validation must compare physical group preservation and element count deltas across exported formats.
 - Current static-readiness gate must write export_manifest.json, format_matrix.csv, solver_import_summary.json, manifest.json, metrics.json, validation.json, and validation_report.md with validation.passed=true.
-- At least one downstream import smoke must pass before runtime_smoke_passed; at least two solver families should pass before benchmark_validated.
+- At least two solver-family import observations now pass at smoke level; benchmark validation promotion still requires stronger solver-specific importer/runtime evidence or downstream physics links.
 - Solver-specific physics results must remain outside C06 unless a downstream solver validation report is linked.
 integration_targets:
   workflow_stage: meshing.gmsh.multi_solver_mesh_export_contract
@@ -60,7 +60,7 @@ integration_targets:
   package_entrypoint: science_capability_registry.gmsh.multi_solver_mesh_export_contract:run
   runtime_target: _results/gmsh/multi_solver_mesh_export_contract/
 intern_deliverables:
-- Extend the current export matrix covering OpenFOAM plus one FEM-oriented target with true import smoke evidence.
+- Extend the current export matrix from OpenFOAM plus meshio FEM import toward FEniCSx or CalculiX runtime when those dependencies are available.
 - Reuse C02 physical group contract and C03 quality metrics instead of redefining them.
 - Implement import smoke summaries with boundary-name and element-count checks.
 - Record format-specific failure modes in a report.
