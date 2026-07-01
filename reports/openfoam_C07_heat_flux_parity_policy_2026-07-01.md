@@ -19,13 +19,14 @@ The packaged MHR baseline and perturbation matrix pass short-horizon integration
 - the horizon is short, around `Time=2`
 - heat-flux evidence is proxy or field-derived
 - native `postProcess wallHeatFlux` fails on local v2112 with sha1 IO behavior
+- v2412 solver-postProcess `wallHeatFlux` now runs for all packaged regions and writes native fields, but two-sided native heat-rate parity is not yet validated
 - cpuCabinet remains a known failing diagnostic path and is not the packaged baseline
 
 ## Policy
 
 Benchmark promotion requires one of these heat-flux closures:
 
-- native wallHeatFlux works on a selected OpenFOAM profile for all required regions
+- native wallHeatFlux works on a selected OpenFOAM profile for all required regions and is parsed into two-sided heat-rate parity evidence
 - independent face-field heat-rate integration is cross-validated against native or external reference evidence
 
 In addition, C07 needs:
@@ -39,5 +40,5 @@ In addition, C07 needs:
 
 - Do not treat short-horizon proxy heat flux as native heat-flux conservation.
 - Keep face-field integration as mitigation until parity is documented.
-- Add a heat-flux parity config/report before asset promotion.
+- Add parsed heat-rate parity or an independent reference comparison before asset promotion.
 - Add longer steady convergence and energy balance evidence before `benchmark_validated`.

@@ -38,12 +38,22 @@
 - total-energy imbalance proxy: `0.011272417945887505` vs threshold `0.02` -> passed
 - numeric source artifact: `postprocess/boundary_flux_summary.csv`
 
+## Face-Field Flux Parity
+
+- method: `face_field_integration`
+- included patches: `inlet`, `outlet`, `bottom`, `top`, `obstacle`
+- mass imbalance: `0.025244076037939014`
+- total-energy imbalance: `0.011272779328549172`
+- field sources: `8` boundaryField values and `12` explicit owner-cell fallbacks
+- numeric source artifact: `postprocess/face_flux_parity_summary.csv`
+- status: passed for smoke-level face-field parity artifact completeness
+
 ## Status Conclusion
 
-The reduced-CFL runtime smoke now closes the previous C08 card blockers for local solver execution, max-Courant control, leading-shock jump sanity, smoke-level accepted-baseline reference targets, and boundary-flux proxy artifact completeness. C08 still must not be promoted to `benchmark_validated` because the configured shock-position and jump targets are local smoke samples, not external or independently reviewed references, and boundary-flux evidence is an owner-cell Python proxy rather than native OpenFOAM flux parity.
+The reduced-CFL runtime smoke now closes the previous C08 card blockers for local solver execution, max-Courant control, leading-shock jump sanity, smoke-level accepted-baseline reference targets, boundary-flux owner-cell proxy completeness, and face-field flux integration artifact completeness. C08 still must not be promoted to `benchmark_validated` because the configured shock-position and jump targets are local smoke samples, not external or independently reviewed references, and flux evidence is not native OpenFOAM `rhoPhi/phi` functionObject parity.
 
 ## Remaining Work
 
 - Replace the local smoke reference targets with external or independently reviewed shock position, pressure jump, and density jump references before benchmark promotion.
-- Add native OpenFOAM flux parity or face-field sampling parity for the boundary-flux proxy.
+- Add native OpenFOAM flux parity if benchmark promotion requires native `rhoPhi/phi` evidence beyond the current face-field integration artifact.
 - Add a separate downstream/reflected-compression metric if that structure is required beyond the leading-shock smoke gate.

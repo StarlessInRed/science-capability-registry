@@ -40,13 +40,14 @@ Current state:
 
 - local short-horizon dam-break validation is retained
 - v2412 replay has passed
-- native sampling parity is missing
-- full-horizon/free-surface reference comparison is missing
+- v2412 native sampleSets artifact evidence has passed
+- v2412 1.0 s full-horizon runtime has passed
+- sampleSets VTP field-value parity is missing
+- external full-horizon free-surface reference comparison is missing
 
 Required before double-v claim:
 
-- native or independent sampling parity
-- full-horizon front propagation evidence
+- native sampleSets value parity or independent sampling parity
 - external dam-break reference comparison
 
 ## Decision

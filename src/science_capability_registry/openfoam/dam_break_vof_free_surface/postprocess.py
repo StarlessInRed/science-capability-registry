@@ -79,6 +79,36 @@ def read_front_csv(path: str | Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def summarize_native_sampling(output_dir: Path) -> dict[str, Any]:
+    sample_root = output_dir / "case" / "postProcessing" / "sampleSets"
+    if not sample_root.exists():
+        return {
+            "available": False,
+            "reason": "case/postProcessing/sampleSets was not generated",
+            "sample_root": str(sample_root),
+        }
+    files = sorted(path for path in sample_root.rglob("*") if path.is_file())
+    time_dirs = sorted(path for path in sample_root.iterdir() if path.is_dir())
+    gauge_ids = sorted({path.stem for path in files})
+    time_values = []
+    for path in time_dirs:
+        try:
+            time_values.append(float(path.name))
+        except ValueError:
+            continue
+    return {
+        "available": bool(files),
+        "sample_root": str(sample_root),
+        "sample_file_count": len(files),
+        "time_dir_count": len(time_dirs),
+        "numeric_time_count": len(time_values),
+        "latest_time_s": max(time_values) if time_values else None,
+        "gauge_ids": gauge_ids,
+        "file_extensions": sorted({path.suffix for path in files}),
+        "note": "Native OpenFOAM sampleSets presence/count check only; binary VTP field-value parity is intentionally not claimed here.",
+    }
+
+
 def write_vof_metrics(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     case_dir = output_dir / "case"
     cells = load_cell_geometry(case_dir)
@@ -138,4 +168,5 @@ def write_vof_metrics(config: dict[str, Any], output_dir: Path) -> dict[str, Any
             "gauge_interface_height_history": {"path": str(gauge_path), "row_count": len(gauge_rows)},
             "free_surface_profile_final": {"path": str(surface_path), "row_count": len(surface_rows)},
         },
+        "native_sampling": summarize_native_sampling(output_dir),
     }

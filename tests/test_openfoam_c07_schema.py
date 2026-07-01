@@ -15,6 +15,9 @@ CONFIG_PATH = Path("configs/openfoam/conjugate_heat_transfer_cooling/baseline_cp
 MHR_CONFIG_PATH = Path(
     "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml"
 )
+MHR_V2412_CONFIG_PATH = Path(
+    "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2412.yaml"
+)
 
 
 def _baseline_config() -> dict:
@@ -28,7 +31,7 @@ def test_openfoam_c07_configs_match_schema() -> None:
     for path in paths:
         config = load_case_config(path)
         assert config["capability_id"] == "cfd.openfoam.conjugate_heat_transfer_cooling"
-        assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2112_cht"
+        assert config["openfoam"]["runtime_profile"] in {"openfoam_com_v2112_cht", "openfoam_com_v2412_cht"}
         assert config["openfoam"]["case_layout"] == "legacy_cht_multi_region"
         assert config["solver"]["name"] == "chtMultiRegionSimpleFoam"
         assert config["regions"]["fluid"]
@@ -79,6 +82,22 @@ def test_openfoam_c07_schema_accepts_multi_region_heater_radiation_profile() -> 
     assert config["postprocess"]["interface_heat_flux_field_summary"] is True
     assert config["postprocess"]["heat_flux_validation"]["source"] == "face_field_integration"
     assert config["postprocess"]["heat_flux_validation"]["parity_status"] == "not_configured"
+
+
+def test_openfoam_c07_schema_accepts_v2412_heater_radiation_viewfactors_path() -> None:
+    config = load_case_config(MHR_V2412_CONFIG_PATH)
+
+    assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2412_cht"
+    assert config["radiation"]["preprocessing_commands"] == [
+        "viewFactorsGen -region bottomAir",
+        "viewFactorsGen -region topAir",
+    ]
+    assert "chtMultiRegionSimpleFoam -postProcess -region bottomAir -func wallHeatFlux -latestTime" in config[
+        "postprocess"
+    ]["command_sequence"]
+    assert "postProcess -region bottomAir -func wallHeatFlux -latestTime" not in config["postprocess"]["command_sequence"]
+    assert "case/constant/bottomAir/mapDist" in config["radiation"]["required_generated_files"]
+    assert "case/0/bottomAir/facesAgglomeration" not in config["radiation"]["required_generated_files"]
 
 
 def test_openfoam_c07_schema_accepts_heater_radiation_perturbation_matrix_configs() -> None:

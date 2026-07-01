@@ -128,6 +128,23 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     check("volume.relative_error", _is_finite(volume.get("relative_error")) and abs(float(volume["relative_error"])) <= float(config["validation"]["max_water_volume_relative_error"]), json.dumps(volume, ensure_ascii=False))
     front = post.get("front", {})
     check("front.position_finite", _is_finite(front.get("front_x_m")) and float(front["front_x_m"]) > 0.0, json.dumps(front, ensure_ascii=False))
+    sampling = config["validation"]["sampling_parity"]
+    native_sampling = post.get("native_sampling", {})
+    if sampling["native_sampling_enabled"]:
+        check(
+            "sampling.native_sample_sets",
+            native_sampling.get("available") is True
+            and int(native_sampling.get("sample_file_count", 0)) > 0
+            and int(native_sampling.get("numeric_time_count", 0)) > 0,
+            json.dumps(native_sampling, ensure_ascii=False),
+        )
+    full_horizon = config["validation"]["full_horizon"]
+    if full_horizon["status"] == "passed" or full_horizon["required_for_gate"]:
+        check(
+            "full_horizon.final_time",
+            _is_finite(final_time) and float(final_time) >= float(full_horizon["reference_horizon_s"]) - 1e-12,
+            f"final_time={final_time}, reference_horizon_s={full_horizon['reference_horizon_s']}",
+        )
     for rel_path in config["validation"]["required_generated_files"]:
         path = output_dir / rel_path
         check(f"artifact.generated.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
@@ -170,6 +187,9 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
         "",
         "## Scope",
         "",
-        "This report validates one local OpenFOAM.com v2112 WSL dam-break case with Python alpha-field postprocess. It is not an external experimental validation.",
+        (
+            f"This report validates one local OpenFOAM.com {config['openfoam']['version']} WSL dam-break case "
+            "with Python alpha-field postprocess. It is not an external experimental validation."
+        ),
     ]
     (output_dir / "validation_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

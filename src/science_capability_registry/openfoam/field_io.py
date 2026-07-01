@@ -113,6 +113,40 @@ def read_boundary_scalars(path: str | Path, patch_name: str, entry_name: str = "
     return values
 
 
+def read_boundary_vectors(
+    path: str | Path,
+    patch_name: str,
+    entry_name: str = "value",
+    expected_count: int | None = None,
+) -> list[tuple[float, float, float]]:
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    boundary_match = re.search(r"boundaryField\s*\{", text)
+    if boundary_match is None:
+        raise ValueError(f"Could not locate boundaryField in {path}")
+    patch_body = _extract_named_block(text, patch_name, boundary_match.end() - 1)
+    uniform = re.search(
+        rf"\b{re.escape(entry_name)}\s+uniform\s+\(\s*({FLOAT_RE})\s+({FLOAT_RE})\s+({FLOAT_RE})\s*\)\s*;",
+        patch_body,
+    )
+    if uniform is not None:
+        value = (float(uniform.group(1)), float(uniform.group(2)), float(uniform.group(3)))
+        return [value] * expected_count if expected_count is not None else [value]
+    marker = re.search(rf"\b{re.escape(entry_name)}\s+nonuniform\s+List<vector>", patch_body)
+    if marker is None:
+        raise ValueError(f"Could not locate vector boundary entry {entry_name!r} for patch {patch_name!r} in {path}")
+    count, lines = _extract_counted_lines(patch_body, marker.end())
+    vectors: list[tuple[float, float, float]] = []
+    for line in lines:
+        match = VECTOR_RE.search(line)
+        if match is not None:
+            vectors.append((float(match.group(1)), float(match.group(2)), float(match.group(3))))
+    if len(vectors) != count:
+        raise ValueError(f"Expected {count} boundary vectors in {path}, found {len(vectors)}")
+    if expected_count is not None and len(vectors) != expected_count:
+        raise ValueError(f"Expected {expected_count} boundary vectors for patch {patch_name!r} in {path}, found {len(vectors)}")
+    return vectors
+
+
 def read_internal_vectors(path: str | Path) -> list[tuple[float, float, float]]:
     text = Path(path).read_text(encoding="utf-8", errors="replace")
     uniform = re.search(rf"internalField\s+uniform\s+\(\s*({FLOAT_RE})\s+({FLOAT_RE})\s+({FLOAT_RE})\s*\)\s*;", text)

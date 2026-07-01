@@ -162,6 +162,7 @@ outputs:
   - postprocess/shock_metrics.json
   - postprocess/conservation_summary.json
   - postprocess/boundary_flux_summary.csv
+  - postprocess/face_flux_parity_summary.csv
 validation:
   gate: smoke
   max_courant: 0.1

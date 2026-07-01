@@ -11,7 +11,13 @@ from typing import Any
 from science_capability_registry.openfoam.field_io import read_internal_scalars, read_internal_vectors
 from science_capability_registry.openfoam.template_case import execute_command_sequence
 
-from .postprocess import compute_boundary_flux_conservation_proxy, summarize_field_extrema, write_conservation_summary, write_shock_metrics
+from .postprocess import (
+    compute_boundary_flux_conservation_proxy,
+    compute_face_field_flux_parity,
+    summarize_field_extrema,
+    write_conservation_summary,
+    write_shock_metrics,
+)
 from .validation import validate_runtime_metrics
 
 FLOAT_RE = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
@@ -109,7 +115,8 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         shock_metrics = {"available": False, "reason": str(exc)}
     try:
         conservation_details = compute_boundary_flux_conservation_proxy(config, output_dir)
-        conservation = write_conservation_summary(output_dir, conservation_details)
+        flux_parity = compute_face_field_flux_parity(config, output_dir)
+        conservation = write_conservation_summary(output_dir, conservation_details, flux_parity=flux_parity)
     except (FileNotFoundError, ValueError, IndexError, ZeroDivisionError) as exc:
         conservation = write_conservation_summary(output_dir, details={"reason": str(exc)})
     logs = {Path(item["log"]).name: item["log"] for item in runtime.get("commands", [])}

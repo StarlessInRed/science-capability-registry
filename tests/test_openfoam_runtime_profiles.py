@@ -23,6 +23,7 @@ def test_openfoam_runtime_profile_catalog_validates() -> None:
     assert "openfoam_com_v2112" in profile_ids
     assert "openfoam_com_v2112_cht" in profile_ids
     assert "openfoam_com_v2412" in profile_ids
+    assert "openfoam_com_v2412_cht" in profile_ids
 
 
 def test_openfoam_runtime_profile_v2112_bindings() -> None:
@@ -95,6 +96,21 @@ def test_openfoam_runtime_profile_v2112_cht_bindings() -> None:
     assert "viewFactorsGen" in profile["required_executables"]
     assert "mpirun" in profile["required_executables"]
     assert "c07_cpu_cabinet" in profile["tutorial_roots"]
+    assert "c07_multi_region_heater_radiation" in profile["tutorial_roots"]
+
+
+def test_openfoam_runtime_profile_v2412_cht_bindings() -> None:
+    profile = load_runtime_profile(
+        Path("configs/openfoam/runtime_profiles/openfoam_com_v2412_cht.yaml")
+    )
+
+    assert profile["profile_id"] == "openfoam_com_v2412_cht"
+    assert profile["distribution"] == "openfoam_com"
+    assert profile["version_label"] == "v2412"
+    assert profile["case_layout"] == "legacy_cht_multi_region"
+    assert profile["backend"]["parallel"] is True
+    assert profile["executable_bindings"]["cht_steady"] == "chtMultiRegionSimpleFoam"
+    assert "postProcess" in profile["required_executables"]
     assert "c07_multi_region_heater_radiation" in profile["tutorial_roots"]
 
 

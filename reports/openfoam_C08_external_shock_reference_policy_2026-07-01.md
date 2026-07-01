@@ -17,6 +17,7 @@ The reduced-CFL runtime closes smoke-level execution:
 - local leading-shock position and jump sanity pass
 - artifact completeness passes
 - boundary flux owner-cell proxy is available
+- face-field flux integration parity artifact is available
 
 This does not close benchmark promotion. The current shock reference is a local accepted-baseline smoke sample, not an external benchmark or independent reference.
 
@@ -27,17 +28,17 @@ Promotion requires:
 - external or independently reviewed shock position target
 - external or independently reviewed pressure jump target
 - external or independently reviewed density jump target
-- native OpenFOAM flux or face-field flux parity against the current owner-cell proxy
+- explicit decision on whether native OpenFOAM `rhoPhi/phi` parity is required beyond the current face-field integration artifact
 
 The promotion gate must reject:
 
 - `source_type: local_runtime_smoke` as promotion-grade evidence
 - `smoke_reference_only` accepted baselines as external reference evidence
-- owner-cell flux proxy without native or face-field parity
+- owner-cell flux proxy alone when face-field/native parity is required
 
 ## Next Acceptance Checks
 
 - Add promotion-grade reference config fields or a dedicated config.
 - Preserve local accepted-baseline samples as smoke-only evidence.
-- Add native/face-field flux parity runtime or postprocess test.
+- Keep current face-field flux parity runtime/postprocess evidence; add native flux parity only if required for promotion.
 - Add mesh or Mach perturbation trend if the external reference requires sensitivity evidence.

@@ -69,12 +69,13 @@ outputs:
   - alpha_bounds_history.csv
   - gauge_interface_height_history.csv
   - free_surface_profile_final.csv
+  - native sampleSets artifacts when enabled
 benchmark:
   source_name: OpenFOAM.com Tutorial Guide 4.1, Breaking of a dam
   source_type: official tutorial
   tutorial_path: $FOAM_TUTORIALS/multiphase/interFoam/laminar/damBreak/damBreak
   benchmark_role: Official benchmark candidate for a reusable VOF free-surface OpenFOAM capability.
-  status_rationale: Local WSL OpenFOAM.com v2112 execution now has a config-first template runner, four-case integration matrix, solver logs, metrics.json, validation.json, alpha-field CSV postprocess, plots, and pytest coverage. OpenFOAM sampling include is disabled because this local OpenFOAM.com v2112 WSL profile emits sha1 IO errors, including ext4 probe paths; Python alpha postprocess is used and reported as a residual risk.
+  status_rationale: Local WSL OpenFOAM.com v2112 execution now has a config-first template runner, four-case integration matrix, solver logs, metrics.json, validation.json, alpha-field CSV postprocess, plots, and pytest coverage. The original v2112 profile keeps OpenFOAM sampling disabled because it emits sha1 IO errors, including ext4 probe paths; Python alpha postprocess is used and reported as a residual risk. A later OpenFOAM.com v2412 replay adds native sampleSets artifact evidence and a 1.0 s full-horizon runtime, while still not claiming external dam-break double-v validation.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112
     wsl_distro: Ubuntu-24.04
@@ -90,6 +91,15 @@ benchmark:
     - plots/front_position_history.png
     - plots/water_volume_error_history.png
     status: integration_matrix_passed
+  v2412_followup_evidence:
+  - report: reports/openfoam_C06_sampling_full_horizon_v2412_2026-07-01.md
+    scope: native sampleSets artifact presence/count check
+    status: passed
+    result_root: _results/openfoam/dam_break_vof_free_surface/sampling_parity_wsl_v2412/
+  - report: reports/openfoam_C06_sampling_full_horizon_v2412_2026-07-01.md
+    scope: full-horizon 1.0 s damBreak runtime
+    status: passed
+    result_root: _results/openfoam/dam_break_vof_free_surface/full_horizon_wsl_v2412/
 validation_criteria:
 - Config schema must reject unknown top-level keys and must fix solver to interFoam.
 - Runner must copy the official damBreak tutorial template, restore 0.orig to 0, remove unstable sampling include, and patch control, gravity, mesh scale, and initial water box from config.
@@ -98,6 +108,8 @@ validation_criteria:
 - alpha.water must stay finite and bounded within configured tolerances.
 - Water volume relative error must satisfy the configured conservation tolerance.
 - Matrix checks must show mesh refinement keeps same-order front position, half gravity slows the front, and higher water height increases water volume without slowing the front.
+- Native sampling parity configs must prove sampleSets artifacts exist when sampling is enabled; current v2412 evidence checks file/time/gauge presence only.
+- Full-horizon configs must reach the declared reference horizon before passing the integration gate.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.dam_break_vof_free_surface:run
   input_schema: schemas/openfoam_C06_dam_break_vof_free_surface.schema.json
@@ -105,7 +117,7 @@ integration_targets:
   runtime_target: _results/openfoam/dam_break_vof_free_surface/
 intern_deliverables:
 - Maintain config-first OpenFOAM C06 runner and matrix configs.
-- Add full-horizon and external dam-break reference comparison before claiming double-v validation.
-- Extend sampling/functionObject support only after the local sha1 IO failure is resolved.
+- Add external dam-break reference comparison before claiming double-v validation.
+- Extend native sampling beyond artifact presence into VTP field-value parity before using sampleSets as numerical reference evidence.
 card_status: accepted
 benchmark_status: benchmark_validated

@@ -14,6 +14,8 @@ from science_capability_registry.openfoam.field_io import (
     expand_uniform_vectors,
     load_cell_geometry,
     read_boundary,
+    read_boundary_scalars,
+    read_boundary_vectors,
     read_faces,
     read_internal_scalars,
     read_internal_vectors,
@@ -418,23 +420,179 @@ def compute_boundary_flux_conservation_proxy(config: dict[str, Any], output_dir:
     }
 
 
+def _boundary_scalar_or_owner(
+    field_path: Path,
+    patch_name: str,
+    face_indices: range,
+    owners: list[int],
+    owner_values: list[float],
+) -> tuple[list[float], str]:
+    expected_count = len(face_indices)
+    try:
+        return read_boundary_scalars(field_path, patch_name, expected_count=expected_count), "boundaryField.value"
+    except ValueError:
+        return [float(owner_values[owners[face_index]]) for face_index in face_indices], "owner_cell_fallback"
+
+
+def _boundary_vector_or_owner(
+    field_path: Path,
+    patch_name: str,
+    face_indices: range,
+    owners: list[int],
+    owner_values: list[tuple[float, float, float]],
+) -> tuple[list[tuple[float, float, float]], str]:
+    expected_count = len(face_indices)
+    try:
+        return read_boundary_vectors(field_path, patch_name, expected_count=expected_count), "boundaryField.value"
+    except ValueError:
+        return [owner_values[owners[face_index]] for face_index in face_indices], "owner_cell_fallback"
+
+
+def compute_face_field_flux_parity(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    case_dir = output_dir / "case"
+    time_dir = _latest_time_dir(case_dir)
+    cells = load_cell_geometry(case_dir)
+    cell_count = len(cells)
+    poly_dir = case_dir / "constant" / "polyMesh"
+    points = read_points(poly_dir / "points")
+    faces = read_faces(poly_dir / "faces")
+    owners = read_label_list(poly_dir / "owner")
+    boundary = read_boundary(poly_dir / "boundary")
+    final_fields = _read_case_fields(case_dir, time_dir)
+    gamma = float(config["thermophysical_properties"]["gamma"])
+    cv = 1.0 / (gamma * (gamma - 1.0))
+
+    p_internal = expand_uniform_scalars(final_fields["p"], cell_count)
+    t_internal = expand_uniform_scalars(final_fields["T"], cell_count)
+    u_internal = expand_uniform_vectors(final_fields["U"], cell_count)
+    rho_field = final_fields.get("rho")
+    rho_internal = expand_uniform_scalars(rho_field, cell_count) if rho_field is not None else _rho_from_pressure_temperature(p_internal, t_internal, gamma)
+
+    p_path = time_dir / "p"
+    t_path = time_dir / "T"
+    u_path = time_dir / "U"
+    rho_path = time_dir / "rho"
+    rows: list[dict[str, Any]] = []
+    source_counts: dict[str, int] = {}
+    for patch_name, patch in boundary.items():
+        if patch.get("type") == "empty":
+            continue
+        start = int(patch["startFace"])
+        stop = start + int(patch["nFaces"])
+        face_indices = range(start, stop)
+        p_values, p_source = _boundary_scalar_or_owner(p_path, patch_name, face_indices, owners, p_internal)
+        t_values, t_source = _boundary_scalar_or_owner(t_path, patch_name, face_indices, owners, t_internal)
+        if rho_path.exists():
+            rho_values, rho_source = _boundary_scalar_or_owner(rho_path, patch_name, face_indices, owners, rho_internal)
+        else:
+            rho_values = _rho_from_pressure_temperature(p_values, t_values, gamma)
+            rho_source = "derived_from_boundary_p_T"
+        u_values, u_source = _boundary_vector_or_owner(u_path, patch_name, face_indices, owners, u_internal)
+        for source in [p_source, t_source, rho_source, u_source]:
+            source_counts[source] = source_counts.get(source, 0) + 1
+
+        mass_flux = 0.0
+        energy_flux = 0.0
+        gross_mass_flux = 0.0
+        gross_energy_flux = 0.0
+        for offset, face_index in enumerate(face_indices):
+            owner = owners[face_index]
+            face_points = [points[item] for item in faces[face_index]]
+            face_center = _mean_point(face_points)
+            area_vector = _face_area_vector(face_points)
+            if _dot(area_vector, _sub(face_center, cells[owner].center)) < 0.0:
+                area_vector = _mul(area_vector, -1.0)
+            velocity = u_values[offset]
+            face_mass_flux = float(rho_values[offset]) * _dot(velocity, area_vector)
+            kinetic = 0.5 * _dot(velocity, velocity)
+            specific_total_enthalpy_proxy = (
+                cv * float(t_values[offset])
+                + kinetic
+                + float(p_values[offset]) / max(float(rho_values[offset]), 1e-30)
+            )
+            face_energy_flux = face_mass_flux * specific_total_enthalpy_proxy
+            mass_flux += face_mass_flux
+            energy_flux += face_energy_flux
+            gross_mass_flux += abs(face_mass_flux)
+            gross_energy_flux += abs(face_energy_flux)
+        rows.append(
+            {
+                "patch": patch_name,
+                "patch_type": patch.get("type", ""),
+                "face_count": int(patch["nFaces"]),
+                "mass_flux": mass_flux,
+                "energy_flux": energy_flux,
+                "gross_mass_flux": gross_mass_flux,
+                "gross_energy_flux": gross_energy_flux,
+                "p_source": p_source,
+                "T_source": t_source,
+                "rho_source": rho_source,
+                "U_source": u_source,
+            }
+        )
+
+    net_mass_flux = sum(float(row["mass_flux"]) for row in rows)
+    gross_mass_flux = sum(float(row["gross_mass_flux"]) for row in rows)
+    net_energy_flux = sum(float(row["energy_flux"]) for row in rows)
+    gross_energy_flux = sum(float(row["gross_energy_flux"]) for row in rows)
+    mass_imbalance = _relative_flux_imbalance(net_mass_flux, gross_mass_flux)
+    energy_imbalance = _relative_flux_imbalance(net_energy_flux, gross_energy_flux)
+    flux_path = output_dir / "postprocess" / "face_flux_parity_summary.csv"
+    _write_csv(
+        flux_path,
+        [
+            "patch",
+            "patch_type",
+            "face_count",
+            "mass_flux",
+            "energy_flux",
+            "gross_mass_flux",
+            "gross_energy_flux",
+            "p_source",
+            "T_source",
+            "rho_source",
+            "U_source",
+        ],
+        rows,
+    )
+    return {
+        "available": True,
+        "method": "face_field_integration",
+        "time_dir": str(time_dir),
+        "included_patches": [str(row["patch"]) for row in rows],
+        "net_mass_flux": net_mass_flux,
+        "gross_mass_flux": gross_mass_flux,
+        "boundary_flux_mass_imbalance": mass_imbalance,
+        "net_energy_flux": net_energy_flux,
+        "gross_energy_flux": gross_energy_flux,
+        "boundary_flux_total_energy_imbalance": energy_imbalance,
+        "face_flux_path": str(flux_path),
+        "field_source_counts": source_counts,
+        "limitation": "Face-field parity integrates final-time boundaryField values where present, with explicit owner-cell fallback for gradient-only patches; it is independent of native rhoPhi/phi functionObjects.",
+    }
+
+
 def write_conservation_summary(
     output_dir: Path,
     details: dict[str, Any] | None = None,
+    flux_parity: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     owner_cell_proxy = {
         "available": bool(details) and details.get("method") == "boundary_flux_owner_cell_proxy",
     }
     if details:
         owner_cell_proxy.update(details)
+    parity = {
+        "available": False,
+        "method": "not_configured",
+        "reason": "face-field flux integration was generated for this run; native OpenFOAM rhoPhi/phi functionObject parity is not claimed",
+    }
+    if flux_parity:
+        parity.update(flux_parity)
     summary = {
         "available": owner_cell_proxy["available"],
         "owner_cell_proxy": owner_cell_proxy,
-        "flux_parity": {
-            "available": False,
-            "method": "not_configured",
-            "reason": "native OpenFOAM face flux or independently reviewed face-field parity has not been generated for this run",
-        },
+        "flux_parity": parity,
     }
     path = output_dir / "postprocess" / "conservation_summary.json"
     path.parent.mkdir(parents=True, exist_ok=True)

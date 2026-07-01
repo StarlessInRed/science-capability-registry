@@ -277,7 +277,7 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         "method": "not_configured",
         "status": heat_flux_validation.get("parity_status", "not_configured"),
         "source_type": heat_flux_validation.get("parity_source_type", "none"),
-        "reason": "No native wallHeatFlux or independent heat-flux parity artifact is configured.",
+        "reason": "Parsed two-sided heat-rate parity is not configured; native wallHeatFlux field generation alone is tracked through command and expected-output checks.",
     }
     return {
         "schema_version": "openfoam_c07_metrics_v1",

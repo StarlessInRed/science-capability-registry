@@ -250,7 +250,42 @@ evidence:
   - _results/openfoam/dam_break_vof_free_surface/
   scope: Local OpenFOAM C06 VOF dam-break benchmark validation.
   limitations:
-  - Native sampling parity and full-horizon free-surface reference remain pending.
+  - External or independent dam-break reference comparison remains pending.
+  - v2412 native sampling artifact and full-horizon follow-up evidence are indexed separately.
+- evidence_id: openfoam_C06_sampling_parity_wsl_v2412_2026-07-01
+  capability_id: cfd.openfoam.dam_break_vof_free_surface
+  asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml
+  evidence_kind: targeted_regression_report
+  gate: targeted-regression
+  status: passed
+  primary_evidence_path: reports/openfoam_C06_sampling_full_horizon_v2412_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/dam_break_vof_free_surface/sampling_parity_wsl_v2412.yaml
+  - schemas/openfoam_C06_dam_break_vof_free_surface.schema.json
+  - src/science_capability_registry/openfoam/dam_break_vof_free_surface/postprocess.py
+  - src/science_capability_registry/openfoam/dam_break_vof_free_surface/runtime.py
+  runtime_evidence_paths:
+  - _results/openfoam/dam_break_vof_free_surface/sampling_parity_wsl_v2412/
+  scope: OpenFOAM.com v2412 C06 damBreak runtime emits native sampleSets artifacts with gauge ids and numeric time directories.
+  limitations:
+  - VTP field-value parity is not parsed or claimed; this is native sampling artifact presence/count evidence only.
+- evidence_id: openfoam_C06_full_horizon_wsl_v2412_2026-07-01
+  capability_id: cfd.openfoam.dam_break_vof_free_surface
+  asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml
+  evidence_kind: integration_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/openfoam_C06_sampling_full_horizon_v2412_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/dam_break_vof_free_surface/full_horizon_wsl_v2412.yaml
+  - schemas/openfoam_C06_dam_break_vof_free_surface.schema.json
+  - src/science_capability_registry/openfoam/dam_break_vof_free_surface/runtime.py
+  - src/science_capability_registry/openfoam/dam_break_vof_free_surface/postprocess.py
+  runtime_evidence_paths:
+  - _results/openfoam/dam_break_vof_free_surface/full_horizon_wsl_v2412/
+  scope: OpenFOAM.com v2412 C06 damBreak full-horizon 1.0 s runtime passes final-time, alpha boundedness, water-volume, front-position, and artifact checks.
+  limitations:
+  - This is still local runtime evidence, not external experimental dam-break validation.
 - evidence_id: openfoam_C01_C03_C06_v2412_cross_profile_replay_2026-07-01
   capability_id: cfd.openfoam.cross_profile_regression
   asset_path: software/openfoam/examples_index.md
@@ -270,7 +305,7 @@ evidence:
   scope: OpenFOAM.com v2412 replay for C01, C03, and C06 passes on this host, separating the stable benchmark capabilities from v2112-local limitations observed in other OpenFOAM cards.
   limitations:
   - This is same-host cross-profile replay, not independent external double-v evidence.
-  - C01 still lacks external centerline reference; C03 and C06 still rely on Python proxy postprocess paths for some native functionObject/sampling parity gaps.
+  - C01 still lacks external centerline reference; C03 still relies on Python proxy paths for wall-function evidence; C06 native sampleSets value parity remains separate from the current artifact-presence check.
 - evidence_id: openfoam_C07_runtime_smoke_attempt_2026-06-30
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
@@ -491,6 +526,26 @@ evidence:
   limitations:
   - This is failed diagnostic evidence, not native heat-flux validation.
   - C07 remains proxy-only for heat-flux evidence until another runtime/version or independent reference path succeeds.
+- evidence_id: openfoam_C07_v2412_native_wallHeatFlux_smoke_2026-07-01
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C07_v2412_native_wallHeatFlux_smoke_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2412.yaml
+  - configs/openfoam/runtime_profiles/openfoam_com_v2412_cht.yaml
+  - schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runner.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/runtime.py
+  - src/science_capability_registry/openfoam/conjugate_heat_transfer_cooling/postprocess.py
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2412/
+  scope: OpenFOAM.com v2412 packaged multiRegionHeaterRadiation smoke follows the official viewFactorsGen path, solves to Time=2, and writes native wallHeatFlux fields through solver post-processing for all configured regions.
+  limitations:
+  - Native field generation is not yet parsed into benchmark-grade two-sided heat-rate parity.
+  - Short-horizon smoke does not establish steady CHT convergence or external/reference heat-transfer validation.
 - evidence_id: openfoam_C08_static_readiness_2026-06-30
   capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
   asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
@@ -508,7 +563,7 @@ evidence:
   scope: C08 schema, config, package entrypoint, dry-run manifest, and shock metric unit-test readiness.
   limitations:
   - This static-readiness report predates the runtime attempt and does not itself contain solver runtime evidence.
-  - Passing reduced-CFL runtime evidence is now recorded separately; benchmark promotion still requires external shock references and native or face-field flux parity.
+  - Passing reduced-CFL runtime and face-field flux evidence is now recorded separately; benchmark promotion still requires external shock references.
 - evidence_id: openfoam_C08_runtime_smoke_attempt_2026-06-30
   capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
   asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
@@ -566,7 +621,26 @@ evidence:
   scope: C08 reduced-CFL config now carries accepted-baseline shock position and jump-ratio samples sufficient for smoke-level reference closure.
   limitations:
   - Accepted-baseline samples come from local runtime smoke, not an external benchmark.
-  - Native or face-field flux parity remains required before benchmark promotion.
+  - Native OpenFOAM flux parity remains separate from the current face-field integration evidence if required for benchmark promotion.
+- evidence_id: openfoam_C08_face_field_flux_parity_2026-07-01
+  capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
+  asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C08_face_field_flux_parity_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml
+  - reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/postprocess.py
+  - src/science_capability_registry/openfoam/compressible_shock_capturing_forward_step/runtime.py
+  - src/science_capability_registry/openfoam/field_io.py
+  runtime_evidence_paths:
+  - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
+  scope: C08 reduced-CFL runtime now emits face-field flux integration parity metrics and face_flux_parity_summary.csv in addition to the owner-cell boundary-flux proxy.
+  limitations:
+  - Face-field integration is not native OpenFOAM rhoPhi/phi functionObject parity.
+  - External or independently reviewed shock reference targets are still required before benchmark promotion.
 - evidence_id: openfoam_C04_v2412_motorbike_snap_probe_2026-07-01
   capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
   asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
@@ -647,9 +721,9 @@ evidence:
   - reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_integration_matrix_2026-06-30.md
   runtime_evidence_paths:
   - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_003/
-  scope: C07 heat-flux policy separates short-horizon proxy integration evidence from native or independent heat-flux parity required for benchmark promotion.
+  scope: C07 heat-flux policy separates short-horizon proxy integration and v2412 native wallHeatFlux field-generation evidence from parsed native or independent heat-flux parity required for benchmark promotion.
   limitations:
-  - Policy evidence only; native wallHeatFlux remains failed on local v2112.
+  - Policy evidence only; native wallHeatFlux field generation now passes on v2412 but parsed two-sided heat-rate parity remains pending.
 - evidence_id: openfoam_C08_external_shock_reference_policy_2026-07-01
   capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
   asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
@@ -662,7 +736,7 @@ evidence:
   - reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
   runtime_evidence_paths:
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
-  scope: C08 policy keeps local accepted-baseline shock samples smoke-only and requires external or independent shock reference plus native or face-field flux parity for promotion.
+  scope: C08 policy keeps local accepted-baseline shock samples smoke-only and requires external or independent shock reference; native flux parity remains separate from the current face-field integration evidence if required for promotion.
   limitations:
   - Policy evidence only; benchmark promotion remains blocked.
 - evidence_id: openfoam_C01_C03_C06_double_v_policy_2026-07-01

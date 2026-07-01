@@ -340,7 +340,9 @@
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
       "evidence_ids": [
-        "openfoam_C06_benchmark_validation"
+        "openfoam_C06_benchmark_validation",
+        "openfoam_C06_sampling_parity_wsl_v2412_2026-07-01",
+        "openfoam_C06_full_horizon_wsl_v2412_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -376,7 +378,8 @@
         "openfoam_C07_kEpsilon_closure_diagnostic_2026-06-30",
         "openfoam_C07_multiRegionHeaterRadiation_short_smoke_2026-06-30",
         "openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30",
-        "openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30"
+        "openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30",
+        "openfoam_C07_v2412_native_wallHeatFlux_smoke_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -407,7 +410,8 @@
       "evidence_ids": [
         "openfoam_C08_static_readiness_2026-06-30",
         "openfoam_C08_runtime_smoke_attempt_2026-06-30",
-        "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
+        "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01",
+        "openfoam_C08_face_field_flux_parity_2026-07-01"
       ],
       "result_contract": {
         "required_files": [

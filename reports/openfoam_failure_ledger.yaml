@@ -346,32 +346,38 @@ entries:
   work_queue_status: gap
   gate_blocked: double-v
   benchmark_status_effect: benchmark_validated_retained
-  summary: C06 is benchmark_validated for the registry-local short-horizon integration scope, but native sampling parity, full-horizon behavior, and external dam-break reference comparison are still missing.
-  owner_next_action: Add native or independent sampling parity plus full-horizon front propagation and external dam-break reference comparison.
+  summary: C06 is benchmark_validated for the registry-local short-horizon integration scope; v2412 now adds native sampleSets artifact evidence and a 1.0 s full-horizon runtime, but external dam-break reference comparison and VTP field-value parity are still missing.
+  owner_next_action: Add VTP sampling field-value parity or independent sampling comparison plus external dam-break front/probe reference comparison.
   blocked_by:
-  - native_sampling_parity
-  - full_horizon_reference
+  - sampling_field_value_parity
+  - external_dam_break_reference
   evidence_refs:
   - evidence_id: openfoam_C06_benchmark_validation
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C01_C03_C06_v2412_cross_profile_replay_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C06_sampling_parity_wsl_v2412_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C06_full_horizon_wsl_v2412_2026-07-01
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C01_C03_C06_double_v_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/dam_break_vof_free_surface/
   - _results/openfoam/dam_break_vof_free_surface/baseline_wsl_v2412/
+  - _results/openfoam/dam_break_vof_free_surface/sampling_parity_wsl_v2412/
+  - _results/openfoam/dam_break_vof_free_surface/full_horizon_wsl_v2412/
   feedback:
     schema_field: sampling_parity, full_horizon, and reference_policy blocks are required in C06 configs
-    validation_guard: local short-horizon integration checks are present; double-v gate requires passed sampling parity, full horizon, and external or independent reference
+    validation_guard: local short-horizon integration, v2412 sampleSets artifact checks, and v2412 full-horizon final-time checks are present; double-v gate still requires external or independent reference
     runner_guard: native sampling include is removed only when config disables native sampling
-    promotion_guard: full-horizon, native sampling parity, and external reference remain blocked from double-v promotion
+    promotion_guard: VTP value parity and external reference remain blocked from double-v promotion
   closure_criteria:
-  - Pass native sampling or independent sampling parity.
-  - Add full-horizon front propagation and external reference comparison.
+  - Parse native sampleSets values or add independent sampling parity.
+  - Add external reference comparison for dam-break front/probe behavior.
   do_not_claim:
-  - Full-horizon dam-break validation.
-  - Native sampling parity.
+  - External full-horizon dam-break validation.
+  - Native sampling value parity.
   - Completed double-v.
   confidence: high
   last_reviewed: '2026-07-01'
@@ -418,17 +424,17 @@ entries:
   cxx_group: C07
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
-  state: active_failure
-  failure_class: setup_evidence_failure
+  state: partially_resolved_on_v2412
+  failure_class: evidence_gap
   priority: P1
   work_queue_status: active
   gate_blocked: double-v
   benchmark_status_effect: keep_benchmark_candidate
-  summary: Packaged MHR baseline and perturbation matrix pass, but native postProcess wallHeatFlux fails for all regions on local v2112 with sha1 IO behavior.
-  owner_next_action: Establish native wallHeatFlux on another profile or independent face-field heat-rate parity before any CHT benchmark promotion.
+  summary: Packaged MHR baseline and perturbation matrix pass; native postProcess wallHeatFlux fails on local v2112, but v2412 solver post-processing now writes wallHeatFlux fields for all packaged regions. Benchmark promotion still lacks parsed two-sided heat-rate parity and longer convergence evidence.
+  owner_next_action: Parse v2412 native wallHeatFlux into two-sided heat-rate parity or cross-validate face-field heat-rate integration against an independent reference before any CHT benchmark promotion.
   blocked_by:
-  - native_wallHeatFlux_profile
-  - independent_heat_flux_parity
+  - parsed_native_heat_rate_parity
+  - independent_heat_flux_reference
   - steady_energy_balance
   evidence_refs:
   - evidence_id: openfoam_C07_native_wall_heat_flux_diagnostic_2026-07-01
@@ -437,18 +443,21 @@ entries:
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C07_heat_flux_parity_policy_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C07_v2412_native_wallHeatFlux_smoke_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112/
   - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_003/
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2412/
   feedback:
-    parser: patch proxy and face-field heat-rate integration are present, but native wallHeatFlux remains failed
+    parser: patch proxy and face-field heat-rate integration are present; v2412 native wallHeatFlux fields are generated but not yet parsed into parity metrics
     schema_field: heat-flux source, evidence role, promotion policy, parity status, and parity source fields present
     validation_guard: proxy and field integration checks are present; bare face-field integration is rejected for promotion without native/external/independent parity evidence
     test_regression: proxy-only rejection, bare face-field rejection, cross-validated face-field acceptance, and field heat-rate tests present
-    config_contract: native wallHeatFlux not claimed in MHR configs; MHR heat-flux evidence is marked mitigation_only
+    config_contract: v2412 native wallHeatFlux smoke is explicit; MHR heat-flux parity remains mitigation_only
     promotion_guard: benchmark_candidate retained until native/reference heat-flux parity and convergence pass
   closure_criteria:
-  - Pass native wallHeatFlux for all required regions, or establish independent heat-flux parity.
+  - Parse native wallHeatFlux or establish independent heat-flux parity.
   - Add steady convergence and regional energy-balance evidence.
   do_not_claim:
   - Native heat-flux conservation.
@@ -517,7 +526,7 @@ entries:
   - _results/openfoam/compressible_shock_capturing_forward_step/baseline_runtime_smoke_wsl_v2112/
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
   feedback:
-    parser: owner-cell conservation proxy written with flux_parity explicitly unavailable
+    parser: owner-cell conservation proxy and face-field flux integration are written, with native rhoPhi/phi still not claimed
     schema_field: shock reference, provenance, review status, and flux parity policy fields present
     validation_guard: smoke and promotion gates are split; promotion requires reviewed external or independent reference provenance and native/face flux parity policy
     test_regression: tests reject local smoke reference, local accepted-baseline promotion, missing flux policy, and bad flux parity
@@ -541,16 +550,16 @@ entries:
   work_queue_status: active
   gate_blocked: double-v
   benchmark_status_effect: keep_package_skeleton_created
-  summary: Reduced-CFL smoke passes with local accepted-baseline shock samples, but benchmark promotion remains blocked by missing external or independent shock reference and native or face-field flux parity.
-  owner_next_action: Add external or independently reviewed shock-position/jump targets and verify owner-cell flux proxy against native or face-field flux parity.
+  summary: Reduced-CFL smoke passes with local accepted-baseline shock samples and now emits face-field flux integration evidence, but benchmark promotion remains blocked by missing external or independent shock reference and, if required, native OpenFOAM flux parity.
+  owner_next_action: Add external or independently reviewed shock-position/jump targets and decide whether native rhoPhi/phi parity is required beyond the current face-field flux artifact.
   blocked_by:
   - external_shock_reference
-  - native_or_face_field_flux_parity
+  - native_flux_parity_if_required
   observed:
     shock_position_m: 0.425
     pressure_jump_ratio: 7.623675555555555
     density_jump_ratio: 3.2820011603091723
-    flux_evidence: boundary_flux_owner_cell_proxy
+    flux_evidence: boundary_flux_owner_cell_proxy_plus_face_field_integration
   evidence_refs:
   - evidence_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01
     evidence_level: repo_stable_report
@@ -558,18 +567,20 @@ entries:
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C08_external_shock_reference_policy_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C08_face_field_flux_parity_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
   feedback:
-    parser: owner-cell proxy is parsed, flux_parity remains unavailable
+    parser: owner-cell proxy and face-field flux integration are parsed; native rhoPhi/phi functionObject parity is still not claimed
     schema_field: source_type, source_url_or_path, extraction_method, review_status, and flux_parity_policy fields present
-    validation_guard: benchmark promotion requires reviewed external or independent reference provenance plus native/face flux parity policy
+    validation_guard: benchmark promotion requires reviewed external or independent reference provenance; native flux parity remains explicit if required beyond face-field evidence
     test_regression: tests reject local accepted-baseline promotion, missing flux policy, local smoke provenance, and bad flux parity
     config_contract: cfl_reduced is smoke_reference_only with local_smoke_only provenance
     promotion_guard: explicit and tested
   closure_criteria:
   - Add external or independently reviewed shock position, pressure jump, and density jump targets.
-  - Validate owner-cell boundary flux proxy against native OpenFOAM flux or face-field integration parity.
+  - Validate current face-field flux evidence against native OpenFOAM flux only if native flux is required for the promotion gate.
   - Add mesh or Mach perturbation trend if needed before double-v.
   do_not_claim:
   - External shock benchmark.
@@ -624,26 +635,28 @@ work_queue:
   - OF-C07-F002-native-wallHeatFlux-sha1-failed
   - OF-C07-L001-MHR-short-horizon-proxy-only-mitigation
   title: C07 heat-flux parity and steady-energy closure
-  action: Establish native wallHeatFlux on a working profile or independent face-field heat-rate parity, then extend steady convergence and regional energy balance checks.
+  action: Convert the v2412 native wallHeatFlux smoke into parsed two-sided heat-rate parity or independent reference parity, then extend steady convergence and regional energy balance checks.
   acceptance_checks:
   - Proxy heat-flux evidence remains marked as mitigation only.
   - Native or independent heat-rate parity is required for benchmark promotion.
   - Steady convergence and energy-balance evidence are recorded separately from short-horizon smoke.
   expected_evidence:
   - reports/openfoam_C07_heat_flux_parity_policy_2026-07-01.md
+  - reports/openfoam_C07_v2412_native_wallHeatFlux_smoke_2026-07-01.md
   - tests/test_openfoam_c07_validation.py
 - queue_id: OF-WQ-005
   priority: P1
   entry_failure_ids:
   - OF-C08-G001-external-shock-reference-and-native-flux-gap
   title: C08 external shock reference and flux parity
-  action: Add external or independently reviewed shock-position/jump references and validate owner-cell flux proxy against native or face-field flux evidence.
+  action: Add external or independently reviewed shock-position/jump references and decide whether native rhoPhi/phi parity is required beyond the current face-field flux evidence.
   acceptance_checks:
   - Local accepted-baseline shock samples remain smoke-only.
   - Promotion gate rejects missing external/independent reference provenance.
   - Flux parity is unavailable, failed, or passed explicitly; it is not inferred from owner-cell proxy alone.
   expected_evidence:
   - reports/openfoam_C08_external_shock_reference_policy_2026-07-01.md
+  - reports/openfoam_C08_face_field_flux_parity_2026-07-01.md
   - tests/test_openfoam_c08_validation.py
 - queue_id: OF-WQ-006
   priority: P2
@@ -652,10 +665,11 @@ work_queue:
   - OF-C03-G001-native-wall-shear-yplus-and-external-rans-gap
   - OF-C06-G001-native-sampling-full-horizon-double-v-gap
   title: C01/C03/C06 double-v follow-up
-  action: Convert current v2412 cross-profile replay from local robustness evidence into external-reference or independent-parity double-v work.
+  action: Convert current v2412 cross-profile replay plus C06 sampling/full-horizon evidence from local robustness evidence into external-reference or value-parity double-v work.
   acceptance_checks:
   - C01 gains centerline reference and mesh/time independence checks.
   - C03 gains wall-function parity and external RANS comparison.
-  - C06 gains native/independent sampling parity and full-horizon front reference.
+  - C06 gains native sampleSets value parity and external full-horizon front/probe reference.
   expected_evidence:
   - reports/openfoam_C01_C03_C06_double_v_policy_2026-07-01.md
+  - reports/openfoam_C06_sampling_full_horizon_v2412_2026-07-01.md

@@ -18,8 +18,18 @@ def test_openfoam_c06_configs_match_schema() -> None:
         config = load_case_config(path)
         assert config["capability_id"] == "cfd.openfoam.dam_break_vof_free_surface"
         assert config["solver"]["name"] == "interFoam"
-        assert config["validation"]["sampling_parity"]["status"] == "profile_disabled"
-        assert config["validation"]["full_horizon"]["status"] == "short_horizon_only"
+        if path.name == "sampling_parity_wsl_v2412.yaml":
+            assert config["validation"]["sampling_parity"]["status"] == "passed"
+            assert config["validation"]["sampling_parity"]["native_sampling_enabled"] is True
+            assert config["validation"]["matrix_role"] == "sampling_parity"
+        else:
+            assert config["validation"]["sampling_parity"]["status"] == "profile_disabled"
+        if path.name == "full_horizon_wsl_v2412.yaml":
+            assert config["validation"]["full_horizon"]["status"] == "passed"
+            assert config["validation"]["full_horizon"]["reference_horizon_s"] == 1.0
+            assert config["validation"]["matrix_role"] == "full_horizon"
+        else:
+            assert config["validation"]["full_horizon"]["status"] == "short_horizon_only"
         assert config["validation"]["reference_policy"]["status"] == "not_selected"
 
 

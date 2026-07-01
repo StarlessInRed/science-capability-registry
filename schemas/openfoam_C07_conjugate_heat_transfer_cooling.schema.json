@@ -56,10 +56,16 @@
           "const": "openfoam_com"
         },
         "version": {
-          "const": "v2112"
+          "enum": [
+            "v2112",
+            "v2412"
+          ]
         },
         "runtime_profile": {
-          "const": "openfoam_com_v2112_cht"
+          "enum": [
+            "openfoam_com_v2112_cht",
+            "openfoam_com_v2412_cht"
+          ]
         },
         "tutorial_path": {
           "enum": [
@@ -72,7 +78,10 @@
           "minLength": 1
         },
         "bashrc_path": {
-          "const": "/opt/OpenFOAM-v2112/etc/bashrc"
+          "enum": [
+            "/opt/OpenFOAM-v2112/etc/bashrc",
+            "/usr/lib/openfoam/openfoam2412/etc/bashrc"
+          ]
         },
         "case_layout": {
           "const": "legacy_cht_multi_region"
@@ -149,7 +158,9 @@
         "source_path": {
           "enum": [
             "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet",
-            "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation"
+            "/opt/OpenFOAM-v2112/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation",
+            "/usr/lib/openfoam/openfoam2412/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet",
+            "/usr/lib/openfoam/openfoam2412/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation"
           ]
         },
         "geometry_resource_path": {

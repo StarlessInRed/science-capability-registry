@@ -27,8 +27,8 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", f"backend={backend.get('type')!r}")
     _check(
         checks,
-        "runtime_profile.openfoam_com_v2112_cht",
-        manifest.get("runtime_profile") == "openfoam_com_v2112_cht",
+        "runtime_profile.cht_multi_region",
+        manifest.get("runtime_profile") in {"openfoam_com_v2112_cht", "openfoam_com_v2412_cht"},
         str(manifest.get("runtime_profile")),
     )
     _check(

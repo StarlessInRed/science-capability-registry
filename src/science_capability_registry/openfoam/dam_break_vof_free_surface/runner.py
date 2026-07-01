@@ -58,7 +58,7 @@ def _patch_case_files(output_dir: Path, config: dict[str, Any]) -> None:
     text = _replace_assignment(text, "maxAlphaCo", f"{config['numerics']['control']['max_alpha_co']:g}")
     sampling = config["validation"]["sampling_parity"]
     if not sampling["native_sampling_enabled"]:
-        text = re.sub(r"\n#sinclude\s+\"sampling\"\s*", "\n", text)
+        text = re.sub(r"(?m)^\s*#sinclude\s+\"sampling\"\s*$\n?", "", text)
     control.write_text(text, encoding="utf-8")
 
     block_mesh = case_dir / "system" / "blockMeshDict"

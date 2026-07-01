@@ -10,6 +10,7 @@ from science_capability_registry.openfoam.compressible_shock_capturing_forward_s
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step.postprocess import (
     average_state_windows,
     compute_boundary_flux_conservation_proxy,
+    compute_face_field_flux_parity,
     compute_jump_ratios,
     locate_shock_position_from_profile,
     normal_shock_sanity_ratios,
@@ -117,6 +118,12 @@ def test_openfoam_c08_writes_shock_and_conservation_artifacts(tmp_path: Path) ->
             "boundary_flux_total_energy_imbalance_proxy": 0.0,
             "limitation": "fixture",
         },
+        flux_parity={
+            "available": True,
+            "method": "face_field_integration",
+            "boundary_flux_mass_imbalance": 0.0,
+            "boundary_flux_total_energy_imbalance": 0.0,
+        },
     )
 
     assert metrics["available"] is True
@@ -125,7 +132,8 @@ def test_openfoam_c08_writes_shock_and_conservation_artifacts(tmp_path: Path) ->
     assert Path(metrics["path"]).exists()
     assert conservation["available"] is True
     assert conservation["owner_cell_proxy"]["method"] == "boundary_flux_owner_cell_proxy"
-    assert conservation["flux_parity"]["available"] is False
+    assert conservation["flux_parity"]["available"] is True
+    assert conservation["flux_parity"]["method"] == "face_field_integration"
     assert Path(conservation["path"]).exists()
 
 
@@ -211,3 +219,129 @@ outlet
     assert summary["boundary_flux_mass_imbalance_proxy"] == 0.0
     assert summary["boundary_flux_total_energy_imbalance_proxy"] == 0.0
     assert Path(summary["boundary_flux_path"]).exists()
+
+
+def test_openfoam_c08_face_field_flux_parity_uses_boundary_values(tmp_path: Path) -> None:
+    case_dir = tmp_path / "case"
+    poly = case_dir / "constant" / "polyMesh"
+    time_dir = case_dir / "1"
+    poly.mkdir(parents=True)
+    time_dir.mkdir(parents=True)
+    (poly / "points").write_text(
+        """
+8
+(
+(0 0 0)
+(1 0 0)
+(1 1 0)
+(0 1 0)
+(0 0 1)
+(1 0 1)
+(1 1 1)
+(0 1 1)
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "faces").write_text(
+        """
+2
+(
+4(0 4 7 3)
+4(1 2 6 5)
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "owner").write_text(
+        """
+2
+(
+0
+0
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "neighbour").write_text(
+        """
+0
+(
+)
+""",
+        encoding="utf-8",
+    )
+    (poly / "boundary").write_text(
+        """
+2
+(
+inlet
+{
+    type patch;
+    nFaces 1;
+    startFace 0;
+}
+outlet
+{
+    type patch;
+    nFaces 1;
+    startFace 1;
+}
+)
+""",
+        encoding="utf-8",
+    )
+    (time_dir / "p").write_text(
+        """
+internalField uniform 1;
+boundaryField
+{
+    inlet { type fixedValue; value uniform 1; }
+    outlet { type fixedValue; value uniform 1; }
+}
+""",
+        encoding="utf-8",
+    )
+    (time_dir / "T").write_text(
+        """
+internalField uniform 1;
+boundaryField
+{
+    inlet { type fixedValue; value uniform 1; }
+    outlet { type fixedValue; value uniform 1; }
+}
+""",
+        encoding="utf-8",
+    )
+    (time_dir / "rho").write_text(
+        """
+internalField uniform 1;
+boundaryField
+{
+    inlet { type calculated; value uniform 1; }
+    outlet { type calculated; value uniform 1; }
+}
+""",
+        encoding="utf-8",
+    )
+    (time_dir / "U").write_text(
+        """
+internalField uniform (0 0 0);
+boundaryField
+{
+    inlet { type fixedValue; value uniform (1 0 0); }
+    outlet { type fixedValue; value uniform (1 0 0); }
+}
+""",
+        encoding="utf-8",
+    )
+    config = load_case_config("configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml")
+
+    parity = compute_face_field_flux_parity(config, tmp_path)
+
+    assert parity["available"] is True
+    assert parity["method"] == "face_field_integration"
+    assert parity["boundary_flux_mass_imbalance"] == 0.0
+    assert parity["boundary_flux_total_energy_imbalance"] == 0.0
+    assert parity["field_source_counts"]["boundaryField.value"] == 8
+    assert Path(parity["face_flux_path"]).exists()
