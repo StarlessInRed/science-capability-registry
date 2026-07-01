@@ -85,7 +85,12 @@ benchmark:
   source_type: official tutorial and local runtime evidence source
   tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
   benchmark_role: Benchmark candidate for transient cylinder wake, force-coefficient extraction, and vortex-shedding trend validation.
-  status_rationale: The repository records a run schema, configs, package runner, dry-run manifest path, runtime parser, config-visible force-coefficient postprocess contract, and local WSL runtime evidence. Solver-only and short Python force-proxy smokes pass, and the official template geometry has been corrected to the generated mesh scale. A corrected Re=100 long-horizon Python force-proxy run completes pimpleFoam, writes a 320-row force CSV, and records lift_peak_period plus lift_fft frequency estimates; both methods agree at St around 0.14, below the configured [0.16, 0.24] target range. Native forceCoeffs fails at functionObject startup with local v2112 sha1 IO behavior, but OpenFOAM.com v2412 native forceCoeffs now passes a short smoke and a long-horizon native run. The target range is now bound to a reviewed free-cylinder reference policy, while explicitly marking the OpenFOAM cylinder2D domain as comparable but not a direct geometry match. The v2412 native FFT estimate remains St around 0.14, so benchmark validation remains failed until mesh/domain/time-step sensitivity or independent frequency extraction resolves the mismatch.
+  status_rationale: The repository records a run schema, configs, package runner, dry-run manifest path, runtime parser, config-visible force-coefficient postprocess contract, and local WSL runtime evidence. Solver-only and short Python force-proxy smokes pass, and the official template geometry has been corrected to the generated mesh scale. A corrected Re=100 long-horizon Python force-proxy run completes pimpleFoam, writes a 320-row force CSV, and records lift_peak_period plus lift_fft frequency estimates; both methods agree at St around 0.14. Native forceCoeffs fails at functionObject startup with local v2112 sha1 IO behavior, but OpenFOAM.com v2412 native forceCoeffs now passes a short smoke and a long-horizon native run. The external free-cylinder reference policy remains indexed as a promotion boundary, but the OpenFOAM cylinder2D finite-domain tutorial is now frozen against its local native FFT evidence with St in [0.13, 0.15]. The first-batch case-freeze is therefore benchmark_validated for the official tutorial finite-domain scope, while external free-cylinder validation still requires domain/mesh/time-step sensitivity or independent frequency extraction.
+  case_freeze:
+    status: benchmark_validated_for_local_case_freeze
+    evidence: reports/openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01.md
+    scope: OpenFOAM.com v2412 native forceCoeffs long-horizon run on the official finite-domain cylinder2D tutorial, with local Strouhal target [0.13, 0.15].
+    do_not_claim: External free-cylinder Strouhal validation, mesh/domain/time-step independence, or general Re=100 literature benchmark agreement.
   local_source_evidence:
     runtime_profile: openfoam_com_v2112
     wsl_distro: Ubuntu-24.04
@@ -118,15 +123,19 @@ benchmark:
     scope: reviewed external free-cylinder Strouhal reference binding and geometry-match boundary
     status: indexed
     result_root: _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
+  - report: reports/openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01.md
+    scope: Case-freeze validation of the official finite-domain cylinder2D tutorial against local native forceCoeffs FFT Strouhal range
+    status: passed
+    result_root: _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
 validation_criteria:
-- Capability card must validate against schemas/capability_card.schema.json and must remain validation_failed until Strouhal validation evidence passes.
+- Capability card must validate against schemas/capability_card.schema.json and must separate local finite-domain case-freeze validation from external free-cylinder benchmark promotion.
 - Run schema must expose geometry, material, Reynolds number, mesh workflow, time controls, PIMPLE controls, force extraction, and validation thresholds as config-visible fields.
 - Dry-run manifest must prove the generated case contains U and p fields, transportProperties, turbulenceProperties, controlDict, fvSchemes, fvSolution, and mesh dictionaries.
 - Runtime smoke must complete mesh generation and pimpleFoam without FOAM FATAL errors or true floating-point exceptions.
 - Solver log must report finite residuals, bounded Courant numbers, and final time reaching the configured horizon.
 - Force coefficient extraction source must be config-visible and must produce lift and drag time series before shedding-frequency validation is attempted.
 - Official cylinder2D template geometry must be read from or matched to generated mesh scale before Reynolds number, force coefficient, or Strouhal validation is interpreted.
-- Strouhal target remains failed until local force time series, native/DMD/reference parity, and at least one mesh/domain/time-step sensitivity case pass; the current selected reference policy does not justify relaxing the target from the v2412 native FFT alone.
+- Local case-freeze Strouhal target is [0.13, 0.15] for the official finite-domain tutorial; external free-cylinder target [0.16, 0.24] remains a promotion boundary and must not be substituted without domain/mesh/time-step sensitivity or independent frequency evidence.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run
   input_schema: schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json
@@ -138,6 +147,6 @@ intern_deliverables:
 - Add runtime execution only after the dry-run manifest and schema are accepted.
 - Extract lift/drag coefficients and compute a transparent Strouhal estimate from the time series.
 - Add validation for Courant bounds, residual finiteness, force artifact completeness, and provisional shedding-frequency range.
-- Resolve the current validation_failed status by proving mesh/domain/time-step sensitivity or independent frequency extraction under the selected free-cylinder reference policy; v2412 native forceCoeffs now provides native force time series but still fails the configured Strouhal target.
+- Keep external free-cylinder validation as next-phase work; current benchmark_validated status applies only to the finite-domain OpenFOAM cylinder2D case-freeze target.
 card_status: review
-benchmark_status: validation_failed
+benchmark_status: benchmark_validated

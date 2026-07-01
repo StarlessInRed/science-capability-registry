@@ -132,7 +132,7 @@ def test_dispatcher_runner_keys_match_catalog_and_can_dry_run_cantera_c01(tmp_pa
         for entry in plan["entries"]
         if entry["capability_id"] == "cfd.openfoam.compressible_shock_capturing_forward_step"
     )
-    assert openfoam_c08["dispatch_status"] == "runtime_smoke_passed"
+    assert openfoam_c08["dispatch_status"] == "replay_ready"
     assert openfoam_c08["current_gate"] == "smoke"
     assert openfoam_c08["primary_evidence_id"] == "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
     assert openfoam_c08["runtime_profile_path"] == "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml"

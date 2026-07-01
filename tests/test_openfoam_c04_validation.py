@@ -97,6 +97,32 @@ def test_openfoam_c04_runtime_metrics_rejects_mesh_force_and_yplus_failures(tmp_
     assert "yPlus.available" in failed
 
 
+def test_openfoam_c04_runtime_metrics_accepts_case_freeze_yplus_diagnostic(tmp_path: Path) -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_case_freeze_wsl_v2412.yaml")
+    for rel_path in config["outputs"]["expected_outputs"]:
+        if rel_path in {"manifest.json", "validation.json", "validation_report.md"}:
+            continue
+        path = tmp_path / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("ok\n", encoding="utf-8")
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "mesh": {"snappy_completed": True, "mesh_ok": True, "cell_count": 16586, "max_non_orthogonality": 61.0, "max_aspect_ratio": 16.1, "max_skewness": 2.7},
+        "solver": {"started": True, "fatal_error_detected": False, "max_final_residual": 0.073},
+        "postprocess": {
+            "force_coefficients": {"available": True, "cd_tail_mean": 0.29, "cl_tail_mean": 0.27, "cd_tail_std": 0.05, "cl_tail_std": 0.05},
+            "y_plus": {"available": True, "min": 15.441, "max": 3138.67, "mean": 582.21},
+        },
+    }
+
+    validation = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert validation["passed"] is True
+    checks = {item["name"]: item for item in validation["checks"]}
+    assert checks["yPlus.case_freeze_diagnostic"]["passed"] is True
+    assert "yPlus.range" not in checks
+
+
 def test_openfoam_c04_runtime_metrics_solver_only_passes_without_force_or_yplus(tmp_path: Path) -> None:
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_solver_only_wsl_v2112.yaml")
     for rel_path in config["outputs"]["expected_outputs"]:

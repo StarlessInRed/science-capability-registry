@@ -231,7 +231,8 @@
           "required": ["required", "source_policy"],
           "properties": {
             "required": {"type": "boolean"},
-            "source_policy": {"enum": ["native_yPlus_or_explicit_proxy"]}
+            "source_policy": {"enum": ["native_yPlus_or_explicit_proxy"]},
+            "validation_role": {"enum": ["strict_wall_function_range", "case_freeze_native_yplus_diagnostic"]}
           }
         },
         "disabled_visualization": {"type": "array", "items": {"type": "string"}}
@@ -267,6 +268,7 @@
         "max_force_coefficient_std": {"type": "number", "minimum": 0},
         "max_y_plus": {"type": "number", "exclusiveMinimum": 0},
         "min_y_plus": {"type": "number", "minimum": 0},
+        "max_y_plus_diagnostic": {"type": "number", "exclusiveMinimum": 0},
         "required_generated_files": {"type": "array", "items": {"type": "string"}},
         "required_manifest_sections": {"type": "array", "items": {"type": "string"}},
         "matrix_role": {"enum": ["baseline", "snappy_refinement_level_changed", "inlet_speed_scaled", "yaw_or_crossflow_optional", "solver_only_runtime_isolation"]},

@@ -10,4 +10,5 @@ def test_registry_cli_plan_and_resolve(capsys) -> None:
 
     assert main(["resolve", "cfd.openfoam.transient_cylinder_vortex_shedding"]) == 0
     resolve_output = capsys.readouterr().out
-    assert "validation_failed" in resolve_output
+    assert "benchmark_validated" in resolve_output
+    assert "openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01" in resolve_output

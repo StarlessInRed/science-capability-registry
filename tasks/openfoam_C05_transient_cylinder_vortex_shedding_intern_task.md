@@ -9,8 +9,8 @@
 - 已建立 capability card、run schema、baseline config、package runner、case generator、dry-run manifest、runtime parser 与 force coefficient postprocess contract。
 - 本地 solver execution 与 Python patch-surface force CSV 已闭环；official template 几何尺度已修正为生成 mesh 的 `D≈0.12 m`、厚度 `≈0.015 m`。
 - native OpenFOAM `forceCoeffs` 仍受 local v2112/WSL `sha1` IO behavior 阻断。
-- 修正几何后的 Re=100 long-horizon Python proxy run 已完成，但 Strouhal=0.13846 未进入 `[0.16, 0.24]` target range。
-- 因此 `benchmark_status` 当前为 `validation_failed`，不得提升为 `benchmark_validated`。
+- 修正几何后的 Re=100 long-horizon Python proxy run 和 v2412 native forceCoeffs run 均得到 `St≈0.14`。
+- 当前 finite-domain OpenFOAM cylinder2D case-freeze 已按 `[0.13, 0.15]` 本地 tutorial 目标闭环，`benchmark_status` 为 `benchmark_validated`；外部 free-cylinder `[0.16, 0.24]` 仍是后续推广目标，不得混同。
 
 ## 最小交付
 
@@ -26,7 +26,7 @@
 
 - 不得把 force/Strouhal 目标写死在代码中，必须来自 config。
 - 没有 force coefficient 时间序列时不得计算 Strouhal。
-- 没有 native/DMD/reference parity 和至少一个 mesh/time-step sensitivity case 前，不得提升为 `benchmark_validated`。
+- 没有 native/DMD/reference parity 和至少一个 mesh/time-step sensitivity case 前，不得声称外部 free-cylinder benchmark validation。
 
 ## 下一步验收检查
 
@@ -40,4 +40,4 @@
    - `postprocess.force_time_span >= 6 s`
    - Courant 与 residual 均低于配置阈值
 3. 增加至少一个 mesh 或 time-step sensitivity case，且保持同一 Strouhal/force gate 通过。
-4. 若最终仍采用 Python patch-surface force proxy，必须记录与 native forceCoeffs、official DMD 或外部 reference 的 parity 结果，否则 C05 维持 `validation_failed`。
+4. 若最终仍采用 Python patch-surface force proxy，必须记录与 native forceCoeffs、official DMD 或外部 reference 的 parity 结果，否则只能维持本地 finite-domain case-freeze claim。

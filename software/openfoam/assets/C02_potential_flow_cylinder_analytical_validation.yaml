@@ -81,12 +81,17 @@ benchmark:
   source_type: official tutorial plus analytical potential-flow reference target
   tutorial_path: $FOAM_TUTORIALS/basic/potentialFoam/cylinder
   benchmark_role: Benchmark candidate for analytical validation of potential-flow velocity, pressure, and Cp around a cylinder.
-  status_rationale: Official tutorial evidence, analytical validation target, run schema, baseline and dedicated WSL smoke configs, package runner, static-readiness tests, and local WSL v2112 runtime evidence exist. The strict runtime path completes blockMesh, checkMesh, and potentialFoam, but analytical velocity and Cp error gates fail because the official tutorial is a finite half-domain case rather than a clean unbounded-cylinder validation. A finite-domain diagnostic profile now records solver/artifact/finite-error availability without claiming analytical pass. Corrected finite-domain reference, defensible surface-pressure extraction, or domain-expanded convergence evidence remains required before benchmark validation.
+  status_rationale: Official tutorial evidence, analytical validation target, run schema, baseline and dedicated WSL smoke configs, package runner, static-readiness tests, and local WSL v2112 runtime evidence exist. The strict runtime path completes blockMesh, checkMesh, and potentialFoam, but analytical velocity and Cp error gates fail because the official tutorial is a finite half-domain case rather than a clean unbounded-cylinder validation. A finite-domain diagnostic profile records solver/artifact/finite-error availability without claiming unbounded analytical validation, so the OpenFOAM first-batch case-freeze scope is closed as non-promotional evidence while strict analytical benchmark promotion remains blocked.
+  case_freeze:
+    status: closed_non_promotional
+    evidence: reports/openfoam_C01_C08_case_freeze_closure_2026-07-01.md
+    scope: Local finite-domain diagnostic proves executable solver/artifact/error-extraction behavior; unbounded-cylinder analytical agreement is not claimed.
+    next_phase: Corrected finite-domain reference, defensible surface-pressure extraction, or domain-expanded convergence evidence before benchmark_validated promotion.
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose cylinder geometry, inlet speed, mesh resolution, analytical reference parameters, and error thresholds.
 - Runtime must complete potentialFoam without fatal errors and produce U and p fields; the current strict baseline satisfies solver execution but fails analytical velocity and Cp thresholds.
-- Finite-domain diagnostic evidence may pass solver/artifact gates but must not be treated as analytical benchmark validation.
+- Finite-domain diagnostic evidence may pass solver/artifact gates and close current case-freeze scope, but must not be treated as unbounded analytical benchmark validation.
 - Postprocess must compute analytical velocity, pressure, and Cp references at comparable sample locations.
 - Validation must reject cases whose Cp or field errors exceed configured tolerances.
 - Mesh refinement should reduce analytical error before the capability can move beyond benchmark_candidate.
@@ -105,7 +110,7 @@ intern_deliverables:
 - Implement dry-run case generation and manifest validation before enabling runtime.
 - Implement analytical velocity, pressure, and Cp comparison postprocess.
 - Add mesh refinement trend validation for analytical error reduction.
-- Keep benchmark_status below benchmark_validated until local runtime and analytical validation evidence pass.
+- Keep benchmark_status below benchmark_validated until local runtime and strict analytical validation evidence pass.
 - Keep the finite-domain diagnostic profile separate from the strict analytical profile until a corrected reference or domain-expansion convergence study is available.
 card_status: review
-benchmark_status: package_skeleton_created
+benchmark_status: benchmark_candidate

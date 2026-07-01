@@ -154,7 +154,8 @@ def test_openfoam_c04_schema_requires_force_and_yplus_contracts() -> None:
         validate_case_config(config)
 
 
-def test_openfoam_c04_asset_records_package_skeleton_status() -> None:
+def test_openfoam_c04_asset_records_case_freeze_status() -> None:
     asset = yaml.safe_load(Path("software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml").read_text(encoding="utf-8"))
-    assert asset["benchmark_status"] == "package_skeleton_created"
+    assert asset["benchmark_status"] == "benchmark_validated"
+    assert asset["benchmark"]["case_freeze"]["status"] == "benchmark_validated_for_local_case_freeze"
     assert asset["card_status"] == "review"

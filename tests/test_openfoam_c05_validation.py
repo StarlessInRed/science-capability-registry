@@ -125,6 +125,36 @@ def test_openfoam_c05_manifest_validation_accepts_selected_external_reference_po
     assert checks["strouhal_reference_policy.geometry_match_reviewed"]["passed"]
 
 
+def test_openfoam_c05_manifest_validation_accepts_case_freeze_policy() -> None:
+    config = yaml.safe_load(
+        Path(
+            "configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_case_freeze_wsl_v2412.yaml"
+        ).read_text(encoding="utf-8")
+    )
+    manifest = {
+        section: config[section]
+        for section in ["backend", "solver", "template", "geometry", "mesh", "material", "fields", "numerics", "function_objects"]
+    }
+    manifest["backend"] = {"type": "dry_run_only"}
+    manifest.update(
+        {
+            "source_config": "runtime_forcecoeffs_strouhal_case_freeze_wsl_v2412.yaml",
+            "schema_id": "schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json",
+            "strouhal_reference_policy": config["strouhal_reference_policy"],
+            "expected_outputs": config["outputs"]["expected_outputs"],
+            "validation_targets": config["validation"],
+            "generated_files": list(config["validation"]["required_generated_files"]),
+        }
+    )
+
+    result = validate_manifest(manifest, config)
+
+    assert result["passed"] is True
+    checks = {check["name"]: check for check in result["checks"]}
+    assert checks["strouhal_reference_policy.case_freeze_source"]["passed"]
+    assert checks["strouhal_reference_policy.case_freeze_geometry"]["passed"]
+
+
 def test_openfoam_c05_runtime_validation_rejects_wrong_force_source(tmp_path: Path) -> None:
     config = _baseline_config()
     config["postprocess"]["force_extraction_source"] = "python_patch_surface_proxy"
@@ -188,6 +218,47 @@ def test_openfoam_c05_runtime_validation_checks_strouhal_target_range(tmp_path: 
 
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "postprocess.strouhal_target_range" in failed
+
+
+def test_openfoam_c05_runtime_validation_accepts_case_freeze_strouhal_range(tmp_path: Path) -> None:
+    config = yaml.safe_load(
+        Path(
+            "configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_case_freeze_wsl_v2412.yaml"
+        ).read_text(encoding="utf-8")
+    )
+    config["outputs"]["expected_outputs"] = []
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "final_time": config["numerics"]["control"]["end_time_s"],
+            "max_courant_number": 0.49,
+            "residual_history": [{"final": 1e-5}],
+        },
+        "postprocess": {
+            "force_coefficients": {
+                "available": True,
+                "source": "openfoam_forceCoeffs",
+                "row_count": 8001,
+                "time_span_s": 7.99,
+                "nonfinite_count": 0,
+            },
+            "strouhal": {
+                "available": True,
+                "method": "lift_fft",
+                "selected_method": "lift_fft",
+                "source": "force_coefficients.cl",
+                "force_extraction_source": "openfoam_forceCoeffs",
+                "strouhal_number": 0.14,
+                "cl_amplitude": 0.023,
+            },
+        },
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    assert result["passed"] is True
 
 
 def test_openfoam_c05_runtime_validation_checks_force_series_quality(tmp_path: Path) -> None:

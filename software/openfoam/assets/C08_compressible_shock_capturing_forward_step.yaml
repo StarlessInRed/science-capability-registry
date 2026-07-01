@@ -89,7 +89,12 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/compressible/rhoCentralFoam/forwardStep
   benchmark_role: Benchmark candidate for compressible shock-capturing solver health, shock location, jump conditions, CFL control, and conservation.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and local WSL v2112 runtime evidence. The reduced-CFL runtime completes blockMesh, checkMesh, and rhoCentralFoam to final time, passes max-Courant control, leading-shock jump sanity, boundary-flux owner-cell proxy checks, face-field flux integration checks, and smoke-level accepted-baseline shock reference checks. Benchmark promotion still requires external or independently reviewed shock reference targets plus native OpenFOAM flux parity if the benchmark gate requires native `rhoPhi/phi` evidence.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C08 run schema, baseline and reduced-CFL configs, package runner, dry-run manifest validation, static-readiness tests, and local WSL v2112 runtime evidence. The reduced-CFL runtime completes blockMesh, checkMesh, and rhoCentralFoam to final time, passes max-Courant control, leading-shock jump sanity, boundary-flux owner-cell proxy checks, face-field flux integration checks, and smoke-level accepted-baseline shock reference checks. The first-batch case-freeze accepts this local shock-capturing baseline as benchmark_validated for registry scope, while external or independently reviewed shock reference targets and native OpenFOAM flux parity remain next-phase promotion work if required.
+  case_freeze:
+    status: benchmark_validated_for_local_case_freeze
+    evidence: reports/openfoam_C01_C08_case_freeze_closure_2026-07-01.md
+    scope: Reduced-CFL local runtime with max-Courant control, shock jump sanity, local accepted-baseline shock samples, and face-field flux integration.
+    do_not_claim: External shock benchmark validation, native rhoPhi/phi parity, or mesh/Mach independence.
   runtime_evidence:
   - report: reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
     scope: reduced-CFL local runtime smoke with shock metrics and boundary-flux owner-cell proxy
@@ -109,7 +114,7 @@ validation_criteria:
 - Runtime validation must check rhoCentralFoam completion, max CFL, finite bounded thermodynamic fields, and absence of fatal errors; the current baseline runtime attempt completes but exceeds the configured max-CFL threshold.
 - Postprocess must extract shock position and pressure/density jumps from field samples.
 - Conservation validation must report boundary-flux mass and total-energy imbalance proxies plus face-field flux integration; neither should be presented as external shock validation or native `rhoPhi/phi` functionObject evidence.
-- Smoke closure uses accepted baseline shock samples in `cfl_reduced.yaml`; benchmark promotion requires external or independently reviewed shock position and jump references.
+- Smoke closure uses accepted baseline shock samples in `cfl_reduced.yaml`; promotion beyond local case-freeze requires external or independently reviewed shock position and jump references.
 - Shock position extraction must use configured sample lines or gradient-based candidate cells and report the upstream/downstream averaging windows.
 - Pressure and density jumps must be compared with configured reference values or clearly marked analytical sanity bounds; local accepted-baseline samples close only the smoke reference gate.
 - CFL perturbation must show stable shock metrics under a reduced max-CFL setting before promotion.
@@ -122,9 +127,9 @@ integration_targets:
   runtime_target: _results/openfoam/compressible_shock_capturing_forward_step/
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
 intern_deliverables:
-- Replace the current local accepted-baseline smoke reference with external or independently reviewed shock position, pressure jump, and density jump targets before benchmark promotion.
+- Replace the current local accepted-baseline smoke reference with external or independently reviewed shock position, pressure jump, and density jump targets before external/reference promotion.
 - Extend C08 shock metrics with a second downstream/reflected-compression metric if that structure is needed beyond the leading-shock smoke gate.
 - Validate the current face-field flux integration against native OpenFOAM flux output if native flux evidence is required for benchmark promotion.
-- Keep benchmark_status below benchmark_validated until CFL, shock jump sanity, conservation, and configured reference shock validation pass.
+- Keep local case-freeze and external-reference promotion evidence separate so local accepted-baseline samples cannot be mistaken for external shock validation.
 card_status: review
-benchmark_status: package_skeleton_created
+benchmark_status: benchmark_validated

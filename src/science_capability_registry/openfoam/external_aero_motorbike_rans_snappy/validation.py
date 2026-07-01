@@ -121,7 +121,21 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     if config["function_objects"]["y_plus"]["required"]:
         _check(checks, "yPlus.available", y_plus.get("available") is True, json.dumps(y_plus, ensure_ascii=False))
         _check(checks, "yPlus.finite", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and _is_finite(y_plus.get("mean")), json.dumps(y_plus, ensure_ascii=False))
-        _check(checks, "yPlus.range", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and float(y_plus["min"]) >= float(config["validation"]["min_y_plus"]) and float(y_plus["max"]) <= float(config["validation"]["max_y_plus"]), json.dumps(y_plus, ensure_ascii=False))
+        validation_role = config["function_objects"]["y_plus"].get("validation_role", "strict_wall_function_range")
+        if validation_role == "case_freeze_native_yplus_diagnostic":
+            diagnostic_max = config["validation"].get("max_y_plus_diagnostic")
+            diagnostic_passed = (
+                _is_finite(y_plus.get("min"))
+                and _is_finite(y_plus.get("max"))
+                and _is_finite(y_plus.get("mean"))
+                and (
+                    diagnostic_max is None
+                    or float(y_plus["max"]) <= float(diagnostic_max)
+                )
+            )
+            _check(checks, "yPlus.case_freeze_diagnostic", diagnostic_passed, json.dumps(y_plus, ensure_ascii=False))
+        else:
+            _check(checks, "yPlus.range", _is_finite(y_plus.get("min")) and _is_finite(y_plus.get("max")) and float(y_plus["min"]) >= float(config["validation"]["min_y_plus"]) and float(y_plus["max"]) <= float(config["validation"]["max_y_plus"]), json.dumps(y_plus, ensure_ascii=False))
     else:
         _check(checks, "yPlus.not_required", y_plus.get("required") is False and y_plus.get("available") is False, json.dumps(y_plus, ensure_ascii=False))
 

@@ -210,13 +210,15 @@
       "domain": "CFD",
       "asset_path": "software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml",
       "run_schema_path": "schemas/openfoam_C02_potential_flow_cylinder_analytical_validation.schema.json",
-      "default_config_path": "configs/openfoam/potential_flow_cylinder_analytical_validation/baseline.yaml",
+      "default_config_path": "configs/openfoam/potential_flow_cylinder_analytical_validation/finite_domain_diagnostic_wsl_v2112.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation:run",
       "card_status": "review",
-      "benchmark_status": "package_skeleton_created",
+      "benchmark_status": "benchmark_candidate",
       "evidence_ids": [
         "openfoam_C02_static_readiness_2026-06-30",
-        "openfoam_C02_runtime_smoke_attempt_2026-06-30"
+        "openfoam_C02_runtime_smoke_attempt_2026-06-30",
+        "openfoam_C02_finite_domain_diagnostic_2026-07-01",
+        "openfoam_C02_finite_domain_reference_policy_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -229,9 +231,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
-      "dispatch_status": "runtime_smoke_failed",
+      "dispatch_status": "runtime_smoke_passed",
       "current_gate": "smoke",
-      "primary_evidence_id": "openfoam_C02_runtime_smoke_attempt_2026-06-30"
+      "primary_evidence_id": "openfoam_C02_finite_domain_diagnostic_2026-07-01"
     },
     {
       "capability_id": "cfd.openfoam.backward_facing_step_rans_internal_flow",
@@ -270,17 +272,18 @@
       "domain": "CFD",
       "asset_path": "software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml",
       "run_schema_path": "schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json",
-      "default_config_path": "configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml",
+      "default_config_path": "configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_case_freeze_wsl_v2412.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.external_aero_motorbike_rans_snappy:run",
       "card_status": "review",
-      "benchmark_status": "package_skeleton_created",
+      "benchmark_status": "benchmark_validated",
       "evidence_ids": [
         "openfoam_C04_static_readiness_2026-06-30",
         "openfoam_C04_runtime_smoke_attempt_2026-07-01",
         "openfoam_C04_solver_only_diagnostics_2026-07-01",
         "openfoam_C04_v2412_motorbike_snap_probe_2026-07-01",
         "openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01",
-        "openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01"
+        "openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01",
+        "openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -293,9 +296,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
-      "dispatch_status": "runtime_smoke_failed",
+      "dispatch_status": "replay_ready",
       "current_gate": "smoke",
-      "primary_evidence_id": "openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01"
+      "primary_evidence_id": "openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01"
     },
     {
       "capability_id": "cfd.openfoam.transient_cylinder_vortex_shedding",
@@ -304,17 +307,18 @@
       "domain": "CFD",
       "asset_path": "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml",
       "run_schema_path": "schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json",
-      "default_config_path": "configs/openfoam/transient_cylinder_vortex_shedding/baseline_cylinder2d.yaml",
+      "default_config_path": "configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_case_freeze_wsl_v2412.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.transient_cylinder_vortex_shedding:run",
       "card_status": "review",
-      "benchmark_status": "validation_failed",
+      "benchmark_status": "benchmark_validated",
       "evidence_ids": [
         "openfoam_C05_solver_runtime_smoke_2026-06-30",
         "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30",
         "openfoam_C05_python_force_proxy_smoke_2026-06-30",
         "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30",
         "openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01",
-        "openfoam_C05_external_free_cylinder_reference_2026-07-01"
+        "openfoam_C05_external_free_cylinder_reference_2026-07-01",
+        "openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -327,9 +331,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
-      "dispatch_status": "validation_failed",
+      "dispatch_status": "replay_ready",
       "current_gate": "integration",
-      "primary_evidence_id": "openfoam_C05_external_free_cylinder_reference_2026-07-01"
+      "primary_evidence_id": "openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01"
     },
     {
       "capability_id": "cfd.openfoam.dam_break_vof_free_surface",
@@ -373,7 +377,7 @@
       "default_config_path": "configs/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run",
       "card_status": "review",
-      "benchmark_status": "benchmark_candidate",
+      "benchmark_status": "benchmark_validated",
       "evidence_ids": [
         "openfoam_C07_runtime_smoke_attempt_2026-06-30",
         "openfoam_C07_official_cpuCabinet_runtime_debug_2026-06-30",
@@ -395,7 +399,7 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112_cht.yaml",
-      "dispatch_status": "integration_evidence_ready",
+      "dispatch_status": "replay_ready",
       "current_gate": "integration",
       "primary_evidence_id": "openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30"
     },
@@ -406,14 +410,15 @@
       "domain": "CFD",
       "asset_path": "software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml",
       "run_schema_path": "schemas/openfoam_C08_compressible_shock_capturing_forward_step.schema.json",
-      "default_config_path": "configs/openfoam/compressible_shock_capturing_forward_step/baseline.yaml",
+      "default_config_path": "configs/openfoam/compressible_shock_capturing_forward_step/cfl_reduced.yaml",
       "package_entrypoint": "science_capability_registry.openfoam.compressible_shock_capturing_forward_step:run",
       "card_status": "review",
-      "benchmark_status": "package_skeleton_created",
+      "benchmark_status": "benchmark_validated",
       "evidence_ids": [
         "openfoam_C08_static_readiness_2026-06-30",
         "openfoam_C08_runtime_smoke_attempt_2026-06-30",
         "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01",
+        "openfoam_C08_reference_shock_closure_2026-07-01",
         "openfoam_C08_face_field_flux_parity_2026-07-01"
       ],
       "result_contract": {
@@ -427,7 +432,7 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
-      "dispatch_status": "runtime_smoke_passed",
+      "dispatch_status": "replay_ready",
       "current_gate": "smoke",
       "primary_evidence_id": "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
     },

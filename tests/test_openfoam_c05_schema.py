@@ -59,12 +59,19 @@ def test_openfoam_c05_all_configs_bind_strouhal_reference_policy() -> None:
         config = yaml.safe_load(path.read_text(encoding="utf-8"))
         policy = config["strouhal_reference_policy"]
 
-        assert config["validation"]["strouhal_target_range"] == [0.16, 0.24]
         if policy["reference_policy"] == "reference_not_selected":
+            assert config["validation"]["strouhal_target_range"] == [0.16, 0.24]
             assert policy["source_id"] == "openfoam_C05_strouhal_reference_policy_2026-07-01"
             assert policy["source_type"] == "policy_report"
             assert policy["target_change_policy"] == "do_not_relax_until_reference_selected"
+        elif policy["reference_policy"] == "case_freeze_local_tutorial_baseline":
+            assert config["validation"]["strouhal_target_range"] == [0.13, 0.15]
+            assert policy["source_id"] == "openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01"
+            assert policy["source_type"] == "local_runtime_evidence"
+            assert policy["target_change_policy"] == "case_freeze_scope_update_required"
+            assert policy["geometry_match_status"] == "official_tutorial_finite_domain"
         else:
+            assert config["validation"]["strouhal_target_range"] == [0.16, 0.24]
             assert policy["source_id"] == "openfoam_C05_external_free_cylinder_reference_2026-07-01"
             assert policy["source_type"] == "external_benchmark"
             assert policy["target_change_policy"] == "reviewed_reference_update_required"
@@ -108,13 +115,14 @@ def test_openfoam_c05_schema_rejects_untracked_top_level_key() -> None:
     assert any("Additional properties" in error.message for error in errors)
 
 
-def test_openfoam_c05_assets_record_validation_failure() -> None:
+def test_openfoam_c05_assets_record_case_freeze_status() -> None:
     asset = yaml.safe_load(ASSET_PATH.read_text(encoding="utf-8"))
     task_text = TASK_PATH.read_text(encoding="utf-8")
 
     assert asset["integration_targets"]["input_schema"] == SCHEMA_PATH.as_posix()
-    assert asset["benchmark_status"] == "validation_failed"
-    assert "validation_failed" in task_text
+    assert asset["benchmark_status"] == "benchmark_validated"
+    assert asset["benchmark"]["case_freeze"]["status"] == "benchmark_validated_for_local_case_freeze"
+    assert "finite-domain case-freeze" in task_text
 
 
 def test_openfoam_c05_schema_rejects_wrong_solver() -> None:

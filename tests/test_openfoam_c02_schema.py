@@ -45,7 +45,7 @@ def test_openfoam_c02_schema_rejects_wrong_solver() -> None:
         validate_case_config(config)
 
 
-def test_openfoam_c02_asset_records_package_skeleton_status() -> None:
+def test_openfoam_c02_asset_records_case_freeze_candidate_status() -> None:
     asset = yaml.safe_load(Path("software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml").read_text(encoding="utf-8"))
-    assert asset["benchmark_status"] == "package_skeleton_created"
+    assert asset["benchmark_status"] == "benchmark_candidate"
     assert asset["card_status"] == "review"

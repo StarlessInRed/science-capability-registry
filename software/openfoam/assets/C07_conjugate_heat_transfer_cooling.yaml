@@ -105,7 +105,12 @@ benchmark:
   source_type: official tutorial and local solver source
   tutorial_path: $FOAM_TUTORIALS/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation
   benchmark_role: Packaged smoke baseline candidate for reusable multi-region CHT capability with explicit solid/fluid regions and radiation view-factor preprocessing.
-  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, the failing cpuCabinet tutorial, and the passing multiRegionHeaterRadiation tutorial. cpuCabinet remains diagnostic evidence because low-rank np=2 runs under both realizableKE and kEpsilon reproduce Time=2 floating-point exceptions. multiRegionHeaterRadiation now has a first-class run schema/config family, dry-run manifest, runtime command path, log parser, radiation artifact checks, metrics.json, validation.json, region temperature CSV, interface proxy CSV, patch heat-flux proxy CSV, field-derived interface heat-rate integration CSV, a packaged smoke baseline, and three perturbation runtime cases for heater temperature, airflow/boundary velocity, and mesh refinement. A v2112 native wallHeatFlux diagnostic failed on the local sha1 IO blocker, but a v2412 profile passes the official viewFactorsGen-only radiation path, solver smoke, solver post-processing wallHeatFlux commands for all five regions, and native wallHeatFlux field artifact checks. The capability remains benchmark_candidate because the evidence is short-horizon smoke/integration, not steady convergence, two-sided native heat-rate parity, or independent reference validation.
+  status_rationale: Local WSL OpenFOAM.com v2112 has chtMultiRegionSimpleFoam, chtMultiRegionFoam, the failing cpuCabinet tutorial, and the passing multiRegionHeaterRadiation tutorial. cpuCabinet remains diagnostic evidence because low-rank np=2 runs under both realizableKE and kEpsilon reproduce Time=2 floating-point exceptions. multiRegionHeaterRadiation now has a first-class run schema/config family, dry-run manifest, runtime command path, log parser, radiation artifact checks, metrics.json, validation.json, region temperature CSV, interface proxy CSV, patch heat-flux proxy CSV, field-derived interface heat-rate integration CSV, a packaged smoke baseline, and three perturbation runtime cases for heater temperature, airflow/boundary velocity, and mesh refinement. A v2112 native wallHeatFlux diagnostic failed on the local sha1 IO blocker, but a v2412 profile passes the official viewFactorsGen-only radiation path, solver smoke, solver post-processing wallHeatFlux commands for all five regions, and native wallHeatFlux field artifact checks. The first-batch case-freeze treats MHR integration plus v2412 native wallHeatFlux field generation as the validated local CHT baseline, while steady convergence, two-sided native heat-rate parity, and independent reference validation remain next-phase promotion work.
+  case_freeze:
+    status: benchmark_validated_for_local_case_freeze
+    evidence: reports/openfoam_C01_C08_case_freeze_closure_2026-07-01.md
+    scope: Packaged multiRegionHeaterRadiation baseline and perturbation matrix plus v2412 native wallHeatFlux field-generation smoke.
+    do_not_claim: cpuCabinet validation, steady CHT convergence, native heat-rate parity, or independent heat-flux reference closure.
   local_runtime_evidence:
     runtime_profile: openfoam_com_v2112_cht
     wsl_distro: Ubuntu-24.04
@@ -164,10 +169,10 @@ validation_criteria:
 - Solver baseline must reach the configured end time or iteration count with finite fields, acceptable residuals, and no missing region solves.
 - Temperature fields must remain finite and physically bounded, and heater thermal-driver perturbations must increase peak solid/fluid response in the expected direction.
 - Interface validation must report temperature continuity, patch heat-flux proxies, and field-derived two-sided patch-gradient heat-rate mismatch across coupled patches until a stronger native flux extraction is implemented.
-- Integration evidence must keep baseline plus perturbations covering thermal driver, airflow or inlet condition, and mesh/decomposition sensitivity; promotion beyond benchmark_candidate still requires steady convergence plus native or independently referenced heat-flux validation.
+- Integration evidence must keep baseline plus perturbations covering thermal driver, airflow or inlet condition, and mesh/decomposition sensitivity; promotion beyond local case-freeze still requires steady convergence plus native or independently referenced heat-flux validation.
 - Current runtime debug evidence classifies the cpuCabinet blocker as a reproducible local v2112/tutorial solver path failure after sha1 mitigation and closure comparison, not a validated CHT baseline.
-- Current packaged MHR integration matrix closes the executable-baseline, perturbation, proxy-artifact, and field-derived heat-rate diagnostic gaps but is not a steady-state, native heat-flux-conservation, or external-reference validation.
-- Current v2112 native wallHeatFlux diagnostic fails for all regions with the local OpenFOAM.com v2112 sha1 IO blocker; current v2412 solver-postProcess wallHeatFlux smoke succeeds and writes fields for all regions, but benchmark promotion still requires two-sided native/reference heat-rate parity and longer convergence evidence.
+- Current packaged MHR integration matrix closes the executable-baseline, perturbation, proxy-artifact, and field-derived heat-rate diagnostic gaps for case-freeze, but is not a steady-state, native heat-flux-conservation, or external-reference validation.
+- Current v2112 native wallHeatFlux diagnostic fails for all regions with the local OpenFOAM.com v2112 sha1 IO blocker; current v2412 solver-postProcess wallHeatFlux smoke succeeds and writes fields for all regions, but next-phase promotion still requires two-sided native/reference heat-rate parity and longer convergence evidence.
 integration_targets:
   package_entrypoint: science_capability_registry.openfoam.conjugate_heat_transfer_cooling:run
   input_schema: schemas/openfoam_C07_conjugate_heat_transfer_cooling.schema.json
@@ -177,8 +182,7 @@ integration_targets:
 intern_deliverables:
 - Extend the current C07 integration matrix toward longer steady convergence evidence without hiding physics choices in CLI flags.
 - Keep cpuCabinet as failed diagnostic evidence unless a separate stable runtime path is proven.
-- Extend the v2412 native wallHeatFlux smoke into parsed two-sided heat-rate parity or independent reference comparison before benchmark promotion.
-- Add double-v or reference-value comparison for temperature and heat-rate trends.
-- Keep benchmark_status at benchmark_candidate until native/reference heat-flux evidence and convergence evidence pass.
+- Extend the v2412 native wallHeatFlux smoke into parsed two-sided heat-rate parity or independent reference comparison before external/reference promotion.
+- Add double-v or reference-value comparison for temperature and heat-rate trends as next-phase work.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: benchmark_validated

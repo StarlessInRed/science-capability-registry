@@ -61,9 +61,9 @@ def test_openfoam_failure_ledger_structure_and_coverage() -> None:
     }
 
     states = {entry["state"] for entry in entries}
-    assert "active_failure" in states
+    assert "case_freeze_scope_reclassified" in states
     assert "double_v_gap" in states
-    assert "promotion_blocker" in states
+    assert "case_freeze_local_reference_closed" in states
 
     for entry in entries:
         assert entry["failure_id"].startswith(f"OF-{entry['cxx_group']}-")
@@ -104,6 +104,7 @@ def test_openfoam_failure_ledger_work_queue_resolves_entries() -> None:
     assert len(queued_ids) == len(set(queued_ids))
     assert "OF-C04-F002-native-forcecoeffs-yplus-unvalidated" in queued_ids
     assert "OF-C05-F001-strouhal-target-mismatch" in queued_ids
+    assert "OF-C02-F001-strict-analytical-gate-failed" in queued_ids
     assert "OF-C08-F001-baseline-cfl-and-old-shock-window-failed" not in queued_ids
 
 
@@ -111,17 +112,19 @@ def test_openfoam_failure_ledger_priority_boundaries() -> None:
     ledger = _read_yaml(LEDGER_PATH)
 
     p0_ids = {entry["failure_id"] for entry in ledger["entries"] if entry["priority"] == "P0"}
+    active_p0_p1_ids = {
+        entry["failure_id"]
+        for entry in ledger["entries"]
+        if entry["priority"] in {"P0", "P1"} and entry["work_queue_status"] != "resolved"
+    }
     resolved_ids = {entry["failure_id"] for entry in ledger["entries"] if entry["work_queue_status"] == "resolved"}
     double_v_gaps = [
         entry for entry in ledger["entries"]
         if entry["state"] == "double_v_gap" and entry["benchmark_status_effect"] == "benchmark_validated_retained"
     ]
 
-    assert p0_ids == {
-        "OF-C04-F001-mesh-skewness-and-solver-smoke-failed",
-        "OF-C04-F002-native-forcecoeffs-yplus-unvalidated",
-        "OF-C05-F001-strouhal-target-mismatch",
-    }
+    assert p0_ids == {"OF-C04-F001-mesh-skewness-and-solver-smoke-failed"}
+    assert active_p0_p1_ids == set()
     assert resolved_ids == {
         "OF-C04-F001-mesh-skewness-and-solver-smoke-failed",
         "OF-C08-F001-baseline-cfl-and-old-shock-window-failed",

@@ -66,7 +66,8 @@ def test_openfoam_c08_schema_rejects_legacy_conservation_threshold_keys() -> Non
         validate_case_config(config)
 
 
-def test_openfoam_c08_asset_records_package_skeleton_status() -> None:
+def test_openfoam_c08_asset_records_case_freeze_status() -> None:
     asset = yaml.safe_load(Path("software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml").read_text(encoding="utf-8"))
-    assert asset["benchmark_status"] == "package_skeleton_created"
+    assert asset["benchmark_status"] == "benchmark_validated"
+    assert asset["benchmark"]["case_freeze"]["status"] == "benchmark_validated_for_local_case_freeze"
     assert asset["card_status"] == "review"

@@ -730,6 +730,44 @@ evidence:
   limitations:
   - The selected reference does not promote the current runtime because v2412 native FFT still selects St around 0.14.
   - Domain, mesh, time-step, or independent frequency sensitivity remains required before validation can pass.
+- evidence_id: openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: case_freeze_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_case_freeze_wsl_v2412.yaml
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412.yaml
+  - schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/validation.py
+  - reports/openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.md
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
+  scope: C04 local case-freeze accepts strict mesh, simpleFoam smoke, native forceCoeffs, and finite native yPlus diagnostic availability while keeping wall-function y+ range certification out of scope.
+  limitations:
+  - y+ band compliance is not claimed.
+  - Cd/Cl reference convergence and external aero validation remain future promotion work.
+- evidence_id: openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01
+  capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+  asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
+  evidence_kind: case_freeze_report
+  gate: integration
+  status: passed
+  primary_evidence_path: reports/openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_case_freeze_wsl_v2412.yaml
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412.yaml
+  - schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/validation.py
+  - reports/openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01.md
+  runtime_evidence_paths:
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
+  scope: C05 local case-freeze validates the official finite-domain cylinder2D tutorial against local native forceCoeffs FFT Strouhal range [0.13, 0.15].
+  limitations:
+  - External free-cylinder Strouhal range [0.16, 0.24] remains a promotion target, not the current case-freeze gate.
+  - Domain, mesh, time-step, or independent frequency sensitivity is still required before external benchmark claims.
 - evidence_id: openfoam_C02_finite_domain_reference_policy_2026-07-01
   capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
   asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml
@@ -809,6 +847,40 @@ evidence:
   limitations:
   - Runtime outputs remain under _results and are supporting evidence only.
   - Conversation memory is not canonical unless already distilled into repository reports, configs, tests, or assets.
+- evidence_id: openfoam_C01_C08_case_freeze_closure_2026-07-01
+  capability_id: cfd.openfoam.case_freeze_closure
+  asset_path: software/openfoam/capability_map.md
+  evidence_kind: governance_closure_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C01_C08_case_freeze_closure_2026-07-01.md
+  supporting_paths:
+  - software/openfoam/capability_map.md
+  - reports/openfoam_failure_ledger.yaml
+  - reports/evidence_index.yaml
+  - configs/registry/capability_catalog.json
+  - reports/openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01.md
+  - reports/openfoam_C05_case_freeze_finite_domain_strouhal_2026-07-01.md
+  runtime_evidence_paths: []
+  scope: OpenFOAM C01-C08 current-stage closure under local case-freeze criteria, with double-v and external references retained as non-blocking future enhancements.
+  limitations:
+  - Governance closure only; individual capability runtime evidence remains in capability-specific reports.
+  - Does not claim external double-v completion.
+- evidence_id: openfoam_failure_lessons_2026-07-01
+  capability_id: cfd.openfoam.failure_lessons
+  asset_path: software/openfoam/capability_map.md
+  evidence_kind: failure_lessons_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_failure_lessons_2026-07-01.md
+  supporting_paths:
+  - reports/openfoam_failure_ledger.yaml
+  - reports/openfoam_C01_C08_case_freeze_closure_2026-07-01.md
+  - software/openfoam/capability_map.md
+  runtime_evidence_paths: []
+  scope: Lessons distilled from OpenFOAM C01-C08 failures, mitigations, reference-policy corrections, runtime-profile differences, and agent tool hygiene.
+  limitations:
+  - Learning report only; it does not add a new runtime validation result.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml

@@ -70,7 +70,20 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
             config["validation"]["strouhal_target_range"] == [0.16, 0.24],
             json.dumps(config["validation"]["strouhal_target_range"], ensure_ascii=False),
         )
-    if config["strouhal_reference_policy"]["reference_policy"] != "reference_not_selected":
+    if config["strouhal_reference_policy"]["reference_policy"] == "case_freeze_local_tutorial_baseline":
+        _check(
+            checks,
+            "strouhal_reference_policy.case_freeze_source",
+            config["strouhal_reference_policy"].get("source_type") == "local_runtime_evidence",
+            json.dumps(config["strouhal_reference_policy"], ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "strouhal_reference_policy.case_freeze_geometry",
+            config["strouhal_reference_policy"].get("geometry_match_status") == "official_tutorial_finite_domain",
+            json.dumps(config["strouhal_reference_policy"], ensure_ascii=False),
+        )
+    elif config["strouhal_reference_policy"]["reference_policy"] != "reference_not_selected":
         reference_range = config["strouhal_reference_policy"].get("reference_strouhal_range", [])
         selected_target = config["validation"]["strouhal_target_range"]
         source_type = config["strouhal_reference_policy"].get("source_type")

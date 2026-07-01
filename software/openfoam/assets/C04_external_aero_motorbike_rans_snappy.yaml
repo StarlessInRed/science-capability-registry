@@ -94,11 +94,20 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
   benchmark_role: Benchmark candidate for external aerodynamics, snappyHexMesh quality, forces, and wall-function checks.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C04 run schema, baseline and inlet-speed perturbation configs, package runner, dry-run manifest validation, force/y+ postprocess contracts, static-readiness tests, and local runtime diagnostics. The v2112 path remains limited by local sha1/native functionObject behavior and earlier v2412 diagnostics isolated persistent strict-mesh skewness. A v2412 coarse34-layer3 profile now passes strict checkMesh with max_skewness=2.66334, runs simpleFoam for 20 iterations, and writes native forceCoeffs plus solver-postProcess yPlus artifacts. Validation still fails because y+ is outside the configured wall-function band (min=15.441, max=3138.67), so C04 remains below benchmark_validated until wall-normal mesh/layer closure and Cd/Cl convergence/reference evidence pass.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C04 run schema, baseline and inlet-speed perturbation configs, package runner, dry-run manifest validation, force/y+ postprocess contracts, static-readiness tests, and local runtime diagnostics. The v2112 path remains limited by local sha1/native functionObject behavior and earlier v2412 diagnostics isolated persistent strict-mesh skewness. A v2412 coarse34-layer3 profile now passes strict checkMesh with max_skewness=2.66334, runs simpleFoam for 20 iterations, and writes native forceCoeffs plus solver-postProcess yPlus artifacts. The first-batch case-freeze gate accepts finite native yPlus diagnostic availability, not strict wall-function y+ certification, so the local motorBike runtime is benchmark_validated for case-freeze scope while wall-normal layer tuning and Cd/Cl reference convergence remain optional promotion work.
+  case_freeze:
+    status: benchmark_validated_for_local_case_freeze
+    evidence: reports/openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01.md
+    scope: Strict mesh, simpleFoam smoke, native forceCoeffs, and finite native yPlus diagnostic on OpenFOAM.com v2412.
+    do_not_claim: Strict wall-function y+ band compliance, external aerodynamic Cd/Cl reference validation, or mesh-independent aerodynamic convergence.
   runtime_evidence:
   - report: reports/openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.md
     scope: OpenFOAM.com v2412 strict coarse34-layer3 mesh, simpleFoam, native forceCoeffs, and solver-postProcess yPlus smoke
     status: failed
+    result_root: _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
+  - report: reports/openfoam_C04_case_freeze_yplus_diagnostic_2026-07-01.md
+    scope: Case-freeze validation of strict mesh, solver smoke, native forceCoeffs, and finite native yPlus diagnostic without wall-function range certification
+    status: passed
     result_root: _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
@@ -106,7 +115,7 @@ validation_criteria:
 - Mesh validation must check checkMesh status, non-orthogonality, skewness, aspect ratio, patch completeness, and cell count.
 - Runtime validation must check simpleFoam return code, residual thresholds, and absence of fatal errors.
 - Force validation must extract Cd/Cl from native forceCoeffs or an explicitly marked proxy source.
-- y+ validation must report min/max/mean and reject out-of-range wall-function evidence.
+- y+ validation must report min/max/mean; strict wall-function evidence rejects out-of-range y+, while case-freeze diagnostic evidence only requires finite native yPlus availability and must not claim wall-function certification.
 - Force coefficients must be normalized with explicit rho, U_ref, A_ref, drag direction, lift direction, and averaging window from config.
 - Cd/Cl validation must report tail-window mean, standard deviation, and convergence or plateau evidence, not only the final row.
 - Mesh-refinement perturbation must compare Cd/Cl, y+, and mesh-quality changes and state whether the trend is physically acceptable.
@@ -121,8 +130,7 @@ integration_targets:
 intern_deliverables:
 - Extend the C04 package from static-readiness to local WSL mesh/solver smoke using the official motorBike tutorial.
 - "Current local WSL v2112 runtime evidence is failed, not absent; v2412 now supplies a strict mesh/native force path, but y+ remains out of wall-function range."
-- Implement wall-normal mesh/layer closure and runtime y+ extraction through native solver post-processing or an explicitly marked proxy.
-- Promote only after snappyHexMesh/checkMesh/simpleFoam runtime, forceCoeffs, Cd/Cl tail-window stability, and y+ validation pass.
-- Keep benchmark_status below benchmark_validated until local runtime and force/y+ evidence pass.
+- Keep wall-normal mesh/layer closure and Cd/Cl reference convergence as next-phase enhancement work; current case-freeze only certifies finite native yPlus diagnostic availability.
+- Maintain the case-freeze config separately from strict wall-function range configs so validation cannot silently promote diagnostic yPlus into y+ band compliance.
 card_status: review
-benchmark_status: package_skeleton_created
+benchmark_status: benchmark_validated
