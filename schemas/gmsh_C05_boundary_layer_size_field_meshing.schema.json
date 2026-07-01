@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/gmsh_C05_boundary_layer_size_field_meshing.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Gmsh C05 boundary-layer and size-field meshing run config.",
+  "title": "Gmsh C05 Boundary Layer Size Field Meshing Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "gmsh",
+    "backend",
+    "geometry_contract",
+    "size_field",
+    "quality_thresholds",
+    "expected_metrics",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "meshing.gmsh.boundary_layer_size_field_meshing"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "gmsh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "source_url"],
+      "properties": {
+        "runtime_profile": {"const": "size_field_contract"},
+        "source_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "dry_run_only"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "geometry_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_capability_id", "source_case_id", "boundary_contract_id", "quality_contract_id", "family", "dimension"],
+      "properties": {
+        "source_capability_id": {"const": "meshing.gmsh.parametric_geometry_mesh_generation"},
+        "source_case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "boundary_contract_id": {"const": "meshing.gmsh.boundary_physical_group_contract"},
+        "quality_contract_id": {"const": "meshing.gmsh.mesh_refinement_quality_trend"},
+        "family": {"enum": ["rectangle_channel_2d", "extruded_rectangle_channel_3d"]},
+        "dimension": {"enum": [2, 3]}
+      }
+    },
+    "size_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field_type", "target_groups", "first_layer_height_m", "growth_ratio", "total_thickness_m", "far_field_size_m"],
+      "properties": {
+        "field_type": {"enum": ["boundary_layer", "distance_threshold"]},
+        "target_groups": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "first_layer_height_m": {"type": "number", "exclusiveMinimum": 0},
+        "growth_ratio": {"type": "number", "exclusiveMinimum": 1},
+        "total_thickness_m": {"type": "number", "exclusiveMinimum": 0},
+        "far_field_size_m": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "quality_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_near_wall_element_count", "min_near_wall_spacing_m", "max_growth_ratio_observed", "min_quality_proxy"],
+      "properties": {
+        "min_near_wall_element_count": {"type": "integer", "minimum": 1},
+        "min_near_wall_spacing_m": {"type": "number", "exclusiveMinimum": 0},
+        "max_growth_ratio_observed": {"type": "number", "exclusiveMinimum": 1},
+        "min_quality_proxy": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "expected_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["near_wall_element_count", "min_near_wall_spacing_m", "max_growth_ratio_observed", "min_quality_proxy"],
+      "properties": {
+        "near_wall_element_count": {"type": "integer", "minimum": 1},
+        "min_near_wall_spacing_m": {"type": "number", "exclusiveMinimum": 0},
+        "max_growth_ratio_observed": {"type": "number", "exclusiveMinimum": 1},
+        "min_quality_proxy": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "size_field_manifest.json",
+              "boundary_layer_summary.json",
+              "mesh_quality_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "required_target_groups", "required_manifest_sections", "required_artifacts"],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "required_target_groups": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "size_field_manifest.json",
+              "boundary_layer_summary.json",
+              "mesh_quality_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

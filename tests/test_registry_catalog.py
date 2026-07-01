@@ -54,14 +54,19 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     catalog = load_catalog()
     _validate_json(catalog, Path("schemas/capability_registry.schema.json"))
 
-    assert len(catalog["capabilities"]) == 15
-    assert len(catalog_entries_by_id(catalog)) == 15
+    assert len(catalog["capabilities"]) == 20
+    assert len(catalog_entries_by_id(catalog)) == 20
     for entry in catalog["capabilities"]:
         assert repo_path(entry["asset_path"]).exists()
 
     catalog_asset_paths = {entry["asset_path"] for entry in catalog["capabilities"]}
     assert "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml" in catalog_asset_paths
     assert "software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml" in catalog_asset_paths
+    assert "software/gmsh/assets/C02_boundary_physical_group_contract.yaml" in catalog_asset_paths
+    assert "software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml" in catalog_asset_paths
+    assert "software/gmsh/assets/C04_cad_import_geometry_healing.yaml" in catalog_asset_paths
+    assert "software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml" in catalog_asset_paths
+    assert "software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml" in catalog_asset_paths
 
 
 def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:

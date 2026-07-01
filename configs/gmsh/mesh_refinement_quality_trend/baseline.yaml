@@ -1,0 +1,86 @@
+capability_id: meshing.gmsh.mesh_refinement_quality_trend
+case_id: baseline_rectangle_channel_refinement
+description: Static refinement and quality trend contract for a rectangular channel mesh family.
+gmsh:
+  runtime_profile: refinement_quality_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: dry_run_only
+  timeout_s: 60
+geometry_contract:
+  source_capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  source_case_id: baseline_rectangle_channel_2d
+  boundary_contract_id: meshing.gmsh.boundary_physical_group_contract
+  family: rectangle_channel_2d
+  dimension: 2
+quality_thresholds:
+  min_quality_proxy: 0.2
+  max_aspect_ratio_proxy: 8.0
+  max_nonfinite_coordinate_count: 0
+refinement_levels:
+- level_id: coarse
+  characteristic_length_m: 0.4
+  algorithm: 6
+  element_order: 1
+  expected_node_count_min: 40
+  expected_element_count_min: 60
+  expected_min_quality_proxy: 0.36
+  expected_max_aspect_ratio_proxy: 3.5
+  nonfinite_coordinate_count: 0
+- level_id: baseline
+  characteristic_length_m: 0.2
+  algorithm: 6
+  element_order: 1
+  expected_node_count_min: 120
+  expected_element_count_min: 240
+  expected_min_quality_proxy: 0.32
+  expected_max_aspect_ratio_proxy: 4.8
+  nonfinite_coordinate_count: 0
+- level_id: fine
+  characteristic_length_m: 0.1
+  algorithm: 6
+  element_order: 1
+  expected_node_count_min: 420
+  expected_element_count_min: 850
+  expected_min_quality_proxy: 0.28
+  expected_max_aspect_ratio_proxy: 6.5
+  nonfinite_coordinate_count: 0
+trend_expectations:
+  node_count_trend: strictly_increasing
+  element_count_trend: strictly_increasing
+  characteristic_length_trend: strictly_decreasing
+  max_quality_drop_fraction: 0.35
+outputs:
+  output_dir: _results/gmsh/mesh_refinement_quality_trend/baseline_rectangle_channel_refinement
+  expected_outputs:
+  - refinement_matrix.csv
+  - mesh_quality_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_level_ids:
+  - coarse
+  - baseline
+  - fine
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry_contract
+  - quality_thresholds
+  - refinement_levels
+  - trend_expectations
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - refinement_matrix.csv
+  - mesh_quality_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

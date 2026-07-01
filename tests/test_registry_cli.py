@@ -7,6 +7,11 @@ def test_registry_cli_plan_and_resolve(capsys) -> None:
     assert main(["plan"]) == 0
     plan_output = capsys.readouterr().out
     assert "meshing.gmsh.parametric_geometry_mesh_generation" in plan_output
+    assert "meshing.gmsh.boundary_physical_group_contract" in plan_output
+    assert "meshing.gmsh.mesh_refinement_quality_trend" in plan_output
+    assert "meshing.gmsh.cad_import_geometry_healing" in plan_output
+    assert "meshing.gmsh.boundary_layer_size_field_meshing" in plan_output
+    assert "meshing.gmsh.multi_solver_mesh_export_contract" in plan_output
 
     assert main(["resolve", "cfd.openfoam.transient_cylinder_vortex_shedding"]) == 0
     resolve_output = capsys.readouterr().out

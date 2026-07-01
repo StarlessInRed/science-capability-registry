@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/gmsh_C03_mesh_refinement_quality_trend.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Gmsh C03 mesh refinement and quality trend run config.",
+  "title": "Gmsh C03 Mesh Refinement Quality Trend Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "gmsh",
+    "backend",
+    "geometry_contract",
+    "quality_thresholds",
+    "refinement_levels",
+    "trend_expectations",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "meshing.gmsh.mesh_refinement_quality_trend"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "gmsh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "source_url"],
+      "properties": {
+        "runtime_profile": {"const": "refinement_quality_contract"},
+        "source_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "dry_run_only"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "geometry_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_capability_id", "source_case_id", "boundary_contract_id", "family", "dimension"],
+      "properties": {
+        "source_capability_id": {"const": "meshing.gmsh.parametric_geometry_mesh_generation"},
+        "source_case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "boundary_contract_id": {"const": "meshing.gmsh.boundary_physical_group_contract"},
+        "family": {"enum": ["rectangle_channel_2d", "extruded_rectangle_channel_3d"]},
+        "dimension": {"enum": [2, 3]}
+      }
+    },
+    "quality_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_quality_proxy", "max_aspect_ratio_proxy", "max_nonfinite_coordinate_count"],
+      "properties": {
+        "min_quality_proxy": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_aspect_ratio_proxy": {"type": "number", "exclusiveMinimum": 1},
+        "max_nonfinite_coordinate_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "refinement_levels": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "level_id",
+          "characteristic_length_m",
+          "algorithm",
+          "element_order",
+          "expected_node_count_min",
+          "expected_element_count_min",
+          "expected_min_quality_proxy",
+          "expected_max_aspect_ratio_proxy",
+          "nonfinite_coordinate_count"
+        ],
+        "properties": {
+          "level_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "characteristic_length_m": {"type": "number", "exclusiveMinimum": 0},
+          "algorithm": {"type": "integer", "minimum": 1},
+          "element_order": {"type": "integer", "minimum": 1, "maximum": 2},
+          "expected_node_count_min": {"type": "integer", "minimum": 1},
+          "expected_element_count_min": {"type": "integer", "minimum": 1},
+          "expected_min_quality_proxy": {"type": "number", "minimum": 0, "maximum": 1},
+          "expected_max_aspect_ratio_proxy": {"type": "number", "exclusiveMinimum": 1},
+          "nonfinite_coordinate_count": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "trend_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_count_trend", "element_count_trend", "characteristic_length_trend", "max_quality_drop_fraction"],
+      "properties": {
+        "node_count_trend": {"const": "strictly_increasing"},
+        "element_count_trend": {"const": "strictly_increasing"},
+        "characteristic_length_trend": {"const": "strictly_decreasing"},
+        "max_quality_drop_fraction": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "refinement_matrix.csv",
+              "mesh_quality_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_level_ids",
+        "required_manifest_sections",
+        "required_artifacts"
+      ],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "required_level_ids": {"type": "array", "items": {"type": "string"}, "minItems": 3, "uniqueItems": true},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "refinement_matrix.csv",
+              "mesh_quality_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

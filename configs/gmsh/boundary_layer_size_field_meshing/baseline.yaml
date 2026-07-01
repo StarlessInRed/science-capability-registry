@@ -1,0 +1,68 @@
+capability_id: meshing.gmsh.boundary_layer_size_field_meshing
+case_id: baseline_wall_boundary_layer_contract
+description: Static boundary-layer size-field contract for the C01 rectangular channel wall group.
+gmsh:
+  runtime_profile: size_field_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: dry_run_only
+  timeout_s: 60
+geometry_contract:
+  source_capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  source_case_id: baseline_rectangle_channel_2d
+  boundary_contract_id: meshing.gmsh.boundary_physical_group_contract
+  quality_contract_id: meshing.gmsh.mesh_refinement_quality_trend
+  family: rectangle_channel_2d
+  dimension: 2
+size_field:
+  field_type: boundary_layer
+  target_groups:
+  - wall
+  first_layer_height_m: 0.01
+  growth_ratio: 1.2
+  total_thickness_m: 0.08
+  far_field_size_m: 0.2
+quality_thresholds:
+  min_near_wall_element_count: 24
+  min_near_wall_spacing_m: 0.008
+  max_growth_ratio_observed: 1.35
+  min_quality_proxy: 0.2
+expected_metrics:
+  near_wall_element_count: 32
+  min_near_wall_spacing_m: 0.01
+  max_growth_ratio_observed: 1.22
+  min_quality_proxy: 0.27
+outputs:
+  output_dir: _results/gmsh/boundary_layer_size_field_meshing/baseline_wall_boundary_layer_contract
+  expected_outputs:
+  - size_field_manifest.json
+  - boundary_layer_summary.json
+  - mesh_quality_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_target_groups:
+  - wall
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry_contract
+  - size_field
+  - quality_thresholds
+  - expected_metrics
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - size_field_manifest.json
+  - boundary_layer_summary.json
+  - mesh_quality_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

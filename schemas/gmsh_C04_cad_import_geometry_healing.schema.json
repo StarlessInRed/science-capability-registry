@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/gmsh_C04_cad_import_geometry_healing.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Gmsh C04 CAD import, geometry healing, and entity-map contract run config.",
+  "title": "Gmsh C04 CAD Import Geometry Healing Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "gmsh",
+    "backend",
+    "cad_source",
+    "healing_operations",
+    "entity_map_expectations",
+    "physical_group_rebinding",
+    "meshability_thresholds",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "meshing.gmsh.cad_import_geometry_healing"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "gmsh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "source_url"],
+      "properties": {
+        "runtime_profile": {"const": "cad_healing_contract"},
+        "source_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "dry_run_only"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "cad_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_kind", "cad_format", "source_ref", "unit", "import_tolerance_m", "provenance"],
+      "properties": {
+        "source_kind": {"enum": ["generated_smoke", "repo_fixture", "external_file"]},
+        "cad_format": {"enum": ["step", "brep"]},
+        "source_ref": {"type": "string", "minLength": 1},
+        "unit": {"enum": ["m", "mm"]},
+        "import_tolerance_m": {"type": "number", "exclusiveMinimum": 0},
+        "provenance": {"type": "string", "minLength": 1}
+      }
+    },
+    "healing_operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operation_id", "operation", "enabled", "tolerance_m"],
+        "properties": {
+          "operation_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "operation": {"enum": ["sew_faces", "remove_duplicates", "fix_small_edges", "boolean_fragment"]},
+          "enabled": {"type": "boolean"},
+          "tolerance_m": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "entity_map_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["imported_entities", "modified_entity_count", "deleted_entity_count", "new_entity_count", "critical_faces"],
+      "properties": {
+        "imported_entities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["points", "curves", "surfaces", "volumes"],
+          "properties": {
+            "points": {"type": "integer", "minimum": 0},
+            "curves": {"type": "integer", "minimum": 0},
+            "surfaces": {"type": "integer", "minimum": 0},
+            "volumes": {"type": "integer", "minimum": 0}
+          }
+        },
+        "modified_entity_count": {"type": "integer", "minimum": 0},
+        "deleted_entity_count": {"type": "integer", "minimum": 0},
+        "new_entity_count": {"type": "integer", "minimum": 0},
+        "critical_faces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["entity_id", "physical_group", "role", "assigned"],
+            "properties": {
+              "entity_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+              "physical_group": {"type": "string", "pattern": "^[A-Za-z0-9_/-]+$"},
+              "role": {"enum": ["inlet", "outlet", "wall", "domain", "interface", "symmetry"]},
+              "assigned": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    },
+    "physical_group_rebinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_groups", "unassigned_entity_count", "duplicate_or_sliver_count"],
+      "properties": {
+        "required_groups": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "unassigned_entity_count": {"type": "integer", "minimum": 0},
+        "duplicate_or_sliver_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "meshability_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_unassigned_entity_count", "max_duplicate_or_sliver_count"],
+      "properties": {
+        "max_unassigned_entity_count": {"type": "integer", "minimum": 0},
+        "max_duplicate_or_sliver_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cad_import_manifest.json",
+              "entity_map.json",
+              "healing_report.json",
+              "meshability_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "required_physical_groups", "required_manifest_sections", "required_artifacts"],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "required_physical_groups": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cad_import_manifest.json",
+              "entity_map.json",
+              "healing_report.json",
+              "meshability_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

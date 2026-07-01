@@ -1,0 +1,96 @@
+capability_id: meshing.gmsh.boundary_physical_group_contract
+case_id: baseline_rectangle_channel_contract
+description: Static boundary semantics contract for the C01 rectangular channel physical groups.
+gmsh:
+  runtime_profile: physical_group_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: dry_run_only
+  timeout_s: 60
+geometry:
+  source_capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  source_case_id: baseline_rectangle_channel_2d
+  family: rectangle_channel_2d
+  dimension: 2
+  mesh_source_policy: inline_physical_group_contract_only
+physical_groups:
+- name: inlet
+  dimension: 1
+  role: inlet
+  required: true
+  downstream_aliases:
+  - inlet
+- name: outlet
+  dimension: 1
+  role: outlet
+  required: true
+  downstream_aliases:
+  - outlet
+- name: wall
+  dimension: 1
+  role: wall
+  required: true
+  downstream_aliases:
+  - wall
+  - fixedWalls
+- name: fluid_domain
+  dimension: 2
+  role: domain
+  required: true
+  downstream_aliases:
+  - fluid
+  - cellZone_fluid
+downstream_boundary_map:
+  target_solver: openfoam
+  required_roles:
+  - inlet
+  - outlet
+  - wall
+  - domain
+  role_to_boundary_type:
+    inlet: velocity_inlet
+    outlet: pressure_outlet
+    wall: wall
+    domain: cell_zone
+outputs:
+  output_dir: _results/gmsh/boundary_physical_group_contract/baseline_rectangle_channel_contract
+  expected_outputs:
+  - physical_group_map.json
+  - boundary_contract.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_group_names:
+  - inlet
+  - outlet
+  - wall
+  - fluid_domain
+  required_roles:
+  - inlet
+  - outlet
+  - wall
+  - domain
+  duplicate_name_policy: reject
+  require_dimension_role_compatibility: true
+  require_downstream_role_coverage: true
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry
+  - physical_groups
+  - downstream_boundary_map
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - physical_group_map.json
+  - boundary_contract.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

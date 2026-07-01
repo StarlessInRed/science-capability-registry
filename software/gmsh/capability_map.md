@@ -7,20 +7,21 @@
 | C | capability slug | 主题 | 当前状态 | 关键验证量 | 下一步 |
 | --- | --- | --- | --- | --- | --- |
 | C01 | `parametric_geometry_mesh_generation` | 参数化几何和基础网格生成 | `package_skeleton_created`。已有 schema/config/package、Gmsh Python API runtime、OpenFOAM `gmshToFoam` import smoke 和 `potentialFoam -writep` solve smoke。 | `.geo/.msh`、physical groups、element/node count、坐标有限性、OpenFOAM 导入/求解 smoke | mesh-quality perturbation、尺寸/几何扰动、solver-ready regression |
-| C02 | `boundary_physical_group_contract` | physical group 和边界语义契约 | `benchmark_candidate`。资产卡和任务已建立。 | physical group 名称/维度/角色、边界完整性、下游 BC 映射、缺失/重命名拒绝 | schema + manifest validator + OpenFOAM/FEM boundary mapping smoke |
-| C03 | `mesh_refinement_quality_trend` | 网格加密和质量趋势 | `benchmark_candidate`。资产卡和任务已建立。 | element count、size field、quality proxy、Jacobian/angle/skew proxy、结果趋势 | refinement matrix config + quality parser + regression thresholds |
-| C04 | `cad_import_geometry_healing` | CAD 导入、OpenCASCADE 几何修复和实体追踪 | `benchmark_candidate`。资产卡和任务已建立。 | imported entities、healing operations、entity map、physical group preservation、nonmanifold/duplicate detection | STEP/BREP import smoke + entity-map report |
-| C05 | `boundary_layer_size_field_meshing` | 边界层和尺寸场网格 | `benchmark_candidate`。资产卡和任务已建立。 | boundary-layer thickness/growth、distance/threshold fields、near-wall cell count、quality degradation | size-field config schema + boundary-layer validation matrix |
-| C06 | `multi_solver_mesh_export_contract` | 多求解器网格导出契约 | `benchmark_candidate`。资产卡和任务已建立。 | MSH2/MSH4/UNV/MED or solver import、boundary names、unit/orientation、downstream smoke | OpenFOAM/FEniCSx/CalculiX export/import matrix |
+| C02 | `boundary_physical_group_contract` | physical group 和边界语义契约 | `package_skeleton_created`。已有 schema/config/package、dry-run contract artifacts、negative validation 和 registry static-ready dispatch。 | physical group 名称/维度/角色、边界完整性、下游 BC 映射、缺失/重复/维度不匹配拒绝 | downstream import smoke + renamed boundary negative case |
+| C03 | `mesh_refinement_quality_trend` | 网格加密和质量趋势 | `package_skeleton_created`。已有 schema/config/package、dry-run refinement matrix、quality trend validation 和 registry static-ready dispatch。 | element count、size field、quality proxy、Jacobian/angle/skew proxy、结果趋势 | actual Gmsh mesh summary parser + runtime refinement smoke |
+| C04 | `cad_import_geometry_healing` | CAD 导入、OpenCASCADE 几何修复和实体追踪 | `package_skeleton_created`。已有 schema/config/package、dry-run CAD import manifest、entity map、healing report、meshability validation 和 registry static-ready dispatch。 | imported entities、healing operations、entity map、physical group preservation、nonmanifold/duplicate detection | true OpenCASCADE import or generated CAD runtime smoke |
+| C05 | `boundary_layer_size_field_meshing` | 边界层和尺寸场网格 | `package_skeleton_created`。已有 schema/config/package、dry-run size-field manifest、boundary-layer summary、near-wall metric validation 和 registry static-ready dispatch。 | boundary-layer thickness/growth、distance/threshold fields、near-wall cell count、quality degradation | true Gmsh size-field generation + near-wall metric parser |
+| C06 | `multi_solver_mesh_export_contract` | 多求解器网格导出契约 | `package_skeleton_created`。已有 schema/config/package、dry-run export manifest、format matrix、solver import summary contract 和 registry static-ready dispatch。 | MSH2/MSH4/UNV/MED or solver import、boundary names、unit/orientation、downstream smoke | OpenFOAM replay + FEM-oriented import smoke |
 
 ## 当前冻结标准
 
-Gmsh C02-C06 当前只要求候选资产完整：
+Gmsh C02-C06 均已进入 static-ready package skeleton：
 
 - capability card 通过 `schemas/capability_card.schema.json`。
 - `software/gmsh/examples_index.md` 能发现来源和下一步 gate。
 - 每个能力有可交给 intern 或 agent 的 task。
-- 不注册进 `configs/registry/capability_catalog.json`，直到对应 schema/config/package/runtime evidence 存在。
+- C02-C06 均已注册进 `configs/registry/capability_catalog.json`，但只宣称 `static-readiness`。
+- 后续 promotion 必须依次补真实 runtime smoke、integration evidence 或外部 double-v，不把 static contract 当成 runtime 成功。
 
 ## 从 OpenFOAM 继承的失败学习
 
@@ -31,8 +32,8 @@ Gmsh C02-C06 当前只要求候选资产完整：
 
 ## 推荐执行顺序
 
-1. C02：先把 boundary/physical group contract 做成 schema 和 manifest validator。
-2. C03：在 C02 边界契约稳定后做 refinement/quality matrix。
-3. C06：用 C02+C03 的稳定 mesh 做多求解器 export/import smoke。
-4. C05：补 boundary-layer/size-field，服务 CFD wall-adjacent mesh。
-5. C04：最后做 CAD import/healing，因为来源格式和几何异常更多，需要更强 failure ledger。
+1. C02：补 downstream import smoke，把 static contract 和真实 solver import 分开验证。
+2. C03：接入真实 Gmsh mesh quality summary，形成 refinement runtime smoke。
+3. C06：用 C02+C03 的稳定 mesh 做真实多求解器 export/import smoke。
+4. C05：接入真实 boundary-layer/size-field generation，服务 CFD wall-adjacent mesh。
+5. C04：接入真实 CAD import/healing runtime，因为来源格式和几何异常更多，需要更强 failure ledger。

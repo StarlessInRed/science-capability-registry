@@ -937,8 +937,113 @@ evidence:
   runtime_evidence_paths: []
   scope: Gmsh first-batch C01-C06 capability map and four-repo science capability chain boundary after OpenFOAM case-freeze.
   limitations:
-  - Governance and planning evidence only; C02-C06 are benchmark_candidate assets and are not runtime catalog entries yet.
-  - Does not claim new Gmsh runtime validation beyond existing C01 OpenFOAM import/solve smoke.
+  - Governance and planning evidence only; C03-C06 remain benchmark_candidate assets and are not runtime catalog entries yet.
+  - C02 package skeleton evidence is indexed separately and does not claim new Gmsh mesh-generation runtime validation.
+- evidence_id: gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02
+  capability_id: meshing.gmsh.boundary_physical_group_contract
+  asset_path: software/gmsh/assets/C02_boundary_physical_group_contract.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/boundary_physical_group_contract/baseline.yaml
+  - schemas/gmsh_C02_boundary_physical_group_contract.schema.json
+  - src/science_capability_registry/gmsh/boundary_physical_group_contract/runner.py
+  - src/science_capability_registry/gmsh/boundary_physical_group_contract/validation.py
+  - tests/test_gmsh_c02_schema.py
+  - tests/test_gmsh_c02_runner.py
+  - tests/test_gmsh_c02_validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/boundary_physical_group_contract/
+  scope: C02 schema, config, package entrypoint, dry-run contract artifacts, negative validation, and registry dispatch readiness for Gmsh physical group boundary semantics.
+  limitations:
+  - Static contract evidence only; no new Gmsh mesh generation, downstream solver import, or solver boundary-condition validation is claimed.
+  - OpenFOAM and non-OpenFOAM downstream import smokes remain future promotion work.
+- evidence_id: gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02
+  capability_id: meshing.gmsh.mesh_refinement_quality_trend
+  asset_path: software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/mesh_refinement_quality_trend/baseline.yaml
+  - schemas/gmsh_C03_mesh_refinement_quality_trend.schema.json
+  - src/science_capability_registry/gmsh/mesh_refinement_quality_trend/runner.py
+  - src/science_capability_registry/gmsh/mesh_refinement_quality_trend/validation.py
+  - tests/test_gmsh_c03_schema.py
+  - tests/test_gmsh_c03_runner.py
+  - tests/test_gmsh_c03_validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/mesh_refinement_quality_trend/
+  scope: C03 schema, config, package entrypoint, refinement matrix artifacts, quality-trend negative validation, and registry dispatch readiness.
+  limitations:
+  - Static contract evidence only; no true Gmsh mesh quality parser or generated mesh matrix is claimed yet.
+  - Solver import, solver accuracy, and multi-solver consumability remain separate C06 or downstream solver validation work.
+- evidence_id: gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02
+  capability_id: meshing.gmsh.cad_import_geometry_healing
+  asset_path: software/gmsh/assets/C04_cad_import_geometry_healing.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/cad_import_geometry_healing/baseline.yaml
+  - schemas/gmsh_C04_cad_import_geometry_healing.schema.json
+  - src/science_capability_registry/gmsh/cad_import_geometry_healing/runner.py
+  - src/science_capability_registry/gmsh/cad_import_geometry_healing/validation.py
+  - tests/test_gmsh_c04_schema.py
+  - tests/test_gmsh_c04_runner.py
+  - tests/test_gmsh_c04_validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/cad_import_geometry_healing/
+  scope: C04 schema, config, package entrypoint, CAD import manifest artifacts, entity-map and healing-operation validation, and registry dispatch readiness.
+  limitations:
+  - Static contract evidence only; no true OpenCASCADE CAD import or CAD-to-mesh smoke is claimed yet.
+  - Large CAD fixtures and generated meshes remain intentionally outside Git.
+- evidence_id: gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02
+  capability_id: meshing.gmsh.boundary_layer_size_field_meshing
+  asset_path: software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/boundary_layer_size_field_meshing/baseline.yaml
+  - schemas/gmsh_C05_boundary_layer_size_field_meshing.schema.json
+  - src/science_capability_registry/gmsh/boundary_layer_size_field_meshing/runner.py
+  - src/science_capability_registry/gmsh/boundary_layer_size_field_meshing/validation.py
+  - tests/test_gmsh_c05_schema.py
+  - tests/test_gmsh_c05_runner.py
+  - tests/test_gmsh_c05_validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/boundary_layer_size_field_meshing/
+  scope: C05 schema, config, package entrypoint, size-field manifest artifacts, boundary-layer metric validation, and registry dispatch readiness.
+  limitations:
+  - Static contract evidence only; no true Gmsh boundary-layer or distance/threshold field generation is claimed yet.
+  - CFD y+ and solver wall-function validation remain downstream solver capability work.
+- evidence_id: gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02
+  capability_id: meshing.gmsh.multi_solver_mesh_export_contract
+  asset_path: software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/multi_solver_mesh_export_contract/baseline.yaml
+  - schemas/gmsh_C06_multi_solver_mesh_export_contract.schema.json
+  - src/science_capability_registry/gmsh/multi_solver_mesh_export_contract/runner.py
+  - src/science_capability_registry/gmsh/multi_solver_mesh_export_contract/validation.py
+  - tests/test_gmsh_c06_schema.py
+  - tests/test_gmsh_c06_runner.py
+  - tests/test_gmsh_c06_validation.py
+  runtime_evidence_paths:
+  - _results/gmsh/multi_solver_mesh_export_contract/
+  scope: C06 schema, config, package entrypoint, export manifest artifacts, multi-solver target contract validation, and registry dispatch readiness.
+  limitations:
+  - Static contract evidence only; no downstream import command execution is claimed.
+  - True OpenFOAM and FEM-oriented import smokes remain future promotion work.
 - evidence_id: openfoam_C01_C08_pause_closure_2026-07-01
   capability_id: cfd.openfoam.registry_pause_closure
   asset_path: software/openfoam/capability_map.md

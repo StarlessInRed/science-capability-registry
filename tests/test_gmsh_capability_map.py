@@ -49,9 +49,9 @@ def test_gmsh_c01_c06_capability_map_links_assets_and_tasks() -> None:
         if c_id == "C01":
             assert asset["benchmark_status"] == "package_skeleton_created"
         else:
-            assert asset["benchmark_status"] == "benchmark_candidate"
-            assert "planned_input_schema" in asset["integration_targets"]
-            assert "planned_package_entrypoint" in asset["integration_targets"]
+            assert asset["benchmark_status"] == "package_skeleton_created"
+            assert "input_schema" in asset["integration_targets"]
+            assert "package_entrypoint" in asset["integration_targets"]
 
     for task_path in GMSH_TASKS.values():
         task_text = (ROOT / task_path).read_text(encoding="utf-8")

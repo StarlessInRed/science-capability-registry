@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/gmsh_C06_multi_solver_mesh_export_contract.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Gmsh C06 multi-solver mesh export and import contract run config.",
+  "title": "Gmsh C06 Multi-Solver Mesh Export Contract Run Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "gmsh",
+    "backend",
+    "source_mesh",
+    "unit_policy",
+    "orientation_policy",
+    "export_targets",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "meshing.gmsh.multi_solver_mesh_export_contract"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "gmsh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "source_url"],
+      "properties": {
+        "runtime_profile": {"const": "multi_solver_export_contract"},
+        "source_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "dry_run_only"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "source_mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_capability_id", "source_case_id", "boundary_contract_id", "quality_contract_id", "source_format"],
+      "properties": {
+        "source_capability_id": {"const": "meshing.gmsh.parametric_geometry_mesh_generation"},
+        "source_case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "boundary_contract_id": {"const": "meshing.gmsh.boundary_physical_group_contract"},
+        "quality_contract_id": {"const": "meshing.gmsh.mesh_refinement_quality_trend"},
+        "source_format": {"enum": ["msh2", "msh4"]}
+      }
+    },
+    "unit_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_unit", "target_unit", "scale_factor", "require_unit_scale_match"],
+      "properties": {
+        "source_unit": {"enum": ["m", "mm"]},
+        "target_unit": {"enum": ["m", "mm"]},
+        "scale_factor": {"type": "number", "exclusiveMinimum": 0},
+        "require_unit_scale_match": {"type": "boolean"}
+      }
+    },
+    "orientation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["require_positive_orientation", "allow_element_reordering"],
+      "properties": {
+        "require_positive_orientation": {"type": "boolean"},
+        "allow_element_reordering": {"type": "boolean"}
+      }
+    },
+    "export_targets": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_id",
+          "solver_family",
+          "target_solver",
+          "export_format",
+          "contract_status",
+          "expected_boundary_names",
+          "expected_element_count_min",
+          "max_element_count_delta_fraction"
+        ],
+        "properties": {
+          "target_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "solver_family": {"enum": ["cfd", "fem", "generic"]},
+          "target_solver": {"enum": ["openfoam", "fenicsx", "calculix", "generic"]},
+          "export_format": {"enum": ["msh2", "msh4", "unv", "med", "vtk", "xdmf", "polyMesh"]},
+          "contract_status": {"enum": ["planned", "static_contract_declared", "import_smoke_passed", "import_smoke_failed"]},
+          "expected_boundary_names": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^[A-Za-z0-9_/-]+$"},
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "expected_element_count_min": {"type": "integer", "minimum": 1},
+          "max_element_count_delta_fraction": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string"},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "export_manifest.json",
+              "format_matrix.csv",
+              "solver_import_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_target_ids",
+        "required_boundary_names",
+        "min_solver_family_count",
+        "required_manifest_sections",
+        "required_artifacts"
+      ],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke", "targeted-regression", "integration", "double-v", "full-regression"]},
+        "required_target_ids": {"type": "array", "items": {"type": "string"}, "minItems": 2, "uniqueItems": true},
+        "required_boundary_names": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "min_solver_family_count": {"type": "integer", "minimum": 1},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "export_manifest.json",
+              "format_matrix.csv",
+              "solver_import_summary.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+capability_id: meshing.gmsh.multi_solver_mesh_export_contract
+case_id: baseline_multi_solver_export_contract
+description: Static multi-solver mesh export contract for preserving physical groups, units, orientation, and element-count expectations.
+gmsh:
+  runtime_profile: multi_solver_export_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: dry_run_only
+  timeout_s: 60
+source_mesh:
+  source_capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  source_case_id: baseline_rectangle_channel_2d
+  boundary_contract_id: meshing.gmsh.boundary_physical_group_contract
+  quality_contract_id: meshing.gmsh.mesh_refinement_quality_trend
+  source_format: msh2
+unit_policy:
+  source_unit: m
+  target_unit: m
+  scale_factor: 1.0
+  require_unit_scale_match: true
+orientation_policy:
+  require_positive_orientation: true
+  allow_element_reordering: true
+export_targets:
+- target_id: openfoam_gmshToFoam
+  solver_family: cfd
+  target_solver: openfoam
+  export_format: polyMesh
+  contract_status: static_contract_declared
+  expected_boundary_names:
+  - inlet
+  - outlet
+  - wall
+  - fluid_domain
+  expected_element_count_min: 240
+  max_element_count_delta_fraction: 0.02
+- target_id: fenicsx_xdmf
+  solver_family: fem
+  target_solver: fenicsx
+  export_format: xdmf
+  contract_status: static_contract_declared
+  expected_boundary_names:
+  - inlet
+  - outlet
+  - wall
+  - fluid_domain
+  expected_element_count_min: 240
+  max_element_count_delta_fraction: 0.02
+outputs:
+  output_dir: _results/gmsh/multi_solver_mesh_export_contract/baseline_multi_solver_export_contract
+  expected_outputs:
+  - export_manifest.json
+  - format_matrix.csv
+  - solver_import_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_target_ids:
+  - openfoam_gmshToFoam
+  - fenicsx_xdmf
+  required_boundary_names:
+  - inlet
+  - outlet
+  - wall
+  - fluid_domain
+  min_solver_family_count: 2
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - source_mesh
+  - unit_policy
+  - orientation_policy
+  - export_targets
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - export_manifest.json
+  - format_matrix.csv
+  - solver_import_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

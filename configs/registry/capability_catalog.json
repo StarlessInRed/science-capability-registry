@@ -464,6 +464,146 @@
       "dispatch_status": "runtime_smoke_passed",
       "current_gate": "smoke",
       "primary_evidence_id": "gmsh_C01_openfoam_solve_smoke_2026-06-30"
+    },
+    {
+      "capability_id": "meshing.gmsh.boundary_physical_group_contract",
+      "asset_id": "C02_boundary_physical_group_contract",
+      "software": "Gmsh",
+      "domain": "meshing",
+      "asset_path": "software/gmsh/assets/C02_boundary_physical_group_contract.yaml",
+      "run_schema_path": "schemas/gmsh_C02_boundary_physical_group_contract.schema.json",
+      "default_config_path": "configs/gmsh/boundary_physical_group_contract/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.gmsh.boundary_physical_group_contract:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "gmsh_C02_boundary_physical_group_contract_static_readiness_2026-07-02"
+    },
+    {
+      "capability_id": "meshing.gmsh.mesh_refinement_quality_trend",
+      "asset_id": "C03_mesh_refinement_quality_trend",
+      "software": "Gmsh",
+      "domain": "meshing",
+      "asset_path": "software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml",
+      "run_schema_path": "schemas/gmsh_C03_mesh_refinement_quality_trend.schema.json",
+      "default_config_path": "configs/gmsh/mesh_refinement_quality_trend/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.gmsh.mesh_refinement_quality_trend:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "gmsh_C03_mesh_refinement_quality_trend_static_readiness_2026-07-02"
+    },
+    {
+      "capability_id": "meshing.gmsh.cad_import_geometry_healing",
+      "asset_id": "C04_cad_import_geometry_healing",
+      "software": "Gmsh",
+      "domain": "meshing",
+      "asset_path": "software/gmsh/assets/C04_cad_import_geometry_healing.yaml",
+      "run_schema_path": "schemas/gmsh_C04_cad_import_geometry_healing.schema.json",
+      "default_config_path": "configs/gmsh/cad_import_geometry_healing/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.gmsh.cad_import_geometry_healing:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "gmsh_C04_cad_import_geometry_healing_static_readiness_2026-07-02"
+    },
+    {
+      "capability_id": "meshing.gmsh.boundary_layer_size_field_meshing",
+      "asset_id": "C05_boundary_layer_size_field_meshing",
+      "software": "Gmsh",
+      "domain": "meshing",
+      "asset_path": "software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml",
+      "run_schema_path": "schemas/gmsh_C05_boundary_layer_size_field_meshing.schema.json",
+      "default_config_path": "configs/gmsh/boundary_layer_size_field_meshing/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.gmsh.boundary_layer_size_field_meshing:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "gmsh_C05_boundary_layer_size_field_meshing_static_readiness_2026-07-02"
+    },
+    {
+      "capability_id": "meshing.gmsh.multi_solver_mesh_export_contract",
+      "asset_id": "C06_multi_solver_mesh_export_contract",
+      "software": "Gmsh",
+      "domain": "meshing",
+      "asset_path": "software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml",
+      "run_schema_path": "schemas/gmsh_C06_multi_solver_mesh_export_contract.schema.json",
+      "default_config_path": "configs/gmsh/multi_solver_mesh_export_contract/baseline.yaml",
+      "package_entrypoint": "science_capability_registry.gmsh.multi_solver_mesh_export_contract:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "gmsh_C06_multi_solver_mesh_export_contract_static_readiness_2026-07-02"
     }
   ]
 }
