@@ -102,7 +102,7 @@ def test_openfoam_failure_ledger_work_queue_resolves_entries() -> None:
             assert entry["work_queue_status"] != "resolved"
 
     assert len(queued_ids) == len(set(queued_ids))
-    assert "OF-C04-F001-mesh-skewness-and-solver-smoke-failed" in queued_ids
+    assert "OF-C04-F002-native-forcecoeffs-yplus-unvalidated" in queued_ids
     assert "OF-C05-F001-strouhal-target-mismatch" in queued_ids
     assert "OF-C08-F001-baseline-cfl-and-old-shock-window-failed" not in queued_ids
 
@@ -119,9 +119,13 @@ def test_openfoam_failure_ledger_priority_boundaries() -> None:
 
     assert p0_ids == {
         "OF-C04-F001-mesh-skewness-and-solver-smoke-failed",
+        "OF-C04-F002-native-forcecoeffs-yplus-unvalidated",
         "OF-C05-F001-strouhal-target-mismatch",
     }
-    assert resolved_ids == {"OF-C08-F001-baseline-cfl-and-old-shock-window-failed"}
+    assert resolved_ids == {
+        "OF-C04-F001-mesh-skewness-and-solver-smoke-failed",
+        "OF-C08-F001-baseline-cfl-and-old-shock-window-failed",
+    }
     assert double_v_gaps
     assert {entry["priority"] for entry in double_v_gaps} == {"P2"}
     assert {entry["work_queue_status"] for entry in double_v_gaps} == {"gap"}

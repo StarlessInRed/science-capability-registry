@@ -59,10 +59,33 @@ def test_openfoam_c05_all_configs_bind_strouhal_reference_policy() -> None:
         config = yaml.safe_load(path.read_text(encoding="utf-8"))
         policy = config["strouhal_reference_policy"]
 
-        assert policy["source_id"] == "openfoam_C05_strouhal_reference_policy_2026-07-01"
-        assert policy["source_type"] == "policy_report"
-        assert policy["target_change_policy"] == "do_not_relax_until_reference_selected"
         assert config["validation"]["strouhal_target_range"] == [0.16, 0.24]
+        if policy["reference_policy"] == "reference_not_selected":
+            assert policy["source_id"] == "openfoam_C05_strouhal_reference_policy_2026-07-01"
+            assert policy["source_type"] == "policy_report"
+            assert policy["target_change_policy"] == "do_not_relax_until_reference_selected"
+        else:
+            assert policy["source_id"] == "openfoam_C05_external_free_cylinder_reference_2026-07-01"
+            assert policy["source_type"] == "external_benchmark"
+            assert policy["target_change_policy"] == "reviewed_reference_update_required"
+            assert policy["geometry_match_status"] == "comparable_free_cylinder"
+            assert policy["reference_strouhal_range"][0] <= 0.16
+            assert policy["reference_strouhal_range"][1] >= 0.24
+
+
+def test_openfoam_c05_schema_accepts_external_reference_binding_config() -> None:
+    config = yaml.safe_load(
+        (CONFIG_DIR / "runtime_forcecoeffs_strouhal_external_reference_wsl_v2412.yaml").read_text(encoding="utf-8")
+    )
+
+    errors = sorted(Draft202012Validator(_schema()).iter_errors(config), key=lambda error: list(error.path))
+
+    assert not errors, [error.message for error in errors]
+    policy = config["strouhal_reference_policy"]
+    assert policy["reference_policy"] == "external_reference_selected"
+    assert policy["source_url_or_path"].startswith("https://")
+    assert "St = fD/U" in policy["reference_definition"]
+    assert config["postprocess"]["force_extraction_source"] == "openfoam_forceCoeffs"
 
 
 def test_openfoam_c05_schema_rejects_relaxed_strouhal_target_without_reference() -> None:

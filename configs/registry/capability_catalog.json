@@ -279,7 +279,8 @@
         "openfoam_C04_runtime_smoke_attempt_2026-07-01",
         "openfoam_C04_solver_only_diagnostics_2026-07-01",
         "openfoam_C04_v2412_motorbike_snap_probe_2026-07-01",
-        "openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01"
+        "openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01",
+        "openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -294,7 +295,7 @@
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
       "dispatch_status": "runtime_smoke_failed",
       "current_gate": "smoke",
-      "primary_evidence_id": "openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01"
+      "primary_evidence_id": "openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01"
     },
     {
       "capability_id": "cfd.openfoam.transient_cylinder_vortex_shedding",
@@ -311,7 +312,9 @@
         "openfoam_C05_solver_runtime_smoke_2026-06-30",
         "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30",
         "openfoam_C05_python_force_proxy_smoke_2026-06-30",
-        "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30"
+        "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30",
+        "openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01",
+        "openfoam_C05_external_free_cylinder_reference_2026-07-01"
       ],
       "result_contract": {
         "required_files": [
@@ -326,7 +329,7 @@
       "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
       "dispatch_status": "validation_failed",
       "current_gate": "integration",
-      "primary_evidence_id": "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30"
+      "primary_evidence_id": "openfoam_C05_external_free_cylinder_reference_2026-07-01"
     },
     {
       "capability_id": "cfd.openfoam.dam_break_vof_free_surface",

@@ -70,6 +70,35 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
             config["validation"]["strouhal_target_range"] == [0.16, 0.24],
             json.dumps(config["validation"]["strouhal_target_range"], ensure_ascii=False),
         )
+    if config["strouhal_reference_policy"]["reference_policy"] != "reference_not_selected":
+        reference_range = config["strouhal_reference_policy"].get("reference_strouhal_range", [])
+        selected_target = config["validation"]["strouhal_target_range"]
+        source_type = config["strouhal_reference_policy"].get("source_type")
+        _check(
+            checks,
+            "strouhal_reference_policy.source_selected",
+            source_type in {"external_benchmark", "independent_reference"},
+            json.dumps(config["strouhal_reference_policy"], ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "strouhal_reference_policy.reference_range_declared",
+            len(reference_range) == 2
+            and all(_is_finite(value) for value in reference_range)
+            and float(reference_range[0]) <= float(selected_target[0])
+            and float(reference_range[1]) >= float(selected_target[1]),
+            f"reference_range={reference_range}, target={selected_target}",
+        )
+        _check(
+            checks,
+            "strouhal_reference_policy.geometry_match_reviewed",
+            config["strouhal_reference_policy"].get("geometry_match_status") in {
+                "direct_match",
+                "comparable_free_cylinder",
+                "non_equivalent_channel_reference",
+            },
+            json.dumps(config["strouhal_reference_policy"], ensure_ascii=False),
+        )
 
     for rel_path in config["validation"]["required_generated_files"]:
         _check(checks, f"generated_file.listed.{rel_path}", rel_path in generated_files, rel_path)

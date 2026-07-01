@@ -94,7 +94,12 @@ benchmark:
   source_type: official tutorial and local source evidence
   tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
   benchmark_role: Benchmark candidate for external aerodynamics, snappyHexMesh quality, forces, and wall-function checks.
-  status_rationale: Official tutorial evidence is identified and this repository now contains a C04 run schema, baseline and inlet-speed perturbation configs, package runner, dry-run manifest validation, force/y+ postprocess contracts, static-readiness tests, and local runtime diagnostics. The native runtime attempt reaches snappyHexMesh/topoSet/patchSummary/potentialFoam/checkMesh, then fails on mesh skewness and local v2112 sha1 IO during simpleFoam/forceCoeffs startup. A solver-only profile confirms that disabling forceCoeffs avoids the sha1 path but the longer smoke diverges near Time=28. A layer-disabled solver-only profile reaches its five-step simpleFoam target, but checkMesh still fails with max_skewness=7.64875 above the configured 4.0 threshold. A committed snapControls probe proves the YAML controls are active, but still fails with max_skewness=10.7645 and 42 highly skew faces. A v2412 relaxed-skew diagnostic now executes the full command chain and five simpleFoam steps with max_final_residual=0.0727057, while keeping validation failed because checkMesh still reports max_skewness=9.89474 and 13 highly skew faces. C04 remains below benchmark_validated until a non-diagnostic mesh/solver profile plus forceCoeffs and y+ validation pass.
+  status_rationale: Official tutorial evidence is identified and this repository now contains a C04 run schema, baseline and inlet-speed perturbation configs, package runner, dry-run manifest validation, force/y+ postprocess contracts, static-readiness tests, and local runtime diagnostics. The v2112 path remains limited by local sha1/native functionObject behavior and earlier v2412 diagnostics isolated persistent strict-mesh skewness. A v2412 coarse34-layer3 profile now passes strict checkMesh with max_skewness=2.66334, runs simpleFoam for 20 iterations, and writes native forceCoeffs plus solver-postProcess yPlus artifacts. Validation still fails because y+ is outside the configured wall-function band (min=15.441, max=3138.67), so C04 remains below benchmark_validated until wall-normal mesh/layer closure and Cd/Cl convergence/reference evidence pass.
+  runtime_evidence:
+  - report: reports/openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.md
+    scope: OpenFOAM.com v2412 strict coarse34-layer3 mesh, simpleFoam, native forceCoeffs, and solver-postProcess yPlus smoke
+    status: failed
+    result_root: _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
 validation_criteria:
 - Capability card must validate against schemas/capability_card.schema.json.
 - Run schema must expose geometry, snappyHexMesh refinement, turbulence model, force reference area, wall-function settings, and y+ thresholds.
@@ -115,8 +120,8 @@ integration_targets:
   runtime_profile: configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml
 intern_deliverables:
 - Extend the C04 package from static-readiness to local WSL mesh/solver smoke using the official motorBike tutorial.
-- "Current local WSL v2112 runtime evidence is failed, not absent: solver-only startup and active snapControls can be isolated, but mesh skewness, long-smoke stability, and v2112 sha1/forceCoeffs startup remain blockers before claiming Cd/Cl or y+ validation."
-- Implement runtime y+ extraction through native `postProcess -func yPlus` or an explicitly marked proxy.
+- "Current local WSL v2112 runtime evidence is failed, not absent; v2412 now supplies a strict mesh/native force path, but y+ remains out of wall-function range."
+- Implement wall-normal mesh/layer closure and runtime y+ extraction through native solver post-processing or an explicitly marked proxy.
 - Promote only after snappyHexMesh/checkMesh/simpleFoam runtime, forceCoeffs, Cd/Cl tail-window stability, and y+ validation pass.
 - Keep benchmark_status below benchmark_validated until local runtime and force/y+ evidence pass.
 card_status: review

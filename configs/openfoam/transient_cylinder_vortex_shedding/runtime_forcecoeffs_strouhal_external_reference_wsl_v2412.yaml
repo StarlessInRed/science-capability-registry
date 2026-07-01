@@ -1,0 +1,187 @@
+capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+case_id: runtime_forcecoeffs_strouhal_external_reference_wsl_v2412
+description: OpenFOAM.com v2412 native forceCoeffs Strouhal run bound to a reviewed external free-cylinder reference policy.
+openfoam:
+  distribution: openfoam_com
+  version: v2412
+  runtime_profile: openfoam_com_v2412
+  tutorial_path: $FOAM_TUTORIALS/incompressible/pimpleFoam/laminar/cylinder2D
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.2-flow-around-a-cylinder
+  bashrc_path: /usr/lib/openfoam/openfoam2412/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - blockMesh
+  - snappyHexMesh
+  - mirrorMesh
+  - renumberMesh
+  - redistributePar
+  - pimpleFoam
+  - postProcess
+backend:
+  type: wsl
+  timeout_s: 3600
+  parallel: false
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: pimpleFoam
+  mode: transient_incompressible_laminar
+  command_sequence:
+  - ./Allrun.pre
+  - pimpleFoam
+template:
+  source_path: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
+  copy_strategy: copy_official_tutorial_then_patch
+  disabled_function_objects:
+  - DMD functionObjects are not required for this native forceCoeffs Strouhal gate.
+geometry:
+  cylinder_diameter_m: 0.12
+  cylinder_center_m:
+  - 0
+  - 0
+  domain_bounds_m:
+    x_min: -0.6075
+    x_max: 1.120002
+    y_min: -0.6
+    y_max: 0.6
+  two_dimensional_thickness_m: 0.015
+  patch_roles:
+    inlet: velocity_inlet
+    outlet: pressure_outlet
+    cylinder: no_slip_wall
+    topAndBottom: slip_or_farfield
+    frontAndBack: empty
+mesh:
+  generator: blockMesh_snappyHexMesh_mirrorMesh
+  template_dictionaries:
+  - system/blockMeshDict.coarse
+  - system/snappyHexMeshDict
+  - system/blockMeshDict.main
+  - system/mirrorMeshDict
+  front_back_patch_type: empty
+  workflow:
+  - blockMesh -dict system/blockMeshDict.coarse
+  - snappyHexMesh -overwrite
+  - blockMesh -dict system/blockMeshDict.main
+  - mirrorMesh -overwrite
+  - restore0Dir
+material:
+  density_kg_m3: 1
+  kinematic_viscosity_m2_s: 0.0012
+  inlet_velocity_m_s: 1
+  reynolds_number_D: 100
+fields:
+  velocity_field: U
+  pressure_field: p
+  initial_velocity_m_s:
+  - 1
+  - 0
+  - 0
+  initial_pressure_m2_s2: 0
+numerics:
+  control:
+    end_time_s: 8
+    delta_t_s: 0.0005
+    write_interval_s: 0.025
+    max_courant: 0.5
+    adjust_time_step: true
+    max_delta_t_s: 0.001
+  pimple:
+    n_outer_correctors: 2
+    n_correctors: 2
+    n_non_orthogonal_correctors: 0
+function_objects:
+  force_coefficients:
+    enabled: true
+    patches:
+    - cylinder
+    rho_inf_kg_m3: 1
+    lift_dir:
+    - 0
+    - 1
+    - 0
+    drag_dir:
+    - 1
+    - 0
+    - 0
+postprocess:
+  force_coefficients: true
+  lift_drag_time_series: true
+  strouhal_estimate: true
+  force_extraction_source: openfoam_forceCoeffs
+  strouhal_estimation_method: lift_fft
+  frequency_cross_checks: []
+strouhal_reference_policy:
+  reference_policy: external_reference_selected
+  source_id: openfoam_C05_external_free_cylinder_reference_2026-07-01
+  source_type: external_benchmark
+  source_url_or_path: https://scispace.com/pdf/strouhal-reynolds-number-relationship-for-flow-past-a-16pnft2xtp.pdf
+  source_title: Strouhal-Reynolds number relationship for flow past a circular cylinder
+  source_citation: Jiang, H. and Cheng, L. (2017), Journal of Fluid Mechanics 832, 170-188.
+  target_range_binding: bind_to_external_reference
+  target_change_policy: reviewed_reference_update_required
+  force_source_policy: native_forceCoeffs_required
+  frequency_method_policy: lift_fft_primary_with_peak_period_cross_check
+  frequency_parity_policy: native_dmd_or_independent_reference_required
+  sensitivity_requirement: mesh_and_timestep_sensitivity_required_before_promotion
+  reference_strouhal_range: [0.16, 0.24]
+  reference_reynolds_number: 100
+  reference_definition: St = fD/U using the fluctuating lift frequency, cylinder diameter D, and incoming velocity U for free flow past a circular cylinder.
+  geometry_match_status: comparable_free_cylinder
+  geometry_match_notes: The reference is a free circular-cylinder St-Re benchmark; the OpenFOAM cylinder2D tutorial has a much smaller finite domain, so target binding does not by itself promote this config without mesh/domain/time-step sensitivity.
+outputs:
+  output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - case/system/snappyHexMeshDict
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - postprocess/force_coefficients.csv
+  - postprocess/strouhal_summary.json
+validation:
+  gate: integration
+  max_courant: 1
+  max_final_residual: 0.01
+  force_coefficients_required: true
+  strouhal_target_range:
+  - 0.16
+  - 0.24
+  min_force_samples: 200
+  min_force_time_span_s: 6
+  analysis_window_s: 6
+  min_cl_amplitude: 0.001
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/constant/transportProperties
+  - case/constant/turbulenceProperties
+  - case/system/controlDict
+  - case/system/fvSchemes
+  - case/system/fvSolution
+  - case/system/snappyHexMeshDict
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - solver
+  - template
+  - geometry
+  - mesh
+  - material
+  - fields
+  - numerics
+  - function_objects
+  - strouhal_reference_policy
+  - expected_outputs
+  - validation_targets
+  matrix_role: baseline
+  expected_trend:
+    description: External free-cylinder reference binding keeps the target range explicit and preserves the current v2412 native Strouhal mismatch until mesh/domain/time-step sensitivity explains or resolves it.

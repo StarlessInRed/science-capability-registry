@@ -50,6 +50,7 @@ def test_openfoam_c05_validation_rejects_disabled_force_coefficients() -> None:
         section: config[section]
         for section in ["backend", "solver", "template", "geometry", "mesh", "material", "fields", "numerics", "function_objects"]
     }
+    manifest["backend"] = {"type": "dry_run_only"}
     manifest.update(
         {
             "source_config": "baseline_cylinder2d.yaml",
@@ -75,6 +76,7 @@ def test_openfoam_c05_validation_allows_disabled_function_object_for_python_prox
         section: config[section]
         for section in ["backend", "solver", "template", "geometry", "mesh", "material", "fields", "numerics", "function_objects"]
     }
+    manifest["backend"] = {"type": "dry_run_only"}
     manifest.update(
         {
             "source_config": "baseline_cylinder2d.yaml",
@@ -90,6 +92,37 @@ def test_openfoam_c05_validation_allows_disabled_function_object_for_python_prox
 
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "function_object.force_coefficients_enabled" not in failed
+
+
+def test_openfoam_c05_manifest_validation_accepts_selected_external_reference_policy() -> None:
+    config = yaml.safe_load(
+        Path(
+            "configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_external_reference_wsl_v2412.yaml"
+        ).read_text(encoding="utf-8")
+    )
+    manifest = {
+        section: config[section]
+        for section in ["backend", "solver", "template", "geometry", "mesh", "material", "fields", "numerics", "function_objects"]
+    }
+    manifest["backend"] = {"type": "dry_run_only"}
+    manifest.update(
+        {
+            "source_config": "runtime_forcecoeffs_strouhal_external_reference_wsl_v2412.yaml",
+            "schema_id": "schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json",
+            "strouhal_reference_policy": config["strouhal_reference_policy"],
+            "expected_outputs": config["outputs"]["expected_outputs"],
+            "validation_targets": config["validation"],
+            "generated_files": list(config["validation"]["required_generated_files"]),
+        }
+    )
+
+    result = validate_manifest(manifest, config)
+
+    assert result["passed"] is True
+    checks = {check["name"]: check for check in result["checks"]}
+    assert checks["strouhal_reference_policy.source_selected"]["passed"]
+    assert checks["strouhal_reference_policy.reference_range_declared"]["passed"]
+    assert checks["strouhal_reference_policy.geometry_match_reviewed"]["passed"]
 
 
 def test_openfoam_c05_runtime_validation_rejects_wrong_force_source(tmp_path: Path) -> None:

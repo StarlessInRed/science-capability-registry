@@ -679,6 +679,24 @@ evidence:
   - Diagnostic profile explicitly relaxes mesh-quality dictionary settings and must not be promoted as production mesh evidence.
   - Mesh quality remains failed with max_skewness=9.89474 and 13 highly skew faces.
   - ForceCoeffs, Cd/Cl, and yPlus remain intentionally disabled and unvalidated.
+- evidence_id: openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: runtime_diagnostic_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/runtime_profiles/openfoam_com_v2412.yaml
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412.yaml
+  - schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runtime.py
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
+  scope: OpenFOAM.com v2412 C04 motorBike coarse34-layer3 runtime passes strict checkMesh, simpleFoam smoke, and native forceCoeffs, but fails wall-function y+ range.
+  limitations:
+  - y+ remains out of range, with max y+ above 300 and min y+ below 30.
+  - Cd/Cl values come from a 20-iteration smoke and are not aerodynamic benchmark validation.
 - evidence_id: openfoam_C05_strouhal_reference_policy_2026-07-01
   capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
   asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
@@ -694,6 +712,24 @@ evidence:
   scope: C05 Strouhal target policy prevents threshold relaxation before external, official, independent, or sensitivity-backed reference provenance is selected.
   limitations:
   - Policy evidence only; it does not close the failed Strouhal validation gate.
+- evidence_id: openfoam_C05_external_free_cylinder_reference_2026-07-01
+  capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+  asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
+  evidence_kind: reference_policy_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C05_external_strouhal_reference_policy_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_external_reference_wsl_v2412.yaml
+  - schemas/openfoam_C05_transient_cylinder_vortex_shedding.schema.json
+  - src/science_capability_registry/openfoam/transient_cylinder_vortex_shedding/validation.py
+  - reports/openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01.md
+  runtime_evidence_paths:
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
+  scope: C05 now binds the retained Strouhal target to a reviewed free circular-cylinder reference family while explicitly marking the OpenFOAM cylinder2D domain as comparable but not a direct geometry match.
+  limitations:
+  - The selected reference does not promote the current runtime because v2412 native FFT still selects St around 0.14.
+  - Domain, mesh, time-step, or independent frequency sensitivity remains required before validation can pass.
 - evidence_id: openfoam_C02_finite_domain_reference_policy_2026-07-01
   capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
   asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml

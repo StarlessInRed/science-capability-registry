@@ -158,14 +158,14 @@ entries:
   cxx_group: C04
   capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
   asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
-  state: active_failure
+  state: resolved
   failure_class: numerical_failure
   priority: P0
-  work_queue_status: active
+  work_queue_status: resolved
   gate_blocked: smoke
   benchmark_status_effect: keep_package_skeleton_created
-  summary: The motorBike runtime reaches the real mesh/solver path on v2112 and v2412, and the v2412 relaxed-skew profile runs five simpleFoam steps, but checkMesh still fails on localized skewness.
-  owner_next_action: Repair the non-diagnostic motorBike mesh path by changing geometry/snap/refinement controls until checkMesh passes before re-enabling forceCoeffs and y+ validation.
+  summary: The motorBike runtime had failed strict skewness on v2112/v2412 diagnostics, but the v2412 coarse34-layer3 profile now passes strict checkMesh and simpleFoam smoke.
+  owner_next_action: Treat strict mesh repair as closed and continue C04 through the y+ wall-function blocker tracked in OF-C04-F002.
   blocked_by:
   - c04_strict_mesh_repair
   - non_diagnostic_checkMesh_pass
@@ -181,6 +181,9 @@ entries:
     v2412_relaxed_skew_highly_skew_faces: 13
     v2412_relaxed_skew_solver_max_final_residual: 0.0727057
     v2412_relaxed_skew_openfoam_commands_returncode_ok: true
+    v2412_coarse34_layer3_max_skewness: 2.66334
+    v2412_coarse34_layer3_highly_skew_faces: 0
+    v2412_coarse34_layer3_solver_max_final_residual: 0.0734606
     max_skewness_threshold: 4.0
   evidence_refs:
   - evidence_id: openfoam_C04_runtime_smoke_attempt_2026-07-01
@@ -191,24 +194,26 @@ entries:
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412/
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
   feedback:
     parser: max_skewness, highly_skew_face_count, and skewFaces set parsing present
     schema_field: snap_controls, max_skewness, maxInternalSkewness, maxBoundarySkewness, and minTwist contracts present
     validation_guard: mesh.max_skewness guard uses configured threshold
-    test_regression: tests retain skew-face details, snapControls writer behavior, and relaxed meshQualityDict overrides
-    config_contract: committed snap probe exposes snap_controls; committed relaxed-skew profile isolates solver path without claiming benchmark validation
-    promotion_guard: partial; asset blocks promotion until mesh, solver, force, and yPlus pass
+    test_regression: tests retain skew-face details, snapControls writer behavior, relaxed meshQualityDict overrides, and the coarse34-layer3 strict profile contract
+    config_contract: committed coarse34-layer3 profile demonstrates strict checkMesh and simpleFoam smoke without relaxed mesh-quality overrides
+    promotion_guard: partial; asset blocks promotion until yPlus and aerodynamic coefficient convergence pass
   closure_criteria:
-  - Pass checkMesh skewness threshold under a non-diagnostic mesh profile.
-  - Complete simpleFoam smoke with residual and field sanity checks.
+  - Pass checkMesh skewness threshold under a non-diagnostic mesh profile. Completed by openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.
+  - Complete simpleFoam smoke with residual and field sanity checks. Completed by openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.
   do_not_claim:
-  - motorBike mesh smoke pass.
   - external-aero validation.
   - benchmark_validated.
   confidence: high
@@ -219,32 +224,40 @@ entries:
   asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
   state: active_failure
   failure_class: setup_evidence_failure
-  priority: P1
-  work_queue_status: blocked
+  priority: P0
+  work_queue_status: active
   gate_blocked: integration
   benchmark_status_effect: keep_package_skeleton_created
-  summary: Native forceCoeffs fails on the local v2112 profile with sha1 IO behavior, yPlus has not been reached in a passing run, and Cd/Cl tail-window evidence is unavailable.
-  owner_next_action: Revisit native forceCoeffs and yPlus only after a non-diagnostic mesh/solver smoke profile passes on v2412 or another clean profile.
+  summary: v2412 coarse34-layer3 now reaches strict mesh, simpleFoam, native forceCoeffs, and native yPlus output, but y+ remains outside the wall-function range.
+  owner_next_action: Repair the wall-normal mesh/layer strategy until native yPlus falls within the configured [30, 300] band without reintroducing skewness failure.
   blocked_by:
-  - passing_c04_mesh_profile
-  - native_forcecoeffs_profile
-  - native_yplus_profile
+  - c04_yplus_range
+  - wall_normal_layer_strategy
+  - cd_cl_convergence_reference
+  observed:
+    v2412_coarse34_layer3_yplus_min: 15.441
+    v2412_coarse34_layer3_yplus_max: 3138.67
+    v2412_coarse34_layer3_yplus_mean: 582.20821875
+    v2412_coarse34_layer3_cd_tail_mean: 0.29571504000000004
+    v2412_coarse34_layer3_cl_tail_mean: 0.27280650500000003
   evidence_refs:
   - evidence_id: openfoam_C04_runtime_smoke_attempt_2026-07-01
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C04_solver_only_diagnostics_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_solver_only_wsl_v2112/
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
   feedback:
     validation_guard: force and yPlus are required only when config declares them required
-    config_contract: solver-only profiles isolate force/yPlus from mesh and solver startup
-    promotion_guard: asset requires forceCoeffs, Cd/Cl tail-window stability, and yPlus before promotion
+    config_contract: v2412 coarse34-layer3 profile keeps native forceCoeffs and solver-postProcess yPlus explicit
+    promotion_guard: asset requires yPlus range and Cd/Cl tail-window stability before promotion
   closure_criteria:
-  - After a passing mesh profile exists, pass native or independently cross-validated force coefficients.
-  - Pass native or independently cross-validated yPlus evidence.
-  - Record Cd/Cl tail-window stability and reference policy.
+  - Pass native yPlus range under the configured wall-function band.
+  - Record Cd/Cl tail-window stability over a longer run and compare against an explicit reference policy.
   do_not_claim:
   - Native forceCoeffs availability on v2112.
   - Native yPlus validation.
@@ -261,12 +274,11 @@ entries:
   work_queue_status: active
   gate_blocked: integration
   benchmark_status_effect: validation_failed
-  summary: Long-horizon solving and force extraction execute, but both v2112 Python proxy and v2412 native forceCoeffs estimate St around 0.14, below the configured [0.16, 0.24] target.
-  owner_next_action: Decide the official cylinder2D Strouhal reference policy, then verify native FFT/DMD or independent frequency parity and mesh/time-step sensitivity.
+  summary: Long-horizon solving and force extraction execute, and the target is now bound to a reviewed free-cylinder reference policy, but v2112 Python proxy and v2412 native forceCoeffs still estimate St around 0.14 below [0.16, 0.24].
+  owner_next_action: Use the selected free-cylinder reference policy to drive domain/mesh/time-step sensitivity and independent frequency extraction; do not relax the target from the current short-domain FFT alone.
   blocked_by:
-  - strouhal_reference_policy
   - frequency_method_parity
-  - mesh_timestep_sensitivity
+  - domain_mesh_timestep_sensitivity
   observed:
     v2112_python_proxy_strouhal: 0.13846153846150788
     v2112_lift_fft_strouhal: 0.13999999999997378
@@ -281,18 +293,20 @@ entries:
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C05_strouhal_reference_policy_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C05_external_free_cylinder_reference_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112_20260630_003/
   - _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
   feedback:
     parser: v2412 coefficient.dat header mapping is supported
-    schema_field: force source, Strouhal method, cross-check, target range, and Strouhal reference policy fields present
-    validation_guard: force source, Strouhal target, manifest policy, and no-relax target lock checks present
-    test_regression: tests cover wrong source, target failure, policy-bound target range, v2412 header parser, and FFT checks
-    config_contract: v2112 proxy and v2412 native configs explicitly bind openfoam_C05_strouhal_reference_policy_2026-07-01
-    promotion_guard: validation_failed asset status retained; target range cannot be relaxed before reference selection
+    schema_field: force source, Strouhal method, cross-check, target range, and selected external reference provenance fields present
+    validation_guard: force source, Strouhal target, manifest policy, no-relax target lock, selected source, reference range, and geometry-match checks present
+    test_regression: tests cover wrong source, target failure, policy-bound target range, selected external reference, v2412 header parser, and FFT checks
+    config_contract: v2112 proxy, v2412 native, and external-reference configs explicitly bind the retained target policy
+    promotion_guard: validation_failed asset status retained; selected reference does not promote without sensitivity evidence
   closure_criteria:
-  - Define evidence-backed reference policy for the official cylinder2D setup.
+  - Define evidence-backed reference policy for the official cylinder2D setup. Completed by openfoam_C05_external_free_cylinder_reference_2026-07-01.
   - Pass native, DMD, or independent shedding-frequency parity.
   - Pass at least one mesh/time-step sensitivity case after the reference policy is settled.
   do_not_claim:
@@ -592,29 +606,30 @@ work_queue:
 - queue_id: OF-WQ-001
   priority: P0
   entry_failure_ids:
-  - OF-C04-F001-mesh-skewness-and-solver-smoke-failed
-  title: C04 strict motorBike mesh repair after v2412 solver-path isolation
-  action: Use the v2412 relaxed-skew evidence and skewFaces localization to repair the non-diagnostic motorBike mesh until checkMesh passes without treating relaxed solver-path diagnostics as benchmark evidence.
+  - OF-C04-F002-native-forcecoeffs-yplus-unvalidated
+  title: C04 y+ wall-function closure after strict mesh and native force smoke
+  action: Repair the wall-normal mesh/layer strategy so native solver-postProcess yPlus falls inside [30, 300] while preserving the coarse34-layer3 strict checkMesh pass and native forceCoeffs path.
   acceptance_checks:
   - A non-diagnostic C04 runtime config validates against the C04 schema and v2412 runtime profile.
-  - Runtime emits manifest, metrics, validation, and checkMesh pass evidence without relying on relaxed-skew diagnostic interpretation.
-  - Ledger evidence records whether forceCoeffs and y+ can be safely re-enabled after the mesh pass.
+  - Runtime emits manifest, metrics, validation, checkMesh pass, forceCoeffs, and yPlus evidence.
+  - Validation passes yPlus range without relaxing the configured wall-function band.
   expected_evidence:
-  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412.yaml
-  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412/
-  - reports/openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01.md
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412.yaml
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412/
+  - reports/openfoam_C04_v2412_coarse34_layer3_force_yplus_2026-07-01.md
 - queue_id: OF-WQ-002
   priority: P0
   entry_failure_ids:
   - OF-C05-F001-strouhal-target-mismatch
-  title: C05 Strouhal reference policy
-  action: Decide whether the official cylinder2D setup should target the current [0.16, 0.24] window or a case-specific lower-frequency reference before changing validation thresholds.
+  title: C05 Strouhal sensitivity and independent frequency closure
+  action: Use the selected free-cylinder reference policy to run domain/mesh/time-step sensitivity or independent frequency extraction before changing validation thresholds.
   acceptance_checks:
-  - Reference provenance is stable and cites whether it is official, analytical, literature, or independent-review evidence.
-  - Native v2412 forceCoeffs FFT and existing v2112 proxy frequency evidence are compared under the selected policy.
+  - Reference provenance remains stable and target range remains [0.16, 0.24].
+  - Native v2412 forceCoeffs FFT and existing v2112 proxy frequency evidence are compared under domain/mesh/time-step sensitivity.
   - No benchmark_validated claim is made without mesh/time-step sensitivity.
   expected_evidence:
-  - reports/openfoam_C05_strouhal_reference_policy_2026-07-01.md
+  - reports/openfoam_C05_external_strouhal_reference_policy_2026-07-01.md
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_external_reference_wsl_v2412.yaml
   - tests/test_openfoam_c05_validation.py
 - queue_id: OF-WQ-003
   priority: P1

@@ -97,6 +97,22 @@ def test_openfoam_c04_relaxed_skew_config_declares_mesh_quality_override() -> No
     assert config["function_objects"]["force_coefficients"]["enabled"] is False
 
 
+def test_openfoam_c04_coarse34_layer3_config_uses_strict_mesh_and_solver_postprocess_yplus() -> None:
+    config = load_case_config(
+        "configs/openfoam/external_aero_motorbike_rans_snappy/runtime_coarse34_layer3_force_yplus_wsl_v2412.yaml"
+    )
+
+    assert config["case_id"] == "runtime_coarse34_layer3_force_yplus_wsl_v2412"
+    assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2412"
+    assert config["mesh"]["snappy"]["surface_refinement_level"] == [3, 4]
+    assert config["mesh"]["snappy"]["add_layers"] is True
+    assert config["mesh"]["snappy"]["n_surface_layers"] == 3
+    assert config["mesh"]["quality"]["max_skewness"] == 4.0
+    assert config["function_objects"]["force_coefficients"]["enabled"] is True
+    assert config["function_objects"]["y_plus"]["required"] is True
+    assert "simpleFoam -postProcess -latestTime -func yPlus" in config["solver"]["command_sequence"]
+
+
 def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
     config["unexpected"] = True
