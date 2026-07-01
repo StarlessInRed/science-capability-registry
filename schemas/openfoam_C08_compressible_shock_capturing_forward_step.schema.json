@@ -209,7 +209,22 @@
         "normal_shock_relations_role": {"const": "sanity_bounds_only"},
         "shock_position_reference_m": {"type": ["number", "null"]},
         "pressure_jump_ratio_reference": {"type": ["number", "null"]},
-        "density_jump_ratio_reference": {"type": ["number", "null"]}
+        "density_jump_ratio_reference": {"type": ["number", "null"]},
+        "source_id": {"type": "string"},
+        "source_type": {"enum": ["local_runtime_smoke", "external_benchmark", "independent_reference"]},
+        "flux_parity_policy": {"enum": ["owner_cell_proxy_only", "native_or_face_flux_required_for_promotion"]},
+        "accepted_baseline_samples": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evidence_id", "shock_position_m", "pressure_jump_ratio", "density_jump_ratio", "status"],
+          "properties": {
+            "evidence_id": {"type": "string"},
+            "shock_position_m": {"type": "number"},
+            "pressure_jump_ratio": {"type": "number"},
+            "density_jump_ratio": {"type": "number"},
+            "status": {"enum": ["smoke_reference_only"]}
+          }
+        }
       }
     },
     "outputs": {

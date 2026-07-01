@@ -180,12 +180,18 @@
     "postprocess": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["force_coefficients", "lift_drag_time_series", "strouhal_estimate", "force_extraction_source"],
+      "required": ["force_coefficients", "lift_drag_time_series", "strouhal_estimate", "force_extraction_source", "strouhal_estimation_method", "frequency_cross_checks"],
       "properties": {
         "force_coefficients": {"type": "boolean"},
         "lift_drag_time_series": {"type": "boolean"},
         "strouhal_estimate": {"type": "boolean"},
-        "force_extraction_source": {"enum": ["openfoam_forceCoeffs", "python_patch_surface_proxy"]}
+        "force_extraction_source": {"enum": ["openfoam_forceCoeffs", "python_patch_surface_proxy"]},
+        "strouhal_estimation_method": {"enum": ["lift_peak_period", "lift_fft", "dmd_field_probe"]},
+        "frequency_cross_checks": {
+          "type": "array",
+          "items": {"enum": ["lift_peak_period", "lift_fft", "dmd_field_probe"]},
+          "uniqueItems": true
+        }
       }
     },
     "outputs": {
@@ -213,6 +219,7 @@
         "analysis_window_s": {"type": "number", "exclusiveMinimum": 0},
         "min_lift_peak_count": {"type": "integer", "minimum": 1},
         "max_period_cv": {"type": "number", "minimum": 0},
+        "max_frequency_method_delta": {"type": "number", "minimum": 0},
         "min_cl_amplitude": {"type": "number", "exclusiveMinimum": 0},
         "required_generated_files": {"type": "array", "items": {"type": "string"}},
         "required_manifest_sections": {"type": "array", "items": {"type": "string"}},

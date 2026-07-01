@@ -70,6 +70,21 @@ def test_openfoam_c02_validation_rejects_missing_sample_set() -> None:
     assert "postprocess.sample_sets.field" in failed
 
 
+def test_openfoam_c02_validation_rejects_untracked_sample_policy() -> None:
+    config = _baseline_config()
+    config["postprocess"]["sample_policy"] = {
+        **config["postprocess"]["sample_policy"],
+        "surface_cp_source": "native_surface_patch",
+        "owner_cell_proxy": False,
+    }
+    manifest = _valid_manifest(config)
+
+    result = validate_manifest(manifest, config)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "postprocess.sample_policy.surface_cp_source" in failed
+
+
 def test_openfoam_c02_runtime_validation_checks_analytical_thresholds(tmp_path: Path) -> None:
     config = _baseline_config()
     config["outputs"]["expected_outputs"] = []

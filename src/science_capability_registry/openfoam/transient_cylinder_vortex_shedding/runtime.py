@@ -104,7 +104,7 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
             "name": "openfoam_c05_pimplefoam_force_parser",
             "version": 1,
             "limitations": [
-                "Strouhal is computed only from detected lift peaks in coefficient.dat and remains provisional without mesh/time-step sensitivity.",
+                "Strouhal is computed from the configured lift time-series frequency method and remains provisional without mesh/time-step sensitivity.",
             ],
         },
         "case_id": config["case_id"],
@@ -123,7 +123,9 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
 
 def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], validation: dict[str, Any], output_dir: Path) -> None:
     solver = metrics.get("solver", {})
+    force = metrics.get("postprocess", {}).get("force_coefficients", {})
     strouhal = metrics.get("postprocess", {}).get("strouhal", {})
+    failed_checks = [check for check in validation.get("checks", []) if not check.get("passed")]
     status = "passed" if validation["passed"] else "failed"
     lines = [
         f"# OpenFOAM C05 {config['case_id']} runtime report",
@@ -133,13 +135,22 @@ def write_runtime_report(config: dict[str, Any], metrics: dict[str, Any], valida
         f"- runtime profile: {config['openfoam']['runtime_profile']}",
         f"- final time: {solver.get('final_time')}",
         f"- max Courant: {solver.get('max_courant_number')}",
+        f"- force source: {force.get('source')}",
         f"- Strouhal available: {strouhal.get('available')}",
+        f"- Strouhal method: {strouhal.get('selected_method', strouhal.get('method'))}",
+        f"- Strouhal signal source: {strouhal.get('source')}",
         f"- Strouhal number: {strouhal.get('strouhal_number')}",
+        f"- frequency cross-checks: {', '.join(config['postprocess'].get('frequency_cross_checks', [])) or 'none'}",
+        f"- failed checks: {len(failed_checks)}",
         "",
         "## Scope",
         "",
         "This report validates local OpenFOAM command wiring and force-coefficient artifact extraction. It is not a benchmark-grade shedding-frequency validation.",
     ]
+    if failed_checks:
+        lines.extend(["", "## Failed Checks", ""])
+        for check in failed_checks:
+            lines.append(f"- {check['name']}: {check['details']}")
     (output_dir / "validation_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

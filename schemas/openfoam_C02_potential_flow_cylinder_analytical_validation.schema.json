@@ -143,11 +143,32 @@
     "postprocess": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["method", "sample_sets", "surface_patch"],
+      "required": ["method", "sample_sets", "surface_patch", "sample_policy", "error_norm_policy"],
       "properties": {
         "method": {"const": "python_analytical_potential_flow"},
         "sample_sets": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-        "surface_patch": {"const": "cylinder"}
+        "surface_patch": {"const": "cylinder"},
+        "sample_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["field_mask", "surface_cp_source", "owner_cell_proxy", "finite_domain_error_strategy"],
+          "properties": {
+            "field_mask": {"const": "cell_centres_excluding_near_cylinder_and_farfield_buffer"},
+            "surface_cp_source": {"enum": ["cylinder_patch_owner_cells", "native_surface_patch", "independent_reference"]},
+            "owner_cell_proxy": {"type": "boolean"},
+            "finite_domain_error_strategy": {"enum": ["unbounded_analytic_solution_with_masked_sampling", "finite_domain_corrected_reference_required"]}
+          }
+        },
+        "error_norm_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["velocity_norm", "pressure_norm", "cp_norm"],
+          "properties": {
+            "velocity_norm": {"const": "componentwise_l2_linf_over_masked_cells"},
+            "pressure_norm": {"const": "kinematic_pressure_l2_over_masked_cells"},
+            "cp_norm": {"const": "surface_patch_owner_cell_linf"}
+          }
+        }
       }
     },
     "analytical_reference": {

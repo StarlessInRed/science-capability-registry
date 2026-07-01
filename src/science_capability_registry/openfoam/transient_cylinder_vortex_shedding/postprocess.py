@@ -9,9 +9,14 @@ import re
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 FORCE_COLUMNS = ["time_s", "cm", "cd", "cl"]
 OPENFOAM_FORCE_COEFFS = "openfoam_forceCoeffs"
 PYTHON_PATCH_SURFACE_PROXY = "python_patch_surface_proxy"
+LIFT_PEAK_PERIOD = "lift_peak_period"
+LIFT_FFT = "lift_fft"
+DMD_FIELD_PROBE = "dmd_field_probe"
 VECTOR_RE = re.compile(r"\(([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\)")
 
 
@@ -94,7 +99,7 @@ def _analysis_rows(rows: list[dict[str, float]], analysis_window_s: float | None
     return [row for row in finite_rows if float(row["time_s"]) >= window_start]
 
 
-def estimate_strouhal(
+def _estimate_lift_peak_period(
     rows: list[dict[str, float]],
     cylinder_diameter_m: float,
     inlet_velocity_m_s: float,
@@ -102,10 +107,13 @@ def estimate_strouhal(
     min_force_samples: int = 5,
     min_lift_peaks: int = 3,
 ) -> dict[str, Any]:
-    rows = _analysis_rows(rows, analysis_window_s)
-    summary = summarize_force_rows(rows)
     if len(rows) < min_force_samples:
-        return {**summary, "available": False, "reason": f"at least {min_force_samples} force samples are required"}
+        return {
+            "method": LIFT_PEAK_PERIOD,
+            "source": "force_coefficients.cl",
+            "available": False,
+            "reason": f"at least {min_force_samples} force samples are required",
+        }
     peaks: list[dict[str, float]] = []
     for index in range(1, len(rows) - 1):
         previous_cl = rows[index - 1]["cl"]
@@ -115,7 +123,8 @@ def estimate_strouhal(
             peaks.append(rows[index])
     if len(peaks) < min_lift_peaks:
         return {
-            **summary,
+            "method": LIFT_PEAK_PERIOD,
+            "source": "force_coefficients.cl",
             "available": False,
             "reason": f"at least {min_lift_peaks} lift peaks are required",
             "peak_count": len(peaks),
@@ -124,14 +133,21 @@ def estimate_strouhal(
     periods = [peaks[index + 1]["time_s"] - peaks[index]["time_s"] for index in range(len(peaks) - 1)]
     finite_periods = [period for period in periods if math.isfinite(period) and period > 0.0]
     if not finite_periods:
-        return {**summary, "available": False, "reason": "no positive finite lift-peak periods were found", "peak_count": len(peaks)}
+        return {
+            "method": LIFT_PEAK_PERIOD,
+            "source": "force_coefficients.cl",
+            "available": False,
+            "reason": "no positive finite lift-peak periods were found",
+            "peak_count": len(peaks),
+        }
     mean_period = sum(finite_periods) / len(finite_periods)
     variance = sum((period - mean_period) ** 2 for period in finite_periods) / len(finite_periods)
     period_cv = math.sqrt(variance) / mean_period if mean_period > 0.0 else math.inf
     frequency_hz = 1.0 / mean_period
     strouhal = frequency_hz * cylinder_diameter_m / inlet_velocity_m_s
     return {
-        **summary,
+        "method": LIFT_PEAK_PERIOD,
+        "source": "force_coefficients.cl",
         "available": True,
         "analysis_window_s": analysis_window_s,
         "peak_count": len(peaks),
@@ -142,6 +158,150 @@ def estimate_strouhal(
         "frequency_hz": frequency_hz,
         "strouhal_number": strouhal,
     }
+
+
+def _estimate_lift_fft(
+    rows: list[dict[str, float]],
+    cylinder_diameter_m: float,
+    inlet_velocity_m_s: float,
+    analysis_window_s: float | None = None,
+    min_force_samples: int = 5,
+) -> dict[str, Any]:
+    if len(rows) < min_force_samples:
+        return {
+            "method": LIFT_FFT,
+            "source": "force_coefficients.cl",
+            "available": False,
+            "reason": f"at least {min_force_samples} force samples are required",
+        }
+    times = np.asarray([float(row["time_s"]) for row in rows], dtype=float)
+    lift = np.asarray([float(row["cl"]) for row in rows], dtype=float)
+    unique_times, unique_indexes = np.unique(times, return_index=True)
+    if unique_times.size < min_force_samples:
+        return {
+            "method": LIFT_FFT,
+            "source": "force_coefficients.cl",
+            "available": False,
+            "reason": "unique finite force-sample times are required",
+        }
+    lift = lift[unique_indexes]
+    time_span = float(unique_times[-1] - unique_times[0])
+    if time_span <= 0.0:
+        return {"method": LIFT_FFT, "source": "force_coefficients.cl", "available": False, "reason": "positive force time span is required"}
+
+    uniform_times = np.linspace(float(unique_times[0]), float(unique_times[-1]), int(unique_times.size))
+    uniform_lift = np.interp(uniform_times, unique_times, lift)
+    detrended = uniform_lift - float(np.mean(uniform_lift))
+    if not np.any(np.abs(detrended) > 0.0):
+        return {"method": LIFT_FFT, "source": "force_coefficients.cl", "available": False, "reason": "lift signal has zero amplitude"}
+
+    window = np.hanning(detrended.size) if detrended.size > 3 else np.ones(detrended.size)
+    amplitudes = np.abs(np.fft.rfft(detrended * window))
+    frequencies = np.fft.rfftfreq(detrended.size, d=time_span / (detrended.size - 1))
+    candidate_indexes = [
+        int(index)
+        for index in np.argsort(amplitudes)[::-1]
+        if float(frequencies[index]) > 0.0 and float(amplitudes[index]) > 0.0
+    ][:3]
+    if not candidate_indexes:
+        return {"method": LIFT_FFT, "source": "force_coefficients.cl", "available": False, "reason": "no positive FFT frequency candidate was found"}
+
+    candidates = [
+        {
+            "frequency_hz": float(frequencies[index]),
+            "strouhal_number": float(frequencies[index]) * cylinder_diameter_m / inlet_velocity_m_s,
+            "amplitude": float(amplitudes[index]),
+        }
+        for index in candidate_indexes
+    ]
+    frequency_hz = candidates[0]["frequency_hz"]
+    strouhal = frequency_hz * cylinder_diameter_m / inlet_velocity_m_s
+    return {
+        "method": LIFT_FFT,
+        "source": "force_coefficients.cl",
+        "available": True,
+        "analysis_window_s": analysis_window_s,
+        "sample_count": int(unique_times.size),
+        "time_span_s": time_span,
+        "frequency_hz": frequency_hz,
+        "strouhal_number": strouhal,
+        "dominant_frequency_candidates": candidates,
+    }
+
+
+def _estimate_frequency_method(
+    method: str,
+    rows: list[dict[str, float]],
+    cylinder_diameter_m: float,
+    inlet_velocity_m_s: float,
+    analysis_window_s: float | None,
+    min_force_samples: int,
+    min_lift_peaks: int,
+) -> dict[str, Any]:
+    if method == LIFT_PEAK_PERIOD:
+        return _estimate_lift_peak_period(
+            rows,
+            cylinder_diameter_m=cylinder_diameter_m,
+            inlet_velocity_m_s=inlet_velocity_m_s,
+            analysis_window_s=analysis_window_s,
+            min_force_samples=min_force_samples,
+            min_lift_peaks=min_lift_peaks,
+        )
+    if method == LIFT_FFT:
+        return _estimate_lift_fft(
+            rows,
+            cylinder_diameter_m=cylinder_diameter_m,
+            inlet_velocity_m_s=inlet_velocity_m_s,
+            analysis_window_s=analysis_window_s,
+            min_force_samples=min_force_samples,
+        )
+    return {
+        "method": method,
+        "source": DMD_FIELD_PROBE if method == DMD_FIELD_PROBE else "unknown",
+        "available": False,
+        "reason": f"Strouhal estimation method {method!r} is not implemented in this postprocessor",
+    }
+
+
+def estimate_strouhal(
+    rows: list[dict[str, float]],
+    cylinder_diameter_m: float,
+    inlet_velocity_m_s: float,
+    analysis_window_s: float | None = None,
+    min_force_samples: int = 5,
+    min_lift_peaks: int = 3,
+    strouhal_estimation_method: str = LIFT_PEAK_PERIOD,
+    frequency_cross_checks: list[str] | None = None,
+    force_extraction_source: str | None = None,
+) -> dict[str, Any]:
+    rows = _analysis_rows(rows, analysis_window_s)
+    summary = summarize_force_rows(rows)
+    methods: list[str] = []
+    for method in [strouhal_estimation_method, *(frequency_cross_checks or [])]:
+        if method not in methods:
+            methods.append(method)
+    estimates = [
+        _estimate_frequency_method(
+            method,
+            rows,
+            cylinder_diameter_m=cylinder_diameter_m,
+            inlet_velocity_m_s=inlet_velocity_m_s,
+            analysis_window_s=analysis_window_s,
+            min_force_samples=min_force_samples,
+            min_lift_peaks=min_lift_peaks,
+        )
+        for method in methods
+    ]
+    primary = next((estimate for estimate in estimates if estimate["method"] == strouhal_estimation_method), estimates[0])
+    result = {
+        **summary,
+        **primary,
+        "selected_method": strouhal_estimation_method,
+        "frequency_estimates": estimates,
+    }
+    if force_extraction_source is not None:
+        result["force_extraction_source"] = force_extraction_source
+    return result
 
 
 def write_strouhal_summary(summary: dict[str, Any], path: str | Path) -> dict[str, Any]:
@@ -376,6 +536,9 @@ def _write_openfoam_force_coefficients(config: dict[str, Any], output_dir: Path)
         analysis_window_s=validation.get("analysis_window_s"),
         min_force_samples=int(validation.get("min_force_samples", 5)),
         min_lift_peaks=int(validation.get("min_lift_peak_count", 3)),
+        strouhal_estimation_method=config["postprocess"].get("strouhal_estimation_method", LIFT_PEAK_PERIOD),
+        frequency_cross_checks=config["postprocess"].get("frequency_cross_checks", []),
+        force_extraction_source=OPENFOAM_FORCE_COEFFS,
     )
     strouhal = write_strouhal_summary(strouhal, output_dir / "postprocess" / "strouhal_summary.json")
     return {
@@ -406,6 +569,9 @@ def _write_python_patch_force_proxy(config: dict[str, Any], output_dir: Path) ->
         analysis_window_s=validation.get("analysis_window_s"),
         min_force_samples=int(validation.get("min_force_samples", 5)),
         min_lift_peaks=int(validation.get("min_lift_peak_count", 3)),
+        strouhal_estimation_method=config["postprocess"].get("strouhal_estimation_method", LIFT_PEAK_PERIOD),
+        frequency_cross_checks=config["postprocess"].get("frequency_cross_checks", []),
+        force_extraction_source=PYTHON_PATCH_SURFACE_PROXY,
     )
     strouhal = write_strouhal_summary(strouhal, output_dir / "postprocess" / "strouhal_summary.json")
     return {

@@ -122,11 +122,20 @@ postprocess:
   upstream_window_m: [0.30, 0.40]
   downstream_window_m: [0.44, 0.55]
 shock_reference:
-  reference_policy: configured_reference_required_for_promotion
+  reference_policy: accepted_baseline_samples
   normal_shock_relations_role: sanity_bounds_only
-  shock_position_reference_m: null
-  pressure_jump_ratio_reference: null
-  density_jump_ratio_reference: null
+  shock_position_reference_m: 0.425
+  pressure_jump_ratio_reference: 7.6237
+  density_jump_ratio_reference: 3.282
+  source_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01
+  source_type: local_runtime_smoke
+  flux_parity_policy: native_or_face_flux_required_for_promotion
+  accepted_baseline_samples:
+    evidence_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01
+    shock_position_m: 0.425
+    pressure_jump_ratio: 7.6237
+    density_jump_ratio: 3.282
+    status: smoke_reference_only
 outputs:
   output_dir: _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced
   retain_generated_case: true

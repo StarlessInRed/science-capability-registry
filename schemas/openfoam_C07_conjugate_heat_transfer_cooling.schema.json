@@ -419,6 +419,7 @@
       "required": [
         "region_temperature_summary",
         "interface_balance_summary",
+        "heat_flux_validation",
         "command_sequence",
         "method_note"
       ],
@@ -431,6 +432,34 @@
         },
         "patch_heat_flux_proxy_summary": {
           "type": "boolean"
+        },
+        "heat_flux_validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "native_required_for_promotion",
+            "energy_balance_source"
+          ],
+          "properties": {
+            "source": {
+              "enum": [
+                "proxy_only",
+                "native_openfoam",
+                "independent_reference"
+              ]
+            },
+            "native_required_for_promotion": {
+              "type": "boolean"
+            },
+            "energy_balance_source": {
+              "enum": [
+                "not_configured",
+                "native_openfoam",
+                "independent_reference"
+              ]
+            }
+          }
         },
         "command_sequence": {
           "type": "array",

@@ -107,6 +107,8 @@ postprocess:
   lift_drag_time_series: false
   strouhal_estimate: false
   force_extraction_source: openfoam_forceCoeffs
+  strouhal_estimation_method: lift_peak_period
+  frequency_cross_checks: []
 outputs:
   output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_solver_smoke_wsl_v2112
   retain_generated_case: true

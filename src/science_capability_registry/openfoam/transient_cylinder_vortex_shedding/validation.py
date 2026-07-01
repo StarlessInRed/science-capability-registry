@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 OPENFOAM_FORCE_COEFFS = "openfoam_forceCoeffs"
+LIFT_SIGNAL_SOURCE = "force_coefficients.cl"
 
 
 def _check(checks: list[dict[str, Any]], name: str, passed: bool, details: str) -> None:
@@ -135,6 +136,26 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
     if config["postprocess"]["strouhal_estimate"]:
         strouhal = postprocess.get("strouhal", {})
         _check(checks, "postprocess.strouhal_available", strouhal.get("available") is True, json.dumps(strouhal, ensure_ascii=False))
+        expected_method = config["postprocess"].get("strouhal_estimation_method", "lift_peak_period")
+        _check(
+            checks,
+            "postprocess.strouhal_method",
+            strouhal.get("selected_method", strouhal.get("method")) == expected_method,
+            f"method={strouhal.get('method')}, selected_method={strouhal.get('selected_method')}, expected={expected_method}",
+        )
+        _check(
+            checks,
+            "postprocess.strouhal_source",
+            strouhal.get("source") == LIFT_SIGNAL_SOURCE,
+            f"source={strouhal.get('source')}, expected={LIFT_SIGNAL_SOURCE}",
+        )
+        expected_force_source = config["postprocess"].get("force_extraction_source", OPENFOAM_FORCE_COEFFS)
+        _check(
+            checks,
+            "postprocess.strouhal_force_source",
+            strouhal.get("force_extraction_source") in {expected_force_source, None},
+            f"force_extraction_source={strouhal.get('force_extraction_source')}, expected={expected_force_source}",
+        )
         value = strouhal.get("strouhal_number")
         lower, upper = config["validation"]["strouhal_target_range"]
         _check(
@@ -166,6 +187,34 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
                 "postprocess.strouhal_lift_amplitude",
                 _is_finite(cl_amplitude) and float(cl_amplitude) >= float(config["validation"]["min_cl_amplitude"]),
                 f"cl_amplitude={cl_amplitude}, minimum={config['validation']['min_cl_amplitude']}",
+            )
+        frequency_estimates = strouhal.get("frequency_estimates", [])
+        estimates_by_method = {
+            estimate.get("method"): estimate
+            for estimate in frequency_estimates
+            if isinstance(estimate, dict)
+        }
+        for method in config["postprocess"].get("frequency_cross_checks", []):
+            estimate = estimates_by_method.get(method, {})
+            _check(
+                checks,
+                f"postprocess.strouhal_cross_check.{method}",
+                estimate.get("available") is True,
+                json.dumps(estimate, ensure_ascii=False),
+            )
+        if config["postprocess"].get("frequency_cross_checks") and "max_frequency_method_delta" in config["validation"]:
+            primary_frequency = strouhal.get("frequency_hz")
+            deltas = []
+            for method in config["postprocess"].get("frequency_cross_checks", []):
+                frequency = estimates_by_method.get(method, {}).get("frequency_hz")
+                if _is_finite(primary_frequency) and _is_finite(frequency) and float(primary_frequency) > 0.0:
+                    deltas.append(abs(float(frequency) - float(primary_frequency)) / float(primary_frequency))
+            max_delta = max(deltas, default=math.inf)
+            _check(
+                checks,
+                "postprocess.strouhal_cross_check_consistency",
+                math.isfinite(max_delta) and max_delta <= float(config["validation"]["max_frequency_method_delta"]),
+                f"max_relative_delta={max_delta}, maximum={config['validation']['max_frequency_method_delta']}",
             )
 
     for rel_path in config["outputs"].get("expected_outputs", []):

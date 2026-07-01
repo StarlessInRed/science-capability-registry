@@ -7,6 +7,9 @@ import yaml
 from science_capability_registry.openfoam.conjugate_heat_transfer_cooling.validation import (
     validate_manifest,
 )
+from science_capability_registry.openfoam.conjugate_heat_transfer_cooling.runtime import (
+    validate_runtime_metrics,
+)
 
 
 def _baseline_config() -> dict:
@@ -79,3 +82,44 @@ def test_openfoam_c07_validation_rejects_missing_radiation_command() -> None:
     assert result["passed"] is False
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "radiation_command.planned.viewFactorsGen -region topAir" in failed
+
+
+def test_openfoam_c07_runtime_validation_requires_native_heat_flux_for_promotion(tmp_path: Path) -> None:
+    config = _mhr_config()
+    config["validation"]["gate"] = "targeted-regression"
+    config["outputs"]["expected_outputs"] = []
+    config["radiation"]["required_generated_files"] = []
+    regions = [*config["regions"]["fluid"], *config["regions"]["solid"]]
+    commands = [
+        *config["mesh_workflow"]["command_sequence"],
+        *config["radiation"]["preprocessing_commands"],
+        *config["solver"]["command_sequence"],
+        *[command for command in config["postprocess"]["command_sequence"] if not command.startswith("python:")],
+    ]
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in commands]},
+        "mesh": {"mesh_ok": True},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "final_time": config["numerics"]["control"]["end_time_iterations"],
+            "regions_seen": regions,
+            "last_residuals": {region: {"T": {"final": 1e-6}} for region in regions},
+        },
+        "postprocess": {
+            "temperatures": {
+                "regions": [
+                    {"region": region, "available": True, "finite": True, "min_T_K": 300.0, "max_T_K": 400.0}
+                    for region in regions
+                ]
+            },
+            "interfaces": {"available": True},
+            "patch_heat_flux_proxy": {"available": True},
+        },
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "postprocess.native_heat_flux_required_for_promotion" in failed
+    assert "postprocess.energy_balance_required_for_promotion" in failed

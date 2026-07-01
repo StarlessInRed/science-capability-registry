@@ -83,6 +83,15 @@ postprocess:
   - cell_centres_excluding_near_cylinder_and_farfield_buffer
   - cylinder_patch_owner_cells
   surface_patch: cylinder
+  sample_policy:
+    field_mask: cell_centres_excluding_near_cylinder_and_farfield_buffer
+    surface_cp_source: cylinder_patch_owner_cells
+    owner_cell_proxy: true
+    finite_domain_error_strategy: unbounded_analytic_solution_with_masked_sampling
+  error_norm_policy:
+    velocity_norm: componentwise_l2_linf_over_masked_cells
+    pressure_norm: kinematic_pressure_l2_over_masked_cells
+    cp_norm: surface_patch_owner_cell_linf
 analytical_reference:
   coordinate_system: cylinder_centered_polar
   velocity_formula: "U = U_inf * (e_x - (a/r)^2 * (cos(2theta)e_x + sin(2theta)e_y))"

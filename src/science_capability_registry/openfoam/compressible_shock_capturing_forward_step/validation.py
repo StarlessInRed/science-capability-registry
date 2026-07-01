@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 from typing import Any
 
+PROMOTION_GATES = {"targeted-regression", "integration", "double-v", "full-regression"}
+
 
 def _check(checks: list[dict[str, Any]], name: str, passed: bool, details: str) -> None:
     checks.append({"name": name, "passed": bool(passed), "details": details})
@@ -123,6 +125,22 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
         else:
             _check(checks, f"postprocess.{metric_name}.reference", rel_error is not None and rel_error <= float(config["validation"]["max_jump_ratio_rel_error"]), f"value={shock.get(metric_name)}, reference={metric_ref}")
 
+    if config["validation"]["gate"] in PROMOTION_GATES:
+        reference_targets_present = all(
+            _is_finite(reference.get(key))
+            for key in [
+                "shock_position_reference_m",
+                "pressure_jump_ratio_reference",
+                "density_jump_ratio_reference",
+            ]
+        )
+        _check(
+            checks,
+            "postprocess.shock_reference_required_for_promotion",
+            reference_targets_present,
+            json.dumps(reference, ensure_ascii=False),
+        )
+
     _check(
         checks,
         "boundary_flux.mass_imbalance_proxy",
@@ -132,6 +150,14 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
         and abs(float(conservation["boundary_flux_mass_imbalance_proxy"])) <= float(config["validation"]["max_boundary_flux_mass_imbalance_proxy"]),
         json.dumps(conservation, ensure_ascii=False),
     )
+    if config["validation"]["gate"] in PROMOTION_GATES:
+        native_or_face_flux = conservation.get("method") in {"native_openfoam_face_flux", "face_field_integration"}
+        _check(
+            checks,
+            "boundary_flux.native_or_face_flux_parity_required_for_promotion",
+            native_or_face_flux,
+            json.dumps(conservation, ensure_ascii=False),
+        )
     _check(
         checks,
         "boundary_flux.total_energy_imbalance_proxy",

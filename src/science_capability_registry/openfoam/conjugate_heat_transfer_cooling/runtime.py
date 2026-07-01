@@ -38,6 +38,7 @@ CONTINUITY_RE = re.compile(
     rf"global =\s*(?P<global>{FLOAT_RE}),\s+cumulative =\s*(?P<cumulative>{FLOAT_RE})"
 )
 CHECK_MESH_OK_RE = re.compile(r"Mesh OK", re.IGNORECASE)
+PROMOTION_GATES = {"targeted-regression", "integration", "double-v", "full-regression"}
 
 
 def _true_floating_exception(log_text: str) -> bool:
@@ -352,6 +353,18 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
             "postprocess.patch_heat_flux_proxy_available",
             patch_heat_flux.get("available") is True,
             json.dumps(patch_heat_flux, ensure_ascii=False),
+        )
+    heat_flux_validation = config["postprocess"]["heat_flux_validation"]
+    if config["validation"]["gate"] in PROMOTION_GATES:
+        check(
+            "postprocess.native_heat_flux_required_for_promotion",
+            heat_flux_validation["source"] in {"native_openfoam", "independent_reference"},
+            json.dumps(heat_flux_validation, ensure_ascii=False),
+        )
+        check(
+            "postprocess.energy_balance_required_for_promotion",
+            heat_flux_validation["energy_balance_source"] in {"native_openfoam", "independent_reference"},
+            json.dumps(heat_flux_validation, ensure_ascii=False),
         )
 
     for rel_path in config["radiation"].get("required_generated_files", []):

@@ -15,7 +15,23 @@
       "package_entrypoint": "science_capability_registry.cantera.c01_constant_pressure_ignition:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["cantera_C01_ignition_validation"]
+      "evidence_ids": [
+        "cantera_C01_ignition_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "benchmark_manifest_path": "benchmarks/cantera_c01_constant_pressure_ignition/benchmark_manifest.json",
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "cantera_C01_ignition_validation"
     },
     {
       "capability_id": "combustion.cantera.freely_propagating_premixed_flame",
@@ -28,7 +44,22 @@
       "package_entrypoint": "science_capability_registry.cantera.c02_freely_propagating_premixed_flame:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["cantera_C02_flame_speed_validation"]
+      "evidence_ids": [
+        "cantera_C02_flame_speed_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "cantera_C02_flame_speed_validation"
     },
     {
       "capability_id": "combustion.cantera.counterflow_diffusion_flame",
@@ -41,7 +72,22 @@
       "package_entrypoint": "science_capability_registry.cantera.c03_counterflow_diffusion_flame:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["cantera_C03_baseline_validation"]
+      "evidence_ids": [
+        "cantera_C03_baseline_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "cantera_C03_baseline_validation"
     },
     {
       "capability_id": "combustion.cantera.extinction_strain_rate",
@@ -54,7 +100,22 @@
       "package_entrypoint": "science_capability_registry.cantera.c04_extinction_strain_rate:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["cantera_C04_extinction_validation"]
+      "evidence_ids": [
+        "cantera_C04_extinction_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "cantera_C04_extinction_validation"
     },
     {
       "capability_id": "combustion.cantera.reaction_path_analysis",
@@ -67,7 +128,22 @@
       "package_entrypoint": "science_capability_registry.cantera.c05_reaction_path_analysis:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["cantera_C05_reaction_path_validation"]
+      "evidence_ids": [
+        "cantera_C05_reaction_path_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "cantera_C05_reaction_path_validation"
     },
     {
       "capability_id": "combustion.cantera.mechanism_reduction",
@@ -80,7 +156,22 @@
       "package_entrypoint": "science_capability_registry.cantera.c06_mechanism_reduction:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["cantera_C06_mechanism_reduction_validation"]
+      "evidence_ids": [
+        "cantera_C06_mechanism_reduction_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "cantera_C06_mechanism_reduction_validation"
     },
     {
       "capability_id": "cfd.openfoam.lid_driven_cavity_incompressible_laminar",
@@ -93,7 +184,24 @@
       "package_entrypoint": "science_capability_registry.openfoam.lid_driven_cavity_incompressible_laminar:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["openfoam_C01_benchmark_validation"]
+      "evidence_ids": [
+        "openfoam_C01_benchmark_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "benchmark_manifest_path": "benchmarks/openfoam_c01_lid_driven_cavity/benchmark_manifest.json",
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "openfoam_C01_benchmark_validation"
     },
     {
       "capability_id": "cfd.openfoam.potential_flow_cylinder_analytical_validation",
@@ -109,7 +217,21 @@
       "evidence_ids": [
         "openfoam_C02_static_readiness_2026-06-30",
         "openfoam_C02_runtime_smoke_attempt_2026-06-30"
-      ]
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "dispatch_status": "runtime_smoke_failed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "openfoam_C02_runtime_smoke_attempt_2026-06-30"
     },
     {
       "capability_id": "cfd.openfoam.backward_facing_step_rans_internal_flow",
@@ -122,7 +244,24 @@
       "package_entrypoint": "science_capability_registry.openfoam.backward_facing_step_rans_internal_flow:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["openfoam_C03_benchmark_validation"]
+      "evidence_ids": [
+        "openfoam_C03_benchmark_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "benchmark_manifest_path": "benchmarks/openfoam_c03_backward_facing_step_rans_internal_flow/benchmark_manifest.json",
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "openfoam_C03_benchmark_validation"
     },
     {
       "capability_id": "cfd.openfoam.external_aero_motorbike_rans_snappy",
@@ -135,7 +274,23 @@
       "package_entrypoint": "science_capability_registry.openfoam.external_aero_motorbike_rans_snappy:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
-      "evidence_ids": ["openfoam_C04_static_readiness_2026-06-30"]
+      "evidence_ids": [
+        "openfoam_C04_static_readiness_2026-06-30"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "openfoam_C04_static_readiness_2026-06-30"
     },
     {
       "capability_id": "cfd.openfoam.transient_cylinder_vortex_shedding",
@@ -153,7 +308,21 @@
         "openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30",
         "openfoam_C05_python_force_proxy_smoke_2026-06-30",
         "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30"
-      ]
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "dispatch_status": "validation_failed",
+      "current_gate": "integration",
+      "primary_evidence_id": "openfoam_C05_strouhal_long_horizon_attempt_2026-06-30"
     },
     {
       "capability_id": "cfd.openfoam.dam_break_vof_free_surface",
@@ -166,7 +335,24 @@
       "package_entrypoint": "science_capability_registry.openfoam.dam_break_vof_free_surface:run",
       "card_status": "accepted",
       "benchmark_status": "benchmark_validated",
-      "evidence_ids": ["openfoam_C06_benchmark_validation"]
+      "evidence_ids": [
+        "openfoam_C06_benchmark_validation"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "benchmark_manifest_path": "benchmarks/openfoam_c06_dam_break_vof_free_surface/benchmark_manifest.json",
+      "dispatch_status": "replay_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "openfoam_C06_benchmark_validation"
     },
     {
       "capability_id": "cfd.openfoam.conjugate_heat_transfer_cooling",
@@ -187,7 +373,21 @@
         "openfoam_C07_multiRegionHeaterRadiation_short_smoke_2026-06-30",
         "openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30",
         "openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30"
-      ]
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112_cht.yaml",
+      "dispatch_status": "integration_evidence_ready",
+      "current_gate": "integration",
+      "primary_evidence_id": "openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30"
     },
     {
       "capability_id": "cfd.openfoam.compressible_shock_capturing_forward_step",
@@ -202,8 +402,23 @@
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
         "openfoam_C08_static_readiness_2026-06-30",
-        "openfoam_C08_runtime_smoke_attempt_2026-06-30"
-      ]
+        "openfoam_C08_runtime_smoke_attempt_2026-06-30",
+        "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml",
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
     },
     {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
@@ -219,7 +434,20 @@
       "evidence_ids": [
         "gmsh_C01_openfoam_import_smoke_2026-06-30",
         "gmsh_C01_openfoam_solve_smoke_2026-06-30"
-      ]
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "gmsh_C01_openfoam_solve_smoke_2026-06-30"
     }
   ]
 }

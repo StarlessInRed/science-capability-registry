@@ -142,6 +142,10 @@ def test_openfoam_c05_runtime_validation_checks_strouhal_target_range(tmp_path: 
             },
             "strouhal": {
                 "available": True,
+                "method": "lift_peak_period",
+                "selected_method": "lift_peak_period",
+                "source": "force_coefficients.cl",
+                "force_extraction_source": "python_patch_surface_proxy",
                 "strouhal_number": 0.5,
             },
         },
@@ -182,6 +186,10 @@ def test_openfoam_c05_runtime_validation_checks_force_series_quality(tmp_path: P
             },
             "strouhal": {
                 "available": True,
+                "method": "lift_peak_period",
+                "selected_method": "lift_peak_period",
+                "source": "force_coefficients.cl",
+                "force_extraction_source": "python_patch_surface_proxy",
                 "strouhal_number": 0.2,
                 "peak_count": 2,
                 "period_cv": 0.4,
@@ -198,6 +206,50 @@ def test_openfoam_c05_runtime_validation_checks_force_series_quality(tmp_path: P
     assert "postprocess.strouhal_peak_count" in failed
     assert "postprocess.strouhal_period_cv" in failed
     assert "postprocess.strouhal_lift_amplitude" in failed
+
+
+def test_openfoam_c05_runtime_validation_checks_frequency_cross_check_consistency(tmp_path: Path) -> None:
+    config = _baseline_config()
+    config["postprocess"]["force_extraction_source"] = "python_patch_surface_proxy"
+    config["postprocess"]["strouhal_estimate"] = True
+    config["postprocess"]["frequency_cross_checks"] = ["lift_fft"]
+    config["validation"]["max_frequency_method_delta"] = 0.15
+    config["outputs"]["expected_outputs"] = []
+    metrics = {
+        "runtime": {"commands": [{"command": command, "returncode": 0} for command in config["solver"]["command_sequence"]]},
+        "solver": {
+            "started": True,
+            "fatal_error_detected": False,
+            "final_time": config["numerics"]["control"]["end_time_s"],
+            "max_courant_number": 0.1,
+            "residual_history": [{"final": 1e-6}],
+        },
+        "postprocess": {
+            "force_coefficients": {
+                "available": True,
+                "source": "python_patch_surface_proxy",
+            },
+            "strouhal": {
+                "available": True,
+                "method": "lift_peak_period",
+                "selected_method": "lift_peak_period",
+                "source": "force_coefficients.cl",
+                "force_extraction_source": "python_patch_surface_proxy",
+                "frequency_hz": 1.0,
+                "strouhal_number": 0.2,
+                "frequency_estimates": [
+                    {"method": "lift_peak_period", "available": True, "frequency_hz": 1.0},
+                    {"method": "lift_fft", "available": True, "frequency_hz": 1.5},
+                ],
+            },
+        },
+    }
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "postprocess.strouhal_cross_check.lift_fft" not in failed
+    assert "postprocess.strouhal_cross_check_consistency" in failed
 
 
 def test_openfoam_c05_runtime_validation_allows_final_time_step_tolerance(tmp_path: Path) -> None:

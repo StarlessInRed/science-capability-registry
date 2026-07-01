@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import math
 from pathlib import Path
 
 from science_capability_registry.openfoam.transient_cylinder_vortex_shedding.postprocess import (
@@ -44,6 +45,37 @@ def test_openfoam_c05_strouhal_requires_lift_peaks() -> None:
     strouhal = estimate_strouhal(rows, cylinder_diameter_m=1.0, inlet_velocity_m_s=1.0)
 
     assert strouhal["available"] is False
+
+
+def test_openfoam_c05_strouhal_records_fft_cross_check() -> None:
+    frequency_hz = 0.5
+    rows = [
+        {
+            "time_s": index * 0.05,
+            "cm": 0.0,
+            "cd": 1.0,
+            "cl": math.sin(2.0 * math.pi * frequency_hz * index * 0.05),
+        }
+        for index in range(161)
+    ]
+
+    strouhal = estimate_strouhal(
+        rows,
+        cylinder_diameter_m=1.0,
+        inlet_velocity_m_s=1.0,
+        min_lift_peaks=3,
+        strouhal_estimation_method="lift_peak_period",
+        frequency_cross_checks=["lift_fft"],
+        force_extraction_source="python_patch_surface_proxy",
+    )
+
+    estimates = {estimate["method"]: estimate for estimate in strouhal["frequency_estimates"]}
+    assert strouhal["available"] is True
+    assert strouhal["selected_method"] == "lift_peak_period"
+    assert strouhal["source"] == "force_coefficients.cl"
+    assert strouhal["force_extraction_source"] == "python_patch_surface_proxy"
+    assert estimates["lift_fft"]["available"] is True
+    assert abs(estimates["lift_fft"]["strouhal_number"] - strouhal["strouhal_number"]) / strouhal["strouhal_number"] < 0.05
 
 
 def test_openfoam_c05_python_patch_surface_proxy_writes_force_csv(tmp_path: Path) -> None:

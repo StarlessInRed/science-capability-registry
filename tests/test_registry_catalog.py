@@ -71,6 +71,18 @@ def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:
         for key in ["asset_path", "run_schema_path", "default_config_path"]:
             assert _repo_relative(entry[key]), f"{entry['capability_id']} has non-repo-relative {key}: {entry[key]}"
             assert repo_path(entry[key]).exists(), f"{entry['capability_id']} missing {key}: {entry[key]}"
+        for key in ["runtime_profile_path", "benchmark_manifest_path"]:
+            if key in entry:
+                assert _repo_relative(entry[key]), f"{entry['capability_id']} has non-repo-relative {key}: {entry[key]}"
+                assert repo_path(entry[key]).exists(), f"{entry['capability_id']} missing {key}: {entry[key]}"
+        assert entry["primary_evidence_id"] in entry["evidence_ids"]
+        assert entry["result_contract"]["required_files"] == [
+            "manifest.json",
+            "metrics.json",
+            "validation.json",
+            "validation_report.md",
+        ]
+        assert entry["result_contract"]["runtime_evidence_index"] == "reports/evidence_index.yaml"
 
         asset = _read_yaml(repo_path(entry["asset_path"]))
         assert entry["asset_id"] == asset["asset_id"]
@@ -94,6 +106,7 @@ def test_evidence_index_resolves_catalog_evidence_ids() -> None:
 
     assert evidence_index["index_id"] == "science_capability_registry.evidence_index"
     for entry in catalog["capabilities"]:
+        assert entry["primary_evidence_id"] in evidence
         for evidence_id in entry["evidence_ids"]:
             assert evidence_id in evidence
             evidence_entry = evidence[evidence_id]
@@ -114,6 +127,15 @@ def test_dispatcher_runner_keys_match_catalog_and_can_dry_run_cantera_c01(tmp_pa
     plan = build_dispatch_plan()
     assert plan["validated_config"] is True
     assert {entry["capability_id"] for entry in plan["entries"]} == catalog_ids
+    openfoam_c08 = next(
+        entry
+        for entry in plan["entries"]
+        if entry["capability_id"] == "cfd.openfoam.compressible_shock_capturing_forward_step"
+    )
+    assert openfoam_c08["dispatch_status"] == "runtime_smoke_passed"
+    assert openfoam_c08["current_gate"] == "smoke"
+    assert openfoam_c08["primary_evidence_id"] == "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
+    assert openfoam_c08["runtime_profile_path"] == "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml"
 
     result = run_capability(
         "combustion.cantera.constant_pressure_ignition",

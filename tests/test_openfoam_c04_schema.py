@@ -23,6 +23,18 @@ def test_openfoam_c04_configs_match_schema() -> None:
         assert config["function_objects"]["y_plus"]["required"] is True
 
 
+def test_openfoam_c04_runtime_smoke_config_targets_wsl_v2112() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112.yaml")
+
+    assert config["case_id"] == "runtime_smoke_wsl_v2112"
+    assert config["backend"]["type"] == "wsl"
+    assert config["validation"]["gate"] == "smoke"
+    assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2112"
+    commands = "\n".join(config["solver"]["command_sequence"])
+    for expected in ["snappyHexMesh", "checkMesh", "simpleFoam", "postProcess -latestTime -func yPlus"]:
+        assert expected in commands
+
+
 def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
     config["unexpected"] = True

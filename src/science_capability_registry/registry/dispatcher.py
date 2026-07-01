@@ -61,6 +61,12 @@ def build_dispatch_plan(catalog_path: str | Path | None = None) -> dict[str, Any
                 "default_config_path": entry["default_config_path"],
                 "package_entrypoint": entry["package_entrypoint"],
                 "benchmark_status": entry["benchmark_status"],
+                "dispatch_status": entry["dispatch_status"],
+                "current_gate": entry["current_gate"],
+                "primary_evidence_id": entry["primary_evidence_id"],
+                "runtime_profile_path": entry.get("runtime_profile_path"),
+                "benchmark_manifest_path": entry.get("benchmark_manifest_path"),
+                "result_contract": entry["result_contract"],
             }
         )
     return {

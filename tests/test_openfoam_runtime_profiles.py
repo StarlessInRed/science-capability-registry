@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
 
 from science_capability_registry.openfoam.runtime_profiles import (
     load_runtime_profile,
@@ -45,6 +46,24 @@ def test_openfoam_runtime_profile_v2412_bindings() -> None:
     assert profile["version_label"] == "v2412"
     assert profile["backend"]["type"] == "wsl"
     assert profile["executable_bindings"]["vof_free_surface_transient"] == "interFoam"
+
+
+def test_openfoam_c01_c03_c06_v2412_configs_bind_profile_roots() -> None:
+    cases = {
+        "configs/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2412.yaml": None,
+        "configs/openfoam/backward_facing_step_rans_internal_flow/baseline_wsl_v2412.yaml": "pitzDaily",
+        "configs/openfoam/dam_break_vof_free_surface/baseline_wsl_v2412.yaml": "damBreak",
+    }
+
+    for path, source_fragment in cases.items():
+        config = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        assert config["openfoam"]["version"] == "v2412"
+        assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2412"
+        assert config["openfoam"]["bashrc_path"] == "/usr/lib/openfoam/openfoam2412/etc/bashrc"
+        assert config["outputs"]["output_dir"].endswith("_wsl_v2412")
+        if source_fragment is not None:
+            assert source_fragment in config["template"]["source_path"]
+            assert "openfoam2412" in config["template"]["source_path"]
 
 
 def test_openfoam_runtime_profile_v2112_cht_bindings() -> None:

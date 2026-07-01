@@ -43,6 +43,10 @@
           "package_entrypoint",
           "card_status",
           "benchmark_status",
+          "dispatch_status",
+          "current_gate",
+          "primary_evidence_id",
+          "result_contract",
           "evidence_ids"
         ],
         "properties": {
@@ -92,6 +96,68 @@
               "validation_failed",
               "retired"
             ]
+          },
+          "dispatch_status": {
+            "enum": [
+              "replay_ready",
+              "static_ready",
+              "runtime_smoke_passed",
+              "runtime_smoke_failed",
+              "integration_evidence_ready",
+              "validation_failed",
+              "candidate_only",
+              "retired"
+            ]
+          },
+          "current_gate": {
+            "enum": [
+              "static-readiness",
+              "smoke",
+              "targeted-regression",
+              "integration",
+              "double-v",
+              "full-regression"
+            ]
+          },
+          "primary_evidence_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "runtime_profile_path": {
+            "$ref": "#/$defs/repo_relative_path"
+          },
+          "benchmark_manifest_path": {
+            "$ref": "#/$defs/repo_relative_path"
+          },
+          "result_contract": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "required_files",
+              "report_file",
+              "runtime_evidence_index"
+            ],
+            "properties": {
+              "required_files": {
+                "type": "array",
+                "minItems": 4,
+                "items": {
+                  "enum": [
+                    "manifest.json",
+                    "metrics.json",
+                    "validation.json",
+                    "validation_report.md"
+                  ]
+                },
+                "uniqueItems": true
+              },
+              "report_file": {
+                "const": "validation_report.md"
+              },
+              "runtime_evidence_index": {
+                "const": "reports/evidence_index.yaml"
+              }
+            }
           },
           "evidence_ids": {
             "type": "array",

@@ -14,6 +14,28 @@
     "openfoam_version": "v2112",
     "wsl_distro": "Ubuntu-24.04"
   },
+  "case_matrix": {
+    "required_case_ids": [
+      "baseline_wsl_v2112"
+    ],
+    "scope": "frozen canonical baseline; the C01 integration matrix remains runner-level evidence until its perturbation cases are frozen."
+  },
+  "replay_contract": {
+    "benchmark_entrypoint": "science-openfoam-c01-benchmark",
+    "required_runtime_profile": "openfoam_com_v2112",
+    "required_case_ids": [
+      "baseline_wsl_v2112"
+    ],
+    "required_artifacts": [
+      "expected_metrics.json",
+      "residual_reference.json",
+      "validation_criteria.json",
+      "artifact_hash.json",
+      "postprocess_reference/centerline_vertical_Ux.csv",
+      "postprocess_reference/centerline_horizontal_Uy.csv"
+    ],
+    "comparison_policy": "validation_criteria.json"
+  },
   "physics_definition": {
     "model": "incompressible Navier-Stokes",
     "regime": "laminar cavity flow",

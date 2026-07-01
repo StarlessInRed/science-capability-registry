@@ -54,6 +54,37 @@ def validate_manifest(
         "cylinder_patch_owner_cells" in sample_sets,
         json.dumps(sorted(sample_sets), ensure_ascii=False),
     )
+    sample_policy = config["postprocess"]["sample_policy"]
+    _check(
+        checks,
+        "postprocess.sample_policy.field_mask",
+        sample_policy["field_mask"] == "cell_centres_excluding_near_cylinder_and_farfield_buffer",
+        json.dumps(sample_policy, ensure_ascii=False),
+    )
+    _check(
+        checks,
+        "postprocess.sample_policy.surface_cp_source",
+        sample_policy["surface_cp_source"] == "cylinder_patch_owner_cells" and sample_policy["owner_cell_proxy"] is True,
+        json.dumps(sample_policy, ensure_ascii=False),
+    )
+    _check(
+        checks,
+        "postprocess.sample_policy.finite_domain_strategy",
+        sample_policy["finite_domain_error_strategy"] == "unbounded_analytic_solution_with_masked_sampling",
+        json.dumps(sample_policy, ensure_ascii=False),
+    )
+    error_norm_policy = config["postprocess"]["error_norm_policy"]
+    _check(
+        checks,
+        "postprocess.error_norm_policy",
+        error_norm_policy
+        == {
+            "velocity_norm": "componentwise_l2_linf_over_masked_cells",
+            "pressure_norm": "kinematic_pressure_l2_over_masked_cells",
+            "cp_norm": "surface_patch_owner_cell_linf",
+        },
+        json.dumps(error_norm_policy, ensure_ascii=False),
+    )
     _check(
         checks,
         "function_objects.coded_error_disabled",

@@ -195,6 +195,10 @@ postprocess:
   region_temperature_summary: true
   interface_balance_summary: true
   patch_heat_flux_proxy_summary: true
+  heat_flux_validation:
+    source: proxy_only
+    native_required_for_promotion: true
+    energy_balance_source: not_configured
   command_sequence:
   - python:write_region_temperature_summary
   - python:write_interface_balance_summary

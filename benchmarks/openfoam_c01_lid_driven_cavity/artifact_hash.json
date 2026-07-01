@@ -2,18 +2,8 @@
   "schema_version": "benchmark_artifact_hash_v1",
   "benchmark_id": "openfoam_c01_lid_driven_cavity",
   "hash_algorithm": "sha256",
-  "source_artifacts": {
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/manifest.json": "c906b58d427711dcd7ed1f6d0a8e967fd161a35581f54421c43cfac540973a5c",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/metrics.json": "332c5d4efe3a896fdb812770de7e6ae0930bc42cee59e0e83fb3a8ed4c0b9cc6",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/validation.json": "f2dd3cae45edcbe11cf7f80ba8a51fff2af3f33c9f3de7a948887704edd7af2b",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/logs/log.blockMesh": "336179295cd362c6dbe0492ae689d06383c518fe52ed9fab39f0c5ea769037f7",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/logs/log.checkMesh": "62ce04e0c1b14566813f341434cb26ad6a3ef1384dc0950fc4dbe4f4819fe827",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/logs/log.icoFoam": "7fc50d3198f551e0dec93f4c0e2cc2a07acb95d787489ac844efbe985b505a57",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/postprocess/centerline_vertical_Ux.csv": "d6656dd8ca4e9ebd745d0056fd543a8c5487fad0170d545f7ac8becae9e8b6a5",
-    "_results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2112/postprocess/centerline_horizontal_Uy.csv": "f707f4f4ca670fd3e661ed3bb94bca2d1ddb22d88fe4975b8c31dbf4849c3259"
-  },
   "frozen_reference_artifacts": {
-    "benchmark_manifest.json": "0fd2763eeef05602a11874705630e085251432b368c5e1983a3650e7a65996b2",
+    "benchmark_manifest.json": "f580a50cc71b310f531ce583def028250d857b1b53b9d368a8ece7110e81c632",
     "expected_metrics.json": "ce3e4e90bcd4339927a6bf7674fa0b1ea2ac0da9378b9a83f9f51a247fa86d0c",
     "postprocess_reference/centerline_horizontal_Uy.csv": "f707f4f4ca670fd3e661ed3bb94bca2d1ddb22d88fe4975b8c31dbf4849c3259",
     "postprocess_reference/centerline_vertical_Ux.csv": "d6656dd8ca4e9ebd745d0056fd543a8c5487fad0170d545f7ac8becae9e8b6a5",

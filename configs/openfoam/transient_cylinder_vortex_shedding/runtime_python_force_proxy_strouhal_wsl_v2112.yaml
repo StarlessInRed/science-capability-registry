@@ -112,6 +112,9 @@ postprocess:
   lift_drag_time_series: true
   strouhal_estimate: true
   force_extraction_source: python_patch_surface_proxy
+  strouhal_estimation_method: lift_peak_period
+  frequency_cross_checks:
+  - lift_fft
 outputs:
   output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112
   retain_generated_case: true
@@ -143,6 +146,7 @@ validation:
   analysis_window_s: 6
   min_lift_peak_count: 5
   max_period_cv: 0.3
+  max_frequency_method_delta: 0.15
   min_cl_amplitude: 0.001
   required_generated_files:
   - case/0/U
