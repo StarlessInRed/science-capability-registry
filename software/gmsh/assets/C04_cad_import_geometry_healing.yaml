@@ -1,0 +1,68 @@
+asset_id: C04_cad_import_geometry_healing
+software: Gmsh
+source_url: https://gmsh.info/doc/texinfo/gmsh.html
+domain: meshing
+capability_name: CAD import geometry healing
+problem_type:
+  category: CAD import, OpenCASCADE geometry cleanup, and entity tracking
+  description: Import external CAD geometry, apply explicit geometry healing or Boolean cleanup operations, and preserve a traceable entity-to-physical-group map for downstream meshing.
+physics:
+  model_class:
+  - CAD topology preprocessing
+  - OpenCASCADE entity operations
+  - geometry cleanup and meshability validation
+  governing_parameters:
+    cad_format: configurable
+    import_tolerance: configurable
+    healing_operations: configurable
+    boolean_fragment_policy: configurable
+    entity_tag_mapping: configurable
+  benchmark_template:
+    source_name: Gmsh OpenCASCADE and CAD import documentation
+    role: Evidence for importing CAD entities and preparing them for mesh generation.
+inputs:
+  run_schema_targets:
+  - cad_source_path
+  - cad_format
+  - unit_policy
+  - import_tolerance
+  - healing_operations
+  - entity_selection_rules
+  - physical_group_rebinding
+outputs:
+  required_artifacts:
+  - cad_import_manifest.json
+  - entity_map.json
+  - healing_report.json
+  - meshability_summary.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - imported_entity_count
+  - healed_entity_count
+  - duplicate_or_sliver_count
+  - unassigned_entity_count
+benchmark:
+  source_name: Gmsh CAD import and OpenCASCADE geometry kernel documentation
+  source_type: official documentation
+  benchmark_role: Candidate benchmark for robust CAD-to-mesh preprocessing with traceable entity identities.
+  status_rationale: Candidate asset only. CAD import introduces geometry-kernel and source-file variability, so C04 should not be registered for runtime dispatch until a small STEP/BREP smoke, entity-map report, and failure-mode ledger exist.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- A future run schema must expose CAD format, unit policy, import tolerance, healing operations, and entity rebinding rules.
+- Validation must reject unassigned critical faces, duplicate/sliver entities above threshold, and lost physical groups.
+- Reports must list imported, modified, deleted, and newly created entity tags.
+- Mesh generation success must be separated from CAD healing correctness.
+integration_targets:
+  workflow_stage: meshing.gmsh.cad_import_geometry_healing
+  planned_input_schema: schemas/gmsh_C04_cad_import_geometry_healing.schema.json
+  planned_package_entrypoint: science_capability_registry.gmsh.cad_import_geometry_healing:run
+  runtime_target: _results/gmsh/cad_import_geometry_healing/
+intern_deliverables:
+- Select one small CAD smoke file with redistributable or generated provenance.
+- Draft config for import tolerance, healing operations, and physical group rebinding.
+- Implement entity-map summary before mesh generation.
+- Add failure cases for unassigned faces and entity-map loss.
+- Keep large CAD files and generated meshes out of Git.
+card_status: review
+benchmark_status: benchmark_candidate

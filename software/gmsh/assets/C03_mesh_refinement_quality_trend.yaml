@@ -1,0 +1,69 @@
+asset_id: C03_mesh_refinement_quality_trend
+software: Gmsh
+source_url: https://gmsh.info/doc/texinfo/gmsh.html
+domain: meshing
+capability_name: mesh refinement quality trend
+problem_type:
+  category: mesh refinement and quality regression
+  description: Generate a controlled mesh-refinement matrix and validate that element counts, size controls, and quality metrics evolve in an expected and solver-consumable way.
+physics:
+  model_class:
+  - discretization control
+  - mesh-size field and algorithm sensitivity
+  - numerical preprocessing quality assurance
+  governing_parameters:
+    characteristic_length: configurable
+    size_field_parameters: configurable
+    element_order: configurable
+    mesh_algorithm: configurable
+    quality_thresholds: configurable
+  benchmark_template:
+    source_name: Gmsh mesh size fields and mesh algorithms documentation
+    role: Evidence for configurable mesh density and algorithm choices.
+inputs:
+  run_schema_targets:
+  - base_geometry
+  - refinement_levels
+  - size_field
+  - mesh_algorithm
+  - element_order
+  - quality_thresholds
+  - trend_expectations
+outputs:
+  required_artifacts:
+  - mesh_manifest.json
+  - mesh_quality_summary.json
+  - refinement_matrix.csv
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - node_count
+  - element_count
+  - min_quality_proxy
+  - max_aspect_ratio_proxy
+  - nonfinite_coordinate_count
+  - refinement_monotonicity
+benchmark:
+  source_name: Gmsh mesh generation and quality controls
+  source_type: official documentation
+  benchmark_role: Candidate benchmark for mesh-refinement trend validation before downstream solver accuracy studies.
+  status_rationale: Candidate asset only. C01 has basic mesh summary and solver import smoke, but no perturbation matrix. C03 defines the refinement and quality trend gate required before Gmsh meshes are treated as robust solver inputs.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- A future run schema must expose refinement levels, mesh-size controls, algorithm selection, and quality thresholds.
+- Element or node count should increase monotonically under configured refinement unless the case declares a bounded adaptive policy.
+- Quality metrics must remain finite and above configured thresholds.
+- Downstream solver validation must be reported separately from mesh-quality validation.
+integration_targets:
+  workflow_stage: meshing.gmsh.mesh_refinement_quality_trend
+  planned_input_schema: schemas/gmsh_C03_mesh_refinement_quality_trend.schema.json
+  planned_package_entrypoint: science_capability_registry.gmsh.mesh_refinement_quality_trend:run
+  runtime_target: _results/gmsh/mesh_refinement_quality_trend/
+intern_deliverables:
+- Draft refinement matrix config with at least baseline/coarse/fine cases.
+- Implement mesh quality parser and trend validator.
+- Add negative tests for nonfinite coordinates and low-quality mesh.
+- Produce a validation report that explains quality/refinement tradeoffs.
+- Keep solver-result accuracy out of scope until C06 export/import matrix exists.
+card_status: review
+benchmark_status: benchmark_candidate

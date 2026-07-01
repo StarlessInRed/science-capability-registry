@@ -1,0 +1,67 @@
+asset_id: C05_boundary_layer_size_field_meshing
+software: Gmsh
+source_url: https://gmsh.info/doc/texinfo/gmsh.html
+domain: meshing
+capability_name: boundary-layer and size-field meshing
+problem_type:
+  category: boundary-layer and spatial mesh-size control
+  description: Configure boundary-layer or distance/threshold size fields so near-wall, near-interface, or local feature regions receive solver-appropriate mesh resolution.
+physics:
+  model_class:
+  - anisotropic or near-boundary mesh-size control
+  - CFD/FEM preprocessing for wall-adjacent or feature-adjacent regions
+  - size-field validation
+  governing_parameters:
+    boundary_layer_thickness: configurable
+    growth_ratio: configurable
+    first_layer_height: configurable
+    distance_field_sources: configurable
+    threshold_field_limits: configurable
+  benchmark_template:
+    source_name: Gmsh mesh size fields and boundary-layer field documentation
+    role: Evidence for field-driven mesh-size control.
+inputs:
+  run_schema_targets:
+  - base_geometry
+  - wall_or_feature_groups
+  - size_field_type
+  - first_layer_height
+  - growth_ratio
+  - total_thickness
+  - quality_thresholds
+outputs:
+  required_artifacts:
+  - size_field_manifest.json
+  - boundary_layer_summary.json
+  - mesh_quality_summary.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - near_wall_element_count
+  - min_near_wall_spacing
+  - max_growth_ratio_observed
+  - min_quality_proxy
+benchmark:
+  source_name: Gmsh size fields and boundary layer controls
+  source_type: official documentation
+  benchmark_role: Candidate benchmark for field-driven refinement and boundary-layer mesh generation.
+  status_rationale: Candidate asset only. Boundary-layer and size-field meshing should be implemented after C02 physical group semantics are stable, because the wall/feature groups define where the field applies.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- A future run schema must expose field type, target groups, first-layer height, growth ratio, total thickness, and quality thresholds.
+- Validation must reject missing target groups, nonfinite field parameters, and low-quality near-wall cells.
+- Boundary-layer metrics must be reported separately from global mesh quality.
+- CFD y+ or solver-specific wall validation is out of scope unless connected to a downstream solver evidence report.
+integration_targets:
+  workflow_stage: meshing.gmsh.boundary_layer_size_field_meshing
+  planned_input_schema: schemas/gmsh_C05_boundary_layer_size_field_meshing.schema.json
+  planned_package_entrypoint: science_capability_registry.gmsh.boundary_layer_size_field_meshing:run
+  runtime_target: _results/gmsh/boundary_layer_size_field_meshing/
+intern_deliverables:
+- Draft size-field config using explicit physical group targets.
+- Implement boundary-layer or distance/threshold field generation.
+- Add near-wall spacing and growth-ratio diagnostics.
+- Add negative tests for missing wall groups and impossible layer parameters.
+- Keep solver-specific y+ validation as a downstream capability, not a Gmsh-only claim.
+card_status: review
+benchmark_status: benchmark_candidate

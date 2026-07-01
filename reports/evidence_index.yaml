@@ -913,6 +913,32 @@ evidence:
   scope: Local Gmsh Python API runtime generates a thin 3D mesh, imports it through gmshToFoam, passes checkMesh, and completes potentialFoam -writep.
   limitations:
   - Solver consumability smoke only; does not validate mesh perturbation robustness or benchmark-grade CFD accuracy.
+- evidence_id: gmsh_C01_C06_capability_map_2026-07-01
+  capability_id: meshing.gmsh.capability_map
+  asset_path: software/gmsh/capability_map.md
+  evidence_kind: governance_closure_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/gmsh_C01_C06_capability_map_2026-07-01.md
+  supporting_paths:
+  - docs/02_four_repo_science_capability_chain.md
+  - software/gmsh/capability_map.md
+  - software/gmsh/examples_index.md
+  - software/gmsh/assets/C02_boundary_physical_group_contract.yaml
+  - software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml
+  - software/gmsh/assets/C04_cad_import_geometry_healing.yaml
+  - software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml
+  - software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml
+  - tasks/gmsh_C02_boundary_physical_group_contract_intern_task.md
+  - tasks/gmsh_C03_mesh_refinement_quality_trend_intern_task.md
+  - tasks/gmsh_C04_cad_import_geometry_healing_intern_task.md
+  - tasks/gmsh_C05_boundary_layer_size_field_meshing_intern_task.md
+  - tasks/gmsh_C06_multi_solver_mesh_export_contract_intern_task.md
+  runtime_evidence_paths: []
+  scope: Gmsh first-batch C01-C06 capability map and four-repo science capability chain boundary after OpenFOAM case-freeze.
+  limitations:
+  - Governance and planning evidence only; C02-C06 are benchmark_candidate assets and are not runtime catalog entries yet.
+  - Does not claim new Gmsh runtime validation beyond existing C01 OpenFOAM import/solve smoke.
 - evidence_id: openfoam_C01_C08_pause_closure_2026-07-01
   capability_id: cfd.openfoam.registry_pause_closure
   asset_path: software/openfoam/capability_map.md

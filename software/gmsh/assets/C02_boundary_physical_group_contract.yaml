@@ -1,0 +1,66 @@
+asset_id: C02_boundary_physical_group_contract
+software: Gmsh
+source_url: https://gmsh.info/doc/texinfo/gmsh.html
+domain: meshing
+capability_name: boundary physical group contract
+problem_type:
+  category: mesh boundary semantics and solver boundary-condition mapping
+  description: Convert Gmsh physical groups into a strict, reusable boundary contract that downstream CFD, FEM, and multiphysics solvers can consume without guessing patch roles.
+physics:
+  model_class:
+  - mesh topology and boundary tagging
+  - physical group role mapping for solver boundary conditions
+  - downstream patch or marker contract validation
+  governing_parameters:
+    physical_group_names: configurable
+    entity_dimensions: configurable
+    role_mapping: configurable
+    downstream_solver_target: configurable
+  benchmark_template:
+    source_name: Gmsh reference manual physical groups
+    role: Evidence for named physical groups and entity tagging as solver-facing mesh semantics.
+inputs:
+  run_schema_targets:
+  - geometry_source
+  - physical_groups
+  - required_boundary_roles
+  - entity_dimension_policy
+  - duplicate_name_policy
+  - downstream_boundary_map
+  - failure_policy
+outputs:
+  required_artifacts:
+  - physical_group_map.json
+  - boundary_contract.json
+  - manifest.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - physical_group_count
+  - missing_required_group_count
+  - duplicate_name_count
+  - role_mapping_coverage
+benchmark:
+  source_name: Gmsh physical groups and elementary entities documentation
+  source_type: official documentation
+  benchmark_role: Candidate benchmark for proving that mesh boundary names and roles survive generation and downstream solver import.
+  status_rationale: Candidate asset only. C01 already proves basic physical-group generation and OpenFOAM import smoke; C02 separates the boundary semantic contract from geometry generation so future solvers can reject missing, renamed, duplicated, or dimension-mismatched groups before runtime.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- A future run schema must expose physical group name, dimension, solver-facing role, and required/optional status.
+- Validation must reject missing required groups, duplicate names with conflicting dimensions, and unknown downstream roles.
+- Downstream import smoke must prove boundary names survive conversion into at least one solver format before package promotion.
+- Reports must separate Gmsh physical-group generation success from downstream solver boundary-condition validity.
+integration_targets:
+  workflow_stage: meshing.gmsh.boundary_physical_group_contract
+  planned_input_schema: schemas/gmsh_C02_boundary_physical_group_contract.schema.json
+  planned_package_entrypoint: science_capability_registry.gmsh.boundary_physical_group_contract:run
+  runtime_target: _results/gmsh/boundary_physical_group_contract/
+intern_deliverables:
+- Draft schema/config for physical group role mapping.
+- Implement dry-run manifest validation before solver import.
+- Add a negative test for missing or renamed boundary groups.
+- Add at least one downstream import smoke after schema validation is stable.
+- Keep C02 out of runtime catalog until package and evidence exist.
+card_status: review
+benchmark_status: benchmark_candidate

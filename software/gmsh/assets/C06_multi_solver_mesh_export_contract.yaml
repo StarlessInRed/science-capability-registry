@@ -1,0 +1,68 @@
+asset_id: C06_multi_solver_mesh_export_contract
+software: Gmsh
+source_url: https://gmsh.info/doc/texinfo/gmsh.html
+domain: meshing
+capability_name: multi-solver mesh export contract
+problem_type:
+  category: solver-facing mesh export and import validation
+  description: Export a single canonical Gmsh mesh into multiple solver-consumable formats or import paths while preserving units, orientation, physical groups, and element topology.
+physics:
+  model_class:
+  - mesh format conversion
+  - solver import contract validation
+  - boundary and domain semantic preservation
+  governing_parameters:
+    output_formats: configurable
+    solver_targets: configurable
+    unit_scale: configurable
+    physical_group_preservation: configurable
+    element_type_policy: configurable
+  benchmark_template:
+    source_name: Gmsh mesh file formats and downstream import paths
+    role: Evidence for solver-facing export from a canonical mesh source.
+inputs:
+  run_schema_targets:
+  - source_mesh_manifest
+  - export_formats
+  - solver_targets
+  - unit_policy
+  - orientation_policy
+  - physical_group_contract
+  - import_smoke_commands
+outputs:
+  required_artifacts:
+  - export_manifest.json
+  - format_matrix.csv
+  - solver_import_summary.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - exported_format_count
+  - successful_import_count
+  - boundary_name_mismatch_count
+  - element_count_delta
+  - unit_scale_mismatch_count
+benchmark:
+  source_name: Gmsh mesh formats and solver import evidence
+  source_type: official documentation plus downstream solver smoke candidates
+  benchmark_role: Candidate benchmark for proving that Gmsh-generated meshes are consumable by more than one solver ecosystem.
+  status_rationale: Candidate asset only. C01 already has OpenFOAM import and solve smoke, but C06 generalizes that evidence into a multi-solver export/import contract and should wait for C02 boundary semantics and C03 quality trend gates.
+validation_criteria:
+- Capability card must validate against schemas/capability_card.schema.json.
+- A future run schema must expose source mesh, export formats, solver targets, unit policy, orientation policy, and import smoke commands.
+- Validation must compare physical group preservation and element count deltas across exported formats.
+- At least one downstream import smoke must pass before package_skeleton_created; at least two solver families should pass before benchmark_validated.
+- Solver-specific physics results must remain outside C06 unless a downstream solver validation report is linked.
+integration_targets:
+  workflow_stage: meshing.gmsh.multi_solver_mesh_export_contract
+  planned_input_schema: schemas/gmsh_C06_multi_solver_mesh_export_contract.schema.json
+  planned_package_entrypoint: science_capability_registry.gmsh.multi_solver_mesh_export_contract:run
+  runtime_target: _results/gmsh/multi_solver_mesh_export_contract/
+intern_deliverables:
+- Draft export matrix covering OpenFOAM plus at least one FEM-oriented target.
+- Reuse C02 physical group contract and C03 quality metrics instead of redefining them.
+- Implement import smoke summaries with boundary-name and element-count checks.
+- Record format-specific failure modes in a report.
+- Keep C06 out of runtime catalog until package entrypoint and evidence exist.
+card_status: review
+benchmark_status: benchmark_candidate
