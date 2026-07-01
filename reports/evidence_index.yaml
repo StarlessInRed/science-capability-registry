@@ -567,6 +567,22 @@ evidence:
   limitations:
   - Accepted-baseline samples come from local runtime smoke, not an external benchmark.
   - Native or face-field flux parity remains required before benchmark promotion.
+- evidence_id: openfoam_failure_ledger_2026-07-01
+  capability_id: cfd.openfoam.failure_ledger
+  asset_path: software/openfoam/examples_index.md
+  evidence_kind: failure_ledger
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_failure_ledger.yaml
+  supporting_paths:
+  - reports/evidence_index.yaml
+  - software/openfoam/examples_index.md
+  - software/openfoam/capability_map.md
+  runtime_evidence_paths: []
+  scope: Structured OpenFOAM C01-C08 failure, mitigation, promotion-blocker, and double-v-gap ledger distilled from stable reports, evidence index entries, runtime result references, and code/test guards.
+  limitations:
+  - Runtime outputs remain under _results and are supporting evidence only.
+  - Conversation memory is not canonical unless already distilled into repository reports, configs, tests, or assets.
 - evidence_id: gmsh_C01_openfoam_import_smoke_2026-06-30
   capability_id: meshing.gmsh.parametric_geometry_mesh_generation
   asset_path: software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml
