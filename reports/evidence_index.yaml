@@ -567,6 +567,101 @@ evidence:
   limitations:
   - Accepted-baseline samples come from local runtime smoke, not an external benchmark.
   - Native or face-field flux parity remains required before benchmark promotion.
+- evidence_id: openfoam_C04_v2412_motorbike_snap_probe_2026-07-01
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: runtime_diagnostic_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C04_v2412_motorbike_snap_probe_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/runtime_profiles/openfoam_com_v2412.yaml
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412.yaml
+  - schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runtime.py
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412/
+  scope: OpenFOAM.com v2412 C04 motorBike layer-disabled snapControls runtime executes all commands and simpleFoam short smoke, but fails mesh skewness while emitting skewFaces geometry localization metrics.
+  limitations:
+  - Mesh quality remains failed with max_skewness above the configured threshold.
+  - ForceCoeffs, Cd/Cl, and yPlus are intentionally not claimed by this solver-only diagnostic config.
+- evidence_id: openfoam_C05_strouhal_reference_policy_2026-07-01
+  capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
+  asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
+  evidence_kind: reference_policy_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C05_strouhal_reference_policy_2026-07-01.md
+  supporting_paths:
+  - reports/openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01.md
+  - configs/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412.yaml
+  runtime_evidence_paths:
+  - _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
+  scope: C05 Strouhal target policy prevents threshold relaxation before external, official, independent, or sensitivity-backed reference provenance is selected.
+  limitations:
+  - Policy evidence only; it does not close the failed Strouhal validation gate.
+- evidence_id: openfoam_C02_finite_domain_reference_policy_2026-07-01
+  capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
+  asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml
+  evidence_kind: reference_policy_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C02_finite_domain_reference_policy_2026-07-01.md
+  supporting_paths:
+  - reports/openfoam_C02_finite_domain_diagnostic_2026-07-01.md
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/finite_domain_diagnostic_wsl_v2112.yaml
+  runtime_evidence_paths:
+  - _results/openfoam/potential_flow_cylinder_analytical_validation/finite_domain_diagnostic_wsl_v2112/
+  scope: C02 policy keeps finite-domain diagnostic non-promotional until corrected finite-domain or domain-expanded convergence reference evidence exists.
+  limitations:
+  - Policy evidence only; strict unbounded-cylinder analytical validation remains failed.
+- evidence_id: openfoam_C07_heat_flux_parity_policy_2026-07-01
+  capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
+  asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
+  evidence_kind: reference_policy_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C07_heat_flux_parity_policy_2026-07-01.md
+  supporting_paths:
+  - reports/openfoam_C07_native_wall_heat_flux_diagnostic_2026-07-01.md
+  - reports/openfoam_C07_conjugate_heat_transfer_cooling_multiRegionHeaterRadiation_integration_matrix_2026-06-30.md
+  runtime_evidence_paths:
+  - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_003/
+  scope: C07 heat-flux policy separates short-horizon proxy integration evidence from native or independent heat-flux parity required for benchmark promotion.
+  limitations:
+  - Policy evidence only; native wallHeatFlux remains failed on local v2112.
+- evidence_id: openfoam_C08_external_shock_reference_policy_2026-07-01
+  capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
+  asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
+  evidence_kind: reference_policy_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C08_external_shock_reference_policy_2026-07-01.md
+  supporting_paths:
+  - reports/openfoam_C08_reference_shock_closure_2026-07-01.md
+  - reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
+  runtime_evidence_paths:
+  - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
+  scope: C08 policy keeps local accepted-baseline shock samples smoke-only and requires external or independent shock reference plus native or face-field flux parity for promotion.
+  limitations:
+  - Policy evidence only; benchmark promotion remains blocked.
+- evidence_id: openfoam_C01_C03_C06_double_v_policy_2026-07-01
+  capability_id: cfd.openfoam.cross_profile_regression
+  asset_path: software/openfoam/examples_index.md
+  evidence_kind: reference_policy_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C01_C03_C06_double_v_policy_2026-07-01.md
+  supporting_paths:
+  - reports/openfoam_C02_C04_C07_C08_runtime_closure_gaps_2026-07-01.md
+  - configs/openfoam/runtime_profiles/openfoam_com_v2412.yaml
+  runtime_evidence_paths:
+  - _results/openfoam/lid_driven_cavity_incompressible_laminar/baseline_wsl_v2412/
+  - _results/openfoam/backward_facing_step_rans_internal_flow/baseline_wsl_v2412/
+  - _results/openfoam/dam_break_vof_free_surface/baseline_wsl_v2412/
+  scope: C01, C03, and C06 policy separates v2412 cross-profile replay from external or independent double-v completion.
+  limitations:
+  - Policy evidence only; no external double-v reference is claimed.
 - evidence_id: openfoam_failure_ledger_2026-07-01
   capability_id: cfd.openfoam.failure_ledger
   asset_path: software/openfoam/examples_index.md
@@ -575,6 +670,7 @@ evidence:
   status: indexed
   primary_evidence_path: reports/openfoam_failure_ledger.yaml
   supporting_paths:
+  - schemas/openfoam_failure_ledger.schema.json
   - reports/evidence_index.yaml
   - software/openfoam/examples_index.md
   - software/openfoam/capability_map.md

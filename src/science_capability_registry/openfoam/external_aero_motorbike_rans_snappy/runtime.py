@@ -82,9 +82,111 @@ def _command_log(runtime: dict[str, Any], token: str, output_dir: Path) -> Path:
 def _read_face_set_count(path: Path) -> int | None:
     if not path.exists():
         return None
-    text = path.read_text(encoding="utf-8", errors="replace")
-    match = re.search(r"(?m)^\s*(\d+)\s*$", text)
-    return int(match.group(1)) if match else None
+    return len(_read_label_list(path))
+
+
+def _read_foam_list_lines(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        inline_match = re.match(r"^(\d+)\s*\((.*)\)$", stripped)
+        if inline_match:
+            inner = inline_match.group(2).strip()
+            return [inner] if inner else []
+        if not stripped.isdigit():
+            continue
+        next_index = index + 1
+        while next_index < len(lines) and not lines[next_index].strip():
+            next_index += 1
+        if next_index >= len(lines) or lines[next_index].strip() != "(":
+            continue
+        body: list[str] = []
+        for body_line in lines[next_index + 1:]:
+            if body_line.strip() == ")":
+                break
+            if body_line.strip():
+                body.append(body_line.strip())
+        return body
+    return []
+
+
+def _read_label_list(path: Path) -> list[int]:
+    labels: list[int] = []
+    for line in _read_foam_list_lines(path):
+        labels.extend(int(value) for value in re.findall(r"\d+", line))
+    return labels
+
+
+def _read_points(path: Path) -> list[tuple[float, float, float]]:
+    points: list[tuple[float, float, float]] = []
+    for line in _read_foam_list_lines(path):
+        match = re.match(rf"^\(\s*({FLOAT_RE})\s+({FLOAT_RE})\s+({FLOAT_RE})\s*\)$", line)
+        if match:
+            points.append((float(match.group(1)), float(match.group(2)), float(match.group(3))))
+    return points
+
+
+def _face_geometry(
+    faces_path: Path,
+    labels: set[int],
+    points: list[tuple[float, float, float]],
+) -> tuple[dict[int, tuple[float, float, float]], list[tuple[float, float, float]]]:
+    centroids: dict[int, tuple[float, float, float]] = {}
+    vertices: list[tuple[float, float, float]] = []
+    if not labels or not points:
+        return centroids, vertices
+    face_re = re.compile(r"^\s*\d+\s*\(([^)]*)\)\s*$")
+    for face_index, line in enumerate(_read_foam_list_lines(faces_path)):
+        if face_index not in labels:
+            continue
+        match = face_re.match(line)
+        if not match:
+            continue
+        point_ids = [int(value) for value in match.group(1).split()]
+        if not point_ids or any(point_id >= len(points) for point_id in point_ids):
+            continue
+        coords = [points[point_id] for point_id in point_ids]
+        vertices.extend(coords)
+        centroids[face_index] = (
+            sum(coord[0] for coord in coords) / len(coords),
+            sum(coord[1] for coord in coords) / len(coords),
+            sum(coord[2] for coord in coords) / len(coords),
+        )
+    return centroids, vertices
+
+
+def _centroid_summary(
+    centroids: dict[int, tuple[float, float, float]],
+    vertices: list[tuple[float, float, float]],
+    label_count: int,
+) -> dict[str, Any]:
+    values = list(centroids.values())
+    if not values:
+        return {
+            "face_count": label_count,
+            "located_face_count": 0,
+            "missing_face_count": label_count,
+            "reason": "No skew-face centroids could be resolved from polyMesh faces and points.",
+        }
+    bbox_source = vertices or values
+    bbox_min = [min(value[axis] for value in bbox_source) for axis in range(3)]
+    bbox_max = [max(value[axis] for value in bbox_source) for axis in range(3)]
+    centroid_mean = [sum(value[axis] for value in values) / len(values) for axis in range(3)]
+    sample_centroids = [
+        {"face": face_id, "centroid": list(centroid)}
+        for face_id, centroid in sorted(centroids.items())[:5]
+    ]
+    return {
+        "face_count": label_count,
+        "located_face_count": len(values),
+        "missing_face_count": label_count - len(values),
+        "bbox_min": bbox_min,
+        "bbox_max": bbox_max,
+        "centroid_mean": centroid_mean,
+        "sample_centroids": sample_centroids,
+    }
 
 
 def _skew_faces_by_processor(output_dir: Path) -> dict[str, int]:
@@ -100,6 +202,25 @@ def _skew_faces_by_processor(output_dir: Path) -> dict[str, int]:
     return counts
 
 
+def _skew_face_geometry_by_processor(output_dir: Path) -> dict[str, dict[str, Any]]:
+    case_dir = output_dir / "case"
+    summaries: dict[str, dict[str, Any]] = {}
+    poly_mesh_dirs = sorted(case_dir.glob("processor*/constant/polyMesh"))
+    serial_poly_mesh = case_dir / "constant" / "polyMesh"
+    if serial_poly_mesh.exists():
+        poly_mesh_dirs.append(serial_poly_mesh)
+    for poly_mesh_dir in poly_mesh_dirs:
+        set_path = poly_mesh_dir / "sets" / "skewFaces"
+        labels = _read_label_list(set_path)
+        if not labels:
+            continue
+        processor = poly_mesh_dir.parts[-3] if poly_mesh_dir.parts[-3].startswith("processor") else "serial"
+        points = _read_points(poly_mesh_dir / "points")
+        centroids, vertices = _face_geometry(poly_mesh_dir / "faces", set(labels), points)
+        summaries[processor] = _centroid_summary(centroids, vertices, len(labels))
+    return summaries
+
+
 def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dict[str, Any]) -> dict[str, Any]:
     logs = {Path(item["log"]).name: item["log"] for item in runtime.get("commands", [])}
     snappy_log = _command_log(runtime, "snappyHexMesh", output_dir)
@@ -113,6 +234,14 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
     if skew_faces:
         mesh_metrics["skew_faces_by_processor"] = skew_faces
         mesh_metrics["skew_face_set_count"] = sum(skew_faces.values())
+        expected_skew_count = int(mesh_metrics.get("highly_skew_face_count", 0))
+        if expected_skew_count:
+            mesh_metrics["skew_face_count_consistent_with_checkMesh"] = (
+                mesh_metrics["skew_face_set_count"] == expected_skew_count
+            )
+    skew_geometry = _skew_face_geometry_by_processor(output_dir)
+    if skew_geometry:
+        mesh_metrics["skew_face_geometry_by_processor"] = skew_geometry
     mesh_metrics["configured_min_face_weight"] = config["mesh"]["quality"]["min_face_weight"]
     mesh_metrics["configured_snap_controls"] = config["mesh"]["snappy"].get("snap_controls", {})
     solver_metrics = parse_simplefoam_log(simplefoam_log.read_text(encoding="utf-8") if simplefoam_log.exists() else "")

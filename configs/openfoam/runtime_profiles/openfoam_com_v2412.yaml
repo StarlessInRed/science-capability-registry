@@ -10,13 +10,23 @@ backend:
   parallel: false
 executable_bindings:
   incompressible_laminar_transient: icoFoam
+  potential_flow_initialization: potentialFoam
+  compressible_shock_transient: rhoCentralFoam
   incompressible_laminar_pimple_transient: pimpleFoam
   incompressible_rans_steady: simpleFoam
+  external_aero_rans_steady: simpleFoam
   vof_free_surface_transient: interFoam
   mesh_block: blockMesh
   mesh_snappy: snappyHexMesh
+  mesh_feature_extract: surfaceFeatureExtract
   mesh_mirror: mirrorMesh
   mesh_check: checkMesh
+  mesh_topology_sets: topoSet
+  mesh_reconstruct: reconstructParMesh
+  field_reconstruct: reconstructPar
+  parallel_decompose: decomposePar
+  parallel_launcher: mpirun
+  dictionary_query: foamDictionary
   mesh_renumber: renumberMesh
   field_initializer: setFields
   postprocess_driver: postProcess
@@ -24,11 +34,21 @@ executable_bindings:
 required_executables:
 - blockMesh
 - snappyHexMesh
+- surfaceFeatureExtract
 - mirrorMesh
+- decomposePar
+- reconstructParMesh
+- reconstructPar
+- topoSet
+- patchSummary
+- mpirun
+- foamDictionary
 - renumberMesh
 - redistributePar
 - checkMesh
 - icoFoam
+- potentialFoam
+- rhoCentralFoam
 - pimpleFoam
 - simpleFoam
 - interFoam
@@ -36,10 +56,13 @@ required_executables:
 - postProcess
 tutorial_roots:
   c01_lid_driven_cavity: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/icoFoam/cavity/cavity
+  c02_potential_cylinder: /usr/lib/openfoam/openfoam2412/tutorials/basic/potentialFoam/cylinder
   c03_pitz_daily: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/simpleFoam/pitzDaily
+  c04_motorbike: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/simpleFoam/motorBike
   c05_cylinder2d: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/pimpleFoam/laminar/cylinder2D
   c06_dam_break: /usr/lib/openfoam/openfoam2412/tutorials/multiphase/interFoam/laminar/damBreak/damBreak
+  c08_forward_step: /usr/lib/openfoam/openfoam2412/tutorials/compressible/rhoCentralFoam/forwardStep
 known_limitations:
 - Evidence collected on this host is OpenFOAM.com v2412 under WSL Ubuntu-24.04.
-- Executable and tutorial-root presence were probed; C01/C03/C06 runtime smoke replay has passed on this profile, and C05 native forceCoeffs diagnostics use this profile.
+- Executable and tutorial-root presence were probed; C01/C03/C06 runtime smoke replay has passed on this profile, C05 native forceCoeffs diagnostics use this profile, and C04 motorBike runtime probing is supported by explicit required executable declarations.
 - This profile does not claim Foundation OpenFOAM compatibility.

@@ -1,10 +1,12 @@
 ledger_id: science_capability_registry.openfoam_failure_ledger
-schema_version: 0.1.0
+schema_version: 0.2.0
+schema_path: schemas/openfoam_failure_ledger.schema.json
 index_role: failure_classification
 scope: OpenFOAM C01-C08
-created_on: 2026-07-01
+created_on: '2026-07-01'
 source_policy:
   canonical_sources:
+  - schemas/openfoam_failure_ledger.schema.json
   - reports/evidence_index.yaml
   - reports/openfoam_*.md
   - software/openfoam/examples_index.md
@@ -17,6 +19,20 @@ evidence_levels:
   runtime_result: _results manifest, metrics, validation, or logs referenced by stable evidence.
   test_code_guard: Parser, schema, validation, config, or pytest guard that prevents silent regression.
   conversation_memory: Non-canonical lead; not used by this ledger.
+work_queue_policy:
+  priority_scale:
+    P0: Blocks current OpenFOAM C01-C08 closure or a first-batch runtime smoke path.
+    P1: Required before benchmark promotion or double-v closure, but not blocking local smoke execution.
+    P2: Stable capability improvement or cross-profile/double-v follow-up after P0/P1.
+    P3: Historical, mitigated, or observation-only item retained for traceability.
+  status_values:
+  - active
+  - blocked
+  - gap
+  - mitigation_only
+  - resolved
+  ordering_rule: Work queue is ordered by priority first, then by ability to separate runtime-profile problems from capability problems.
+  closure_rule: A queue item closes only when its referenced ledger entries gain stable repo evidence and tests or validation reports enforce the new claim boundary.
 entries:
 - failure_id: OF-C01-G001-external-centerline-double-v-gap
   cxx_group: C01
@@ -24,13 +40,21 @@ entries:
   asset_path: software/openfoam/assets/C01_lid_driven_cavity_incompressible_laminar.yaml
   state: double_v_gap
   failure_class: evidence_gap
+  priority: P2
+  work_queue_status: gap
   gate_blocked: double-v
   benchmark_status_effect: benchmark_validated_retained
   summary: C01 is benchmark_validated for the registry-local integration scope, but lacks an external centerline reference and mesh/time independent double-v evidence.
+  owner_next_action: Add external Ghia-style centerline reference data plus mesh/time independence thresholds before claiming double-v.
+  blocked_by:
+  - external_centerline_reference
+  - mesh_time_independence_matrix
   evidence_refs:
   - evidence_id: openfoam_C01_benchmark_validation
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C01_C03_C06_v2412_cross_profile_replay_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C01_C03_C06_double_v_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/lid_driven_cavity_incompressible_laminar/
@@ -45,16 +69,23 @@ entries:
   - External cavity benchmark validation.
   - Completed double-v.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C02-F001-strict-analytical-gate-failed
   cxx_group: C02
   capability_id: cfd.openfoam.potential_flow_cylinder_analytical_validation
   asset_path: software/openfoam/assets/C02_potential_flow_cylinder_analytical_validation.yaml
   state: active_failure
   failure_class: physical_validation_failure
+  priority: P1
+  work_queue_status: active
   gate_blocked: smoke
   benchmark_status_effect: keep_package_skeleton_created
   summary: The runtime path completes, but strict unbounded-cylinder analytical validation fails; the finite-domain diagnostic only proves solver execution, artifact completeness, and finite error extraction.
+  owner_next_action: Build a finite-domain corrected reference or domain-expanded convergence case and keep the unbounded analytical claim blocked until that passes.
+  blocked_by:
+  - finite_domain_reference_policy
+  - surface_cp_sampling_review
+  - mesh_refinement_error_trend
   observed:
     velocity_l2_error: 1.1647355770764016
     velocity_linf_error: 6.912121724051375
@@ -63,6 +94,8 @@ entries:
   - evidence_id: openfoam_C02_runtime_smoke_attempt_2026-06-30
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C02_finite_domain_diagnostic_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C02_finite_domain_reference_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/potential_flow_cylinder_analytical_validation/baseline_wsl_v2112/
@@ -83,20 +116,28 @@ entries:
   - Surface Cp validation.
   - benchmark_validated.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C03-G001-native-wall-shear-yplus-and-external-rans-gap
   cxx_group: C03
   capability_id: cfd.openfoam.backward_facing_step_rans_internal_flow
   asset_path: software/openfoam/assets/C03_backward_facing_step_rans_internal_flow.yaml
   state: double_v_gap
   failure_class: evidence_gap
+  priority: P2
+  work_queue_status: gap
   gate_blocked: double-v
   benchmark_status_effect: benchmark_validated_retained
   summary: C03 is benchmark_validated for the registry-local integration scope, but wallShearStress/yPlus remain Python proxy evidence and external RANS reference comparison is still missing.
+  owner_next_action: Add native or independent wallShearStress/yPlus parity and an external backward-facing-step RANS reference comparison.
+  blocked_by:
+  - native_wall_function_parity
+  - external_rans_reference
   evidence_refs:
   - evidence_id: openfoam_C03_benchmark_validation
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C01_C03_C06_v2412_cross_profile_replay_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C01_C03_C06_double_v_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/backward_facing_step_rans_internal_flow/
@@ -112,30 +153,43 @@ entries:
   - External RANS reference validation.
   - Completed double-v.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C04-F001-mesh-skewness-and-solver-smoke-failed
   cxx_group: C04
   capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
   asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
   state: active_failure
   failure_class: numerical_failure
+  priority: P0
+  work_queue_status: active
   gate_blocked: smoke
   benchmark_status_effect: keep_package_skeleton_created
   summary: The motorBike runtime reaches the real mesh/solver path, but checkMesh skewness remains above the configured threshold and solver-only long smoke is not stable.
+  owner_next_action: Run the layer-disabled snapControls probe on OpenFOAM.com v2412 and add skewFaces geometry localization so mesh failure can be separated from v2112 profile behavior.
+  blocked_by:
+  - c04_v2412_cross_profile_runtime
+  - skew_face_geometry_localization
   observed:
     layer0_max_skewness: 7.64875
     snap_probe_max_skewness: 10.7645
     snap_probe_highly_skew_faces: 42
+    v2412_snap_probe_max_skewness: 11.0447
+    v2412_snap_probe_highly_skew_faces: 32
+    v2412_snap_probe_skew_face_set_count: 32
+    v2412_snap_probe_solver_max_final_residual: 0.0728374
     max_skewness_threshold: 4.0
   evidence_refs:
   - evidence_id: openfoam_C04_runtime_smoke_attempt_2026-07-01
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C04_solver_only_diagnostics_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C04_v2412_motorbike_snap_probe_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112/
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412/
   feedback:
     parser: max_skewness, highly_skew_face_count, and skewFaces set parsing present
     schema_field: snap_controls and max_skewness contract present
@@ -151,16 +205,23 @@ entries:
   - external-aero validation.
   - benchmark_validated.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C04-F002-native-forcecoeffs-yplus-unvalidated
   cxx_group: C04
   capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
   asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
   state: active_failure
   failure_class: setup_evidence_failure
+  priority: P1
+  work_queue_status: blocked
   gate_blocked: integration
   benchmark_status_effect: keep_package_skeleton_created
   summary: Native forceCoeffs fails on the local v2112 profile with sha1 IO behavior, yPlus has not been reached in a passing run, and Cd/Cl tail-window evidence is unavailable.
+  owner_next_action: Revisit native forceCoeffs and yPlus only after a non-diagnostic mesh/solver smoke profile passes on v2412 or another clean profile.
+  blocked_by:
+  - passing_c04_mesh_profile
+  - native_forcecoeffs_profile
+  - native_yplus_profile
   evidence_refs:
   - evidence_id: openfoam_C04_runtime_smoke_attempt_2026-07-01
     evidence_level: repo_stable_report
@@ -182,16 +243,23 @@ entries:
   - Native yPlus validation.
   - Cd/Cl reference closure.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C05-F001-strouhal-target-mismatch
   cxx_group: C05
   capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
   asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
   state: active_failure
   failure_class: physical_validation_failure
+  priority: P0
+  work_queue_status: active
   gate_blocked: integration
   benchmark_status_effect: validation_failed
   summary: Long-horizon solving and force extraction execute, but both v2112 Python proxy and v2412 native forceCoeffs estimate St around 0.14, below the configured [0.16, 0.24] target.
+  owner_next_action: Decide the official cylinder2D Strouhal reference policy, then verify native FFT/DMD or independent frequency parity and mesh/time-step sensitivity.
+  blocked_by:
+  - strouhal_reference_policy
+  - frequency_method_parity
+  - mesh_timestep_sensitivity
   observed:
     v2112_python_proxy_strouhal: 0.13846153846150788
     v2112_lift_fft_strouhal: 0.13999999999997378
@@ -203,6 +271,8 @@ entries:
   - evidence_id: openfoam_C05_strouhal_long_horizon_attempt_2026-06-30
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C05_v2412_native_forcecoeffs_strouhal_diagnostic_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C05_strouhal_reference_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/transient_cylinder_vortex_shedding/runtime_python_force_proxy_strouhal_wsl_v2112_20260630_003/
@@ -223,16 +293,21 @@ entries:
   - Strouhal validation.
   - benchmark_validated.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C05-F002-v2112-native-forcecoeffs-sha1-profile-limitation
   cxx_group: C05
   capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
   asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml
   state: profile_limited_failure_mitigated_by_v2412
   failure_class: setup_failure
+  priority: P3
+  work_queue_status: mitigation_only
   gate_blocked: v2112_native_forcecoeffs_parity
   benchmark_status_effect: validation_failed_retained
   summary: v2112 native forceCoeffs fails on the local profile with sha1 IO behavior; v2412 native forceCoeffs now produces finite coefficient series, narrowing the failure to the v2112/local profile.
+  owner_next_action: Keep v2112 native forceCoeffs marked as a local-profile limitation and route native parity through v2412 unless a sha1 IO fix is intentionally pursued.
+  blocked_by:
+  - v2112_sha1_io_behavior
   evidence_refs:
   - evidence_id: openfoam_C05_forcecoeffs_runtime_smoke_2026-06-30
     evidence_level: repo_stable_report
@@ -253,20 +328,28 @@ entries:
   - Native forceCoeffs is available on v2112.
   - v2412 native forceCoeffs pass closes Strouhal benchmark validation.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C06-G001-native-sampling-full-horizon-double-v-gap
   cxx_group: C06
   capability_id: cfd.openfoam.dam_break_vof_free_surface
   asset_path: software/openfoam/assets/C06_dam_break_vof_free_surface.yaml
   state: double_v_gap
   failure_class: evidence_gap
+  priority: P2
+  work_queue_status: gap
   gate_blocked: double-v
   benchmark_status_effect: benchmark_validated_retained
   summary: C06 is benchmark_validated for the registry-local short-horizon integration scope, but native sampling parity, full-horizon behavior, and external dam-break reference comparison are still missing.
+  owner_next_action: Add native or independent sampling parity plus full-horizon front propagation and external dam-break reference comparison.
+  blocked_by:
+  - native_sampling_parity
+  - full_horizon_reference
   evidence_refs:
   - evidence_id: openfoam_C06_benchmark_validation
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C01_C03_C06_v2412_cross_profile_replay_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C01_C03_C06_double_v_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/dam_break_vof_free_surface/
@@ -282,16 +365,21 @@ entries:
   - Native sampling parity.
   - Completed double-v.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C07-F001-cpuCabinet-time2-fpe
   cxx_group: C07
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
   state: active_failure_for_cpuCabinet_path
   failure_class: numerical_failure
+  priority: P3
+  work_queue_status: blocked
   gate_blocked: smoke
   benchmark_status_effect: keep_benchmark_candidate
   summary: The cpuCabinet runtime path reproducibly fails near Time=2 with turbulence-model FPE under realizableKE and kEpsilon diagnostics; it is not the packaged validated CHT baseline.
+  owner_next_action: Keep cpuCabinet as a known failing diagnostic unless a stable profile or turbulence/BC patch is selected for a targeted rescue run.
+  blocked_by:
+  - cpuCabinet_time2_fpe
   evidence_refs:
   - evidence_id: openfoam_C07_runtime_smoke_attempt_2026-06-30
     evidence_level: repo_stable_report
@@ -316,20 +404,29 @@ entries:
   - cpuCabinet is a validated CHT baseline.
   - cpuCabinet evidence supports benchmark_validated.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C07-F002-native-wallHeatFlux-sha1-failed
   cxx_group: C07
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
   state: active_failure
   failure_class: setup_evidence_failure
+  priority: P1
+  work_queue_status: active
   gate_blocked: double-v
   benchmark_status_effect: keep_benchmark_candidate
   summary: Packaged MHR baseline and perturbation matrix pass, but native postProcess wallHeatFlux fails for all regions on local v2112 with sha1 IO behavior.
+  owner_next_action: Establish native wallHeatFlux on another profile or independent face-field heat-rate parity before any CHT benchmark promotion.
+  blocked_by:
+  - native_wallHeatFlux_profile
+  - independent_heat_flux_parity
+  - steady_energy_balance
   evidence_refs:
   - evidence_id: openfoam_C07_native_wall_heat_flux_diagnostic_2026-07-01
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C07_multiRegionHeaterRadiation_integration_matrix_2026-06-30
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C07_heat_flux_parity_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112/
@@ -349,16 +446,22 @@ entries:
   - Steady CHT convergence.
   - benchmark_validated.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C07-L001-MHR-short-horizon-proxy-only-mitigation
   cxx_group: C07
   capability_id: cfd.openfoam.conjugate_heat_transfer_cooling
   asset_path: software/openfoam/assets/C07_conjugate_heat_transfer_cooling.yaml
   state: mitigation_evidence
   failure_class: limitation
+  priority: P2
+  work_queue_status: mitigation_only
   gate_blocked: benchmark_promotion
   benchmark_status_effect: keep_benchmark_candidate
   summary: MHR baseline plus heater, airflow, and mesh perturbations provide executable integration evidence, but the horizon is short and heat-flux evidence is proxy or field-derived.
+  owner_next_action: Use the MHR matrix as integration mitigation only; extend horizon and heat-flux parity before promotion.
+  blocked_by:
+  - longer_steady_convergence
+  - heat_flux_reference
   evidence_refs:
   - evidence_id: openfoam_C07_multiRegionHeaterRadiation_packaged_smoke_2026-06-30
     evidence_level: repo_stable_report
@@ -378,16 +481,20 @@ entries:
   do_not_claim:
   - Short-horizon MHR proxy pass is CHT benchmark validation.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C08-F001-baseline-cfl-and-old-shock-window-failed
   cxx_group: C08
   capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
   asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
   state: resolved_at_smoke_level_by_reduced_cfl
   failure_class: numerical_validation_failure
+  priority: P3
+  work_queue_status: resolved
   gate_blocked: none_for_smoke
   benchmark_status_effect: keep_package_skeleton_created_for_promotion_gap
   summary: The original baseline runtime reached Time=4 but failed max Courant and old shock-window sanity; the reduced-CFL runtime now closes the smoke-level solver, Courant, shock sanity, and owner-cell flux-proxy path.
+  owner_next_action: Keep this as resolved smoke-level evidence and route promotion work to the separate external-reference/flux-parity gap.
+  blocked_by: []
   observed:
     old_baseline_max_courant: 0.666666
     cfl_reduced_max_courant: 0.0949348
@@ -414,16 +521,22 @@ entries:
   - Old baseline remains current runtime failure.
   - Reduced-CFL smoke is benchmark validation.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
 - failure_id: OF-C08-G001-external-shock-reference-and-native-flux-gap
   cxx_group: C08
   capability_id: cfd.openfoam.compressible_shock_capturing_forward_step
   asset_path: software/openfoam/assets/C08_compressible_shock_capturing_forward_step.yaml
   state: promotion_blocker
   failure_class: evidence_gap
+  priority: P1
+  work_queue_status: active
   gate_blocked: double-v
   benchmark_status_effect: keep_package_skeleton_created
   summary: Reduced-CFL smoke passes with local accepted-baseline shock samples, but benchmark promotion remains blocked by missing external or independent shock reference and native or face-field flux parity.
+  owner_next_action: Add external or independently reviewed shock-position/jump targets and verify owner-cell flux proxy against native or face-field flux parity.
+  blocked_by:
+  - external_shock_reference
+  - native_or_face_field_flux_parity
   observed:
     shock_position_m: 0.425
     pressure_jump_ratio: 7.623675555555555
@@ -433,6 +546,8 @@ entries:
   - evidence_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C08_reference_shock_closure_2026-07-01
+    evidence_level: repo_stable_report
+  - evidence_id: openfoam_C08_external_shock_reference_policy_2026-07-01
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
@@ -452,4 +567,86 @@ entries:
   - Native flux parity.
   - benchmark_validated.
   confidence: high
-  last_reviewed: 2026-07-01
+  last_reviewed: '2026-07-01'
+work_queue:
+- queue_id: OF-WQ-001
+  priority: P0
+  entry_failure_ids:
+  - OF-C04-F001-mesh-skewness-and-solver-smoke-failed
+  title: C04 v2412 motorBike cross-profile smoke and skew-face localization
+  action: Add an OpenFOAM.com v2412 C04 snap-probe config/profile binding, run it locally, and persist skewFaces centroid/bounding-box diagnostics in metrics.
+  acceptance_checks:
+  - C04 v2412 config validates against the C04 schema and runtime profile.
+  - Runtime attempt emits manifest, metrics, validation, and skew-face geometry localization when skewFaces sets exist.
+  - Ledger evidence records whether the failure follows v2412 or is isolated to v2112.
+  expected_evidence:
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412.yaml
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412/
+  - reports/openfoam_C04_v2412_motorbike_snap_probe_2026-07-01.md
+- queue_id: OF-WQ-002
+  priority: P0
+  entry_failure_ids:
+  - OF-C05-F001-strouhal-target-mismatch
+  title: C05 Strouhal reference policy
+  action: Decide whether the official cylinder2D setup should target the current [0.16, 0.24] window or a case-specific lower-frequency reference before changing validation thresholds.
+  acceptance_checks:
+  - Reference provenance is stable and cites whether it is official, analytical, literature, or independent-review evidence.
+  - Native v2412 forceCoeffs FFT and existing v2112 proxy frequency evidence are compared under the selected policy.
+  - No benchmark_validated claim is made without mesh/time-step sensitivity.
+  expected_evidence:
+  - reports/openfoam_C05_strouhal_reference_policy_2026-07-01.md
+  - tests/test_openfoam_c05_validation.py
+- queue_id: OF-WQ-003
+  priority: P1
+  entry_failure_ids:
+  - OF-C02-F001-strict-analytical-gate-failed
+  title: C02 finite-domain or domain-expanded analytical closure
+  action: Replace the strict unbounded-cylinder smoke expectation with a corrected finite-domain reference or a domain-expanded convergence target.
+  acceptance_checks:
+  - Finite-domain diagnostic remains explicitly non-promotional.
+  - Corrected-reference or domain-expanded config declares promotion policy and thresholds.
+  - Surface Cp sampling source is reviewed before benchmark promotion.
+  expected_evidence:
+  - reports/openfoam_C02_finite_domain_reference_policy_2026-07-01.md
+  - configs/openfoam/potential_flow_cylinder_analytical_validation/
+- queue_id: OF-WQ-004
+  priority: P1
+  entry_failure_ids:
+  - OF-C07-F002-native-wallHeatFlux-sha1-failed
+  - OF-C07-L001-MHR-short-horizon-proxy-only-mitigation
+  title: C07 heat-flux parity and steady-energy closure
+  action: Establish native wallHeatFlux on a working profile or independent face-field heat-rate parity, then extend steady convergence and regional energy balance checks.
+  acceptance_checks:
+  - Proxy heat-flux evidence remains marked as mitigation only.
+  - Native or independent heat-rate parity is required for benchmark promotion.
+  - Steady convergence and energy-balance evidence are recorded separately from short-horizon smoke.
+  expected_evidence:
+  - reports/openfoam_C07_heat_flux_parity_policy_2026-07-01.md
+  - tests/test_openfoam_c07_validation.py
+- queue_id: OF-WQ-005
+  priority: P1
+  entry_failure_ids:
+  - OF-C08-G001-external-shock-reference-and-native-flux-gap
+  title: C08 external shock reference and flux parity
+  action: Add external or independently reviewed shock-position/jump references and validate owner-cell flux proxy against native or face-field flux evidence.
+  acceptance_checks:
+  - Local accepted-baseline shock samples remain smoke-only.
+  - Promotion gate rejects missing external/independent reference provenance.
+  - Flux parity is unavailable, failed, or passed explicitly; it is not inferred from owner-cell proxy alone.
+  expected_evidence:
+  - reports/openfoam_C08_external_shock_reference_policy_2026-07-01.md
+  - tests/test_openfoam_c08_validation.py
+- queue_id: OF-WQ-006
+  priority: P2
+  entry_failure_ids:
+  - OF-C01-G001-external-centerline-double-v-gap
+  - OF-C03-G001-native-wall-shear-yplus-and-external-rans-gap
+  - OF-C06-G001-native-sampling-full-horizon-double-v-gap
+  title: C01/C03/C06 double-v follow-up
+  action: Convert current v2412 cross-profile replay from local robustness evidence into external-reference or independent-parity double-v work.
+  acceptance_checks:
+  - C01 gains centerline reference and mesh/time independence checks.
+  - C03 gains wall-function parity and external RANS comparison.
+  - C06 gains native/independent sampling parity and full-horizon front reference.
+  expected_evidence:
+  - reports/openfoam_C01_C03_C06_double_v_policy_2026-07-01.md

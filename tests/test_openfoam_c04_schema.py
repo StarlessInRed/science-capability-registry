@@ -72,6 +72,18 @@ def test_openfoam_c04_snap_probe_config_exposes_snap_controls() -> None:
     assert config["function_objects"]["force_coefficients"]["enabled"] is False
 
 
+def test_openfoam_c04_v2412_snap_probe_config_binds_v2412_profile() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412.yaml")
+
+    assert config["case_id"] == "runtime_snap_probe_layer0_wsl_v2412"
+    assert config["openfoam"]["version"] == "v2412"
+    assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2412"
+    assert config["openfoam"]["bashrc_path"] == "/usr/lib/openfoam/openfoam2412/etc/bashrc"
+    assert "openfoam2412/tutorials/incompressible/simpleFoam/motorBike" in config["template"]["source_path"]
+    assert config["outputs"]["output_dir"].endswith("runtime_snap_probe_layer0_wsl_v2412")
+    assert config["postprocess"]["force_extraction_source"] == "not_required"
+
+
 def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
     config["unexpected"] = True

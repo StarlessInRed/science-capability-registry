@@ -1,0 +1,221 @@
+capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+case_id: runtime_snap_probe_layer0_wsl_v2412
+description: Local WSL OpenFOAM.com v2412 layer-disabled motorBike snapControls probe for C04 cross-profile skewness diagnosis.
+openfoam:
+  distribution: openfoam_com
+  version: v2412
+  runtime_profile: openfoam_com_v2412
+  tutorial_path: $FOAM_TUTORIALS/incompressible/simpleFoam/motorBike
+  source_url: https://www.openfoam.com/documentation/tutorial-guide/2-incompressible-flow/2.3-motorbike
+  bashrc_path: /usr/lib/openfoam/openfoam2412/etc/bashrc
+  case_layout: single_region
+  required_executables:
+  - surfaceFeatureExtract
+  - blockMesh
+  - decomposePar
+  - snappyHexMesh
+  - topoSet
+  - patchSummary
+  - mpirun
+  - foamDictionary
+  - potentialFoam
+  - checkMesh
+  - simpleFoam
+backend:
+  type: wsl
+  timeout_s: 420
+  parallel: true
+  wsl_distro: Ubuntu-24.04
+solver:
+  name: simpleFoam
+  mode: steady_incompressible_RANS_external_aero
+  parallel_subdomains: 6
+  decompose_dict: system/decomposeParDict.6
+  command_sequence:
+  - surfaceFeatureExtract
+  - blockMesh
+  - decomposePar -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 snappyHexMesh -overwrite -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 topoSet -parallel -decomposeParDict system/decomposeParDict.6
+  - rm -rf processor0/0 processor1/0 processor2/0 processor3/0 processor4/0 processor5/0; cp -r 0 processor0/0; cp -r 0 processor1/0; cp -r 0 processor2/0; cp -r 0 processor3/0; cp -r 0 processor4/0; cp -r 0 processor5/0
+  - mpirun --oversubscribe -np 6 patchSummary -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 potentialFoam -writephi -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 checkMesh -writeFields '(nonOrthoAngle)' -constant -parallel -decomposeParDict system/decomposeParDict.6
+  - mpirun --oversubscribe -np 6 simpleFoam -parallel -decomposeParDict system/decomposeParDict.6
+template:
+  source_path: /usr/lib/openfoam/openfoam2412/tutorials/incompressible/simpleFoam/motorBike
+  copy_strategy: copy_official_tutorial_then_patch
+  zero_source_dir: 0.orig
+  geometry_resource_path: /usr/lib/openfoam/openfoam2412/tutorials/resources/geometry/motorBike.obj.gz
+  geometry_target_path: constant/triSurface/motorBike.obj.gz
+  disabled_function_objects:
+  - streamLines
+  - wallBoundedStreamLines
+  - cuttingPlane
+  - ensightWrite
+geometry:
+  object_name: motorBike
+  surface_file: motorBike.obj.gz
+  reference_length_m: 1.42
+  reference_area_m2: 0.75
+  centre_of_rotation_m: [0.72, 0.0, 0.0]
+  drag_direction: [1.0, 0.0, 0.0]
+  lift_direction: [0.0, 0.0, 1.0]
+mesh:
+  generator: blockMesh_surfaceFeatureExtract_snappyHexMesh
+  workflow:
+  - surfaceFeatureExtract
+  - blockMesh
+  - decomposePar
+  - mpirun --oversubscribe -np 6 snappyHexMesh -overwrite -parallel
+  - mpirun --oversubscribe -np 6 topoSet -parallel
+  - mpirun --oversubscribe -np 6 checkMesh -parallel
+  snappy:
+    castellated_mesh: true
+    snap: true
+    add_layers: false
+    surface_refinement_level: [5, 6]
+    feature_level: 6
+    refinement_box_level: 4
+    n_surface_layers: 0
+    snap_controls:
+      n_smooth_patch: 5
+      tolerance: 4.0
+      n_solve_iter: 100
+      n_relax_iter: 8
+      n_feature_snap_iter: 30
+      implicit_feature_snap: true
+      explicit_feature_snap: true
+      multi_region_feature_snap: false
+  quality:
+    min_face_weight: 0.02
+    max_non_orthogonality: 70.0
+    max_skewness: 4.0
+    max_aspect_ratio: 100.0
+    min_cell_count: 1000
+material:
+  density_kg_m3: 1.0
+  kinematic_viscosity_m2_s: 0.000015
+  inlet_velocity_m_s: 20.0
+turbulence:
+  model: kOmegaSST
+  turbulent_kinetic_energy_m2_s2: 0.24
+  specific_dissipation_rate_1_s: 1.78
+  wall_function_y_plus_min: 30.0
+  wall_function_y_plus_max: 300.0
+fields:
+  U:
+    dimensions: "[0 1 -1 0 0 0 0]"
+    internal: "uniform $flowVelocity"
+  p:
+    dimensions: "[0 2 -2 0 0 0 0]"
+    internal: "uniform $pressure"
+  k:
+    dimensions: "[0 2 -2 0 0 0 0]"
+    internal: "uniform $turbulentKE"
+  omega:
+    dimensions: "[0 0 -1 0 0 0 0]"
+    internal: "uniform $turbulentOmega"
+  nut:
+    dimensions: "[0 2 -1 0 0 0 0]"
+    internal: "uniform 0"
+boundary_conditions:
+  inlet:
+    U: fixedValue
+    p: zeroGradient
+    k: fixedValue
+    omega: fixedValue
+  outlet:
+    U: inletOutlet
+    p: fixedValue
+    k: inletOutlet
+    omega: inletOutlet
+  lowerWall:
+    U: fixedValue
+    p: zeroGradient
+    k: kqRWallFunction
+    omega: omegaWallFunction
+  motorBikeGroup:
+    U: noSlip
+    p: zeroGradient
+    k: kqRWallFunction
+    omega: omegaWallFunction
+  frontBackUpperPatches:
+    role: setConstraintTypes_include
+numerics:
+  control:
+    end_time_iterations: 5
+    write_interval: 5
+function_objects:
+  force_coefficients:
+    enabled: false
+    source_file: system/forceCoeffs
+    patches:
+    - motorBikeGroup
+    rho_source: rhoInf
+    coefficient_definition: C = F / (0.5 * rhoInf * magUInf^2 * Aref)
+  y_plus:
+    required: false
+    source_policy: native_yPlus_or_explicit_proxy
+  disabled_visualization:
+  - streamLines
+  - wallBoundedStreamLines
+  - cuttingPlane
+  - ensightWrite
+postprocess:
+  force_extraction_source: not_required
+  force_tail_window_iterations: 100
+  required_metrics:
+  - mesh_quality_summary
+  - final_residuals
+outputs:
+  output_dir: _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412
+  retain_generated_case: true
+  expected_outputs:
+  - case/0/U
+  - case/0/p
+  - case/0/k
+  - case/0/omega
+  - case/0/nut
+  - case/constant/triSurface/motorBike.obj.gz
+  - case/system/snappyHexMeshDict
+  - case/system/forceCoeffs
+  - case/system/meshQualityDict
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - logs/log.01_surfaceFeatureExtract
+  - logs/log.04_mpirun_--oversubscribe_-np_6_snappyHexMesh_-overwrite_-parallel_-decomposeParDict_system_decompo
+  - logs/log.09_mpirun_--oversubscribe_-np_6_checkMesh_-writeFields_nonOrthoAngle_-constant_-parallel_-decompose
+  - logs/log.10_mpirun_--oversubscribe_-np_6_simpleFoam_-parallel_-decomposeParDict_system_decomposeParDict.6
+validation:
+  gate: smoke
+  max_final_residual: 0.1
+  max_force_coefficient_std: 0.05
+  max_y_plus: 300.0
+  min_y_plus: 30.0
+  required_generated_files:
+  - case/0/U
+  - case/0/p
+  - case/0/k
+  - case/0/omega
+  - case/0/nut
+  - case/constant/triSurface/motorBike.obj.gz
+  - case/system/snappyHexMeshDict
+  - case/system/forceCoeffs
+  - case/system/meshQualityDict
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - generated_files
+  - mesh_commands
+  - solver_commands
+  - postprocess_commands
+  - expected_outputs
+  - validation_targets
+  - function_objects
+  matrix_role: solver_only_runtime_isolation
+  expected_trend:
+    description: Layer-disabled v2412 snapControls probe separates persistent motorBike high-skew geometry from local v2112 profile behavior; it does not validate y+ or aerodynamic coefficients.
