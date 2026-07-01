@@ -841,3 +841,20 @@ evidence:
   scope: Local Gmsh Python API runtime generates a thin 3D mesh, imports it through gmshToFoam, passes checkMesh, and completes potentialFoam -writep.
   limitations:
   - Solver consumability smoke only; does not validate mesh perturbation robustness or benchmark-grade CFD accuracy.
+- evidence_id: openfoam_C01_C08_pause_closure_2026-07-01
+  capability_id: cfd.openfoam.registry_pause_closure
+  asset_path: software/openfoam/capability_map.md
+  evidence_kind: governance_closure_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/openfoam_C01_C08_pause_closure_2026-07-01.md
+  supporting_paths:
+  - software/openfoam/capability_map.md
+  - reports/openfoam_failure_ledger.yaml
+  - configs/registry/capability_catalog.json
+  - reports/evidence_index.yaml
+  runtime_evidence_paths: []
+  scope: OpenFOAM C01-C08 registry pause closure separates local integration evidence, active validation failures, and double-v gaps before switching to other asset families.
+  limitations:
+  - This is a closure/governance report, not a new runtime validation result.
+  - It does not promote any OpenFOAM capability beyond its existing catalog benchmark_status.
