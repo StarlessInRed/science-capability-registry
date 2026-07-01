@@ -1,0 +1,117 @@
+capability_id: meshing.gmsh.boundary_physical_group_contract
+case_id: openfoam_import_replay_wsl_v2112
+description: Replay C01 OpenFOAM gmshToFoam import evidence as a C02 boundary contract downstream smoke.
+gmsh:
+  runtime_profile: physical_group_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: dry_run_only
+  timeout_s: 60
+geometry:
+  source_capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  source_case_id: openfoam_import_wsl_v2112
+  family: extruded_rectangle_channel_3d
+  dimension: 3
+  mesh_source_policy: reuse_c01_generated_manifest
+physical_groups:
+- name: inlet
+  dimension: 2
+  role: inlet
+  required: true
+  downstream_aliases:
+  - inlet
+- name: outlet
+  dimension: 2
+  role: outlet
+  required: true
+  downstream_aliases:
+  - outlet
+- name: wall
+  dimension: 2
+  role: wall
+  required: true
+  downstream_aliases:
+  - wall
+- name: frontAndBack
+  dimension: 2
+  role: front_back
+  required: true
+  downstream_aliases:
+  - frontAndBack
+- name: fluid_domain
+  dimension: 3
+  role: domain
+  required: true
+  downstream_aliases:
+  - fluid
+  - cellZone_fluid
+downstream_boundary_map:
+  target_solver: openfoam
+  required_roles:
+  - inlet
+  - outlet
+  - wall
+  - front_back
+  - domain
+  role_to_boundary_type:
+    inlet: velocity_inlet
+    outlet: pressure_outlet
+    wall: wall
+    front_back: empty_or_symmetry_plane
+    domain: cell_zone
+downstream_import_replay:
+  enabled: true
+  source_summary_path: _results/gmsh/parametric_geometry_mesh_generation/openfoam_import_wsl_v2112_20260630_003/downstream_import_summary.json
+  expected_boundary_names:
+  - inlet
+  - outlet
+  - wall
+  - frontAndBack
+  expected_status: passed
+outputs:
+  output_dir: _results/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112
+  expected_outputs:
+  - physical_group_map.json
+  - boundary_contract.json
+  - downstream_import_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  required_group_names:
+  - inlet
+  - outlet
+  - wall
+  - frontAndBack
+  - fluid_domain
+  required_roles:
+  - inlet
+  - outlet
+  - wall
+  - front_back
+  - domain
+  duplicate_name_policy: reject
+  require_dimension_role_compatibility: true
+  require_downstream_role_coverage: true
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry
+  - physical_groups
+  - downstream_boundary_map
+  - downstream_import_replay
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - physical_group_map.json
+  - boundary_contract.json
+  - downstream_import_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

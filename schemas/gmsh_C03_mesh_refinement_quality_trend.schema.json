@@ -36,8 +36,18 @@
       "additionalProperties": false,
       "required": ["type", "timeout_s"],
       "properties": {
-        "type": {"const": "dry_run_only"},
+        "type": {"enum": ["dry_run_only", "python_api"]},
         "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "geometry_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_m", "length_m", "height_m"],
+      "properties": {
+        "origin_m": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "length_m": {"type": "number", "exclusiveMinimum": 0},
+        "height_m": {"type": "number", "exclusiveMinimum": 0}
       }
     },
     "geometry_contract": {

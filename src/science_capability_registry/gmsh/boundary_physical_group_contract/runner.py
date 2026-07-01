@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -60,7 +61,14 @@ def _write_contract_artifacts(output_dir: Path, config: dict[str, Any]) -> list[
     contract = _boundary_contract(config)
     (output_dir / "physical_group_map.json").write_text(json.dumps(group_map, indent=2), encoding="utf-8")
     (output_dir / "boundary_contract.json").write_text(json.dumps(contract, indent=2), encoding="utf-8")
-    return ["physical_group_map.json", "boundary_contract.json"]
+    generated_files = ["physical_group_map.json", "boundary_contract.json"]
+    replay = config.get("downstream_import_replay") or {}
+    if replay.get("enabled"):
+        summary_path = repo_relative_path(replay["source_summary_path"])
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        (output_dir / "downstream_import_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+        generated_files.append("downstream_import_summary.json")
+    return generated_files
 
 
 def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: list[str]) -> dict[str, Any]:
@@ -75,6 +83,7 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "geometry": config["geometry"],
         "physical_groups": config["physical_groups"],
         "downstream_boundary_map": config["downstream_boundary_map"],
+        **({"downstream_import_replay": config["downstream_import_replay"]} if config.get("downstream_import_replay") else {}),
         "generated_files": generated_files,
         "expected_outputs": config["outputs"]["expected_outputs"],
         "validation_targets": config["validation"],
@@ -109,26 +118,31 @@ def run(
         raise NotImplementedError(f"Gmsh C02 backend {config['backend']['type']!r} is not implemented.")
 
     resolved_output_dir = Path(output_dir) if output_dir is not None else repo_relative_path(config["outputs"]["output_dir"])
-    generated_files = _write_contract_artifacts(resolved_output_dir, config)
+    validation_config = deepcopy(config)
+    replay = validation_config.get("downstream_import_replay") or {}
+    if replay.get("enabled"):
+        summary_path = repo_relative_path(replay["source_summary_path"])
+        replay["_summary"] = json.loads(summary_path.read_text(encoding="utf-8"))
+    generated_files = _write_contract_artifacts(resolved_output_dir, validation_config)
     generated_files.extend(["metrics.json", "validation.json", "validation_report.md", "manifest.json"])
-    manifest = _build_manifest(config, resolved_output_dir, generated_files)
-    validation = validate_manifest(manifest, config)
-    metrics = summarize_contract_metrics(config, validation)
+    manifest = _build_manifest(validation_config, resolved_output_dir, generated_files)
+    validation = validate_manifest(manifest, validation_config)
+    metrics = summarize_contract_metrics(validation_config, validation)
     manifest["validation"] = validation
     manifest["metrics"] = metrics
 
     (resolved_output_dir / "validation.json").write_text(json.dumps(validation, indent=2), encoding="utf-8")
     (resolved_output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    write_validation_report(resolved_output_dir / "validation_report.md", config, metrics, validation)
+    write_validation_report(resolved_output_dir / "validation_report.md", validation_config, metrics, validation)
     (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-    validation = validate_manifest(manifest, config, resolved_output_dir)
-    metrics = summarize_contract_metrics(config, validation)
+    validation = validate_manifest(manifest, validation_config, resolved_output_dir)
+    metrics = summarize_contract_metrics(validation_config, validation)
     manifest["validation"] = validation
     manifest["metrics"] = metrics
     (resolved_output_dir / "validation.json").write_text(json.dumps(validation, indent=2), encoding="utf-8")
     (resolved_output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    write_validation_report(resolved_output_dir / "validation_report.md", config, metrics, validation)
+    write_validation_report(resolved_output_dir / "validation_report.md", validation_config, metrics, validation)
     (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return manifest
 

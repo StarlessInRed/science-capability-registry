@@ -1,0 +1,74 @@
+capability_id: meshing.gmsh.boundary_layer_size_field_meshing
+case_id: runtime_distance_threshold_python_api
+description: Gmsh Python API distance/threshold size-field smoke for near-wall rectangular-channel refinement.
+gmsh:
+  runtime_profile: size_field_contract
+  source_url: https://gmsh.info/doc/texinfo/gmsh.html
+backend:
+  type: python_api
+  timeout_s: 120
+geometry_contract:
+  source_capability_id: meshing.gmsh.parametric_geometry_mesh_generation
+  source_case_id: baseline_rectangle_channel_2d
+  boundary_contract_id: meshing.gmsh.boundary_physical_group_contract
+  quality_contract_id: meshing.gmsh.mesh_refinement_quality_trend
+  family: rectangle_channel_2d
+  dimension: 2
+geometry_parameters:
+  origin_m:
+  - 0
+  - 0
+  length_m: 4
+  height_m: 1
+size_field:
+  field_type: distance_threshold
+  target_groups:
+  - wall
+  first_layer_height_m: 0.04
+  growth_ratio: 1.2
+  total_thickness_m: 0.18
+  far_field_size_m: 0.25
+quality_thresholds:
+  min_near_wall_element_count: 20
+  min_near_wall_spacing_m: 0.001
+  max_growth_ratio_observed: 2.0
+  min_quality_proxy: 0.1
+expected_metrics:
+  near_wall_element_count: 20
+  min_near_wall_spacing_m: 0.001
+  max_growth_ratio_observed: 1.2
+  min_quality_proxy: 0.1
+outputs:
+  output_dir: _results/gmsh/boundary_layer_size_field_meshing/runtime_distance_threshold_python_api
+  expected_outputs:
+  - size_field_manifest.json
+  - boundary_layer_summary.json
+  - mesh_quality_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  required_target_groups:
+  - wall
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - gmsh
+  - geometry_contract
+  - size_field
+  - quality_thresholds
+  - expected_metrics
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - size_field_manifest.json
+  - boundary_layer_summary.json
+  - mesh_quality_summary.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md

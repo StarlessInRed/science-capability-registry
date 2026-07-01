@@ -1061,3 +1061,33 @@ evidence:
   limitations:
   - This is a closure/governance report, not a new runtime validation result.
   - It does not promote any OpenFOAM capability beyond its existing catalog benchmark_status.
+- evidence_id: gmsh_C02_C06_runtime_smoke_closure_2026-07-02
+  capability_id: meshing.gmsh.runtime_smoke_closure
+  asset_path: software/gmsh/capability_map.md
+  evidence_kind: runtime_smoke_closure_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/gmsh_C02_C06_runtime_smoke_closure_2026-07-02.md
+  supporting_paths:
+  - configs/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112.yaml
+  - configs/gmsh/mesh_refinement_quality_trend/runtime_rectangle_channel_python_api.yaml
+  - configs/gmsh/cad_import_geometry_healing/runtime_generated_occ_python_api.yaml
+  - configs/gmsh/boundary_layer_size_field_meshing/runtime_distance_threshold_python_api.yaml
+  - configs/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture.yaml
+  - src/science_capability_registry/gmsh/mesh_summary.py
+  - src/science_capability_registry/gmsh/boundary_physical_group_contract/runner.py
+  - src/science_capability_registry/gmsh/mesh_refinement_quality_trend/runner.py
+  - src/science_capability_registry/gmsh/cad_import_geometry_healing/runner.py
+  - src/science_capability_registry/gmsh/boundary_layer_size_field_meshing/runner.py
+  - src/science_capability_registry/gmsh/multi_solver_mesh_export_contract/runner.py
+  runtime_evidence_paths:
+  - _results/gmsh/boundary_physical_group_contract/openfoam_import_replay_wsl_v2112/
+  - _results/gmsh/mesh_refinement_quality_trend/runtime_rectangle_channel_python_api/
+  - _results/gmsh/cad_import_geometry_healing/runtime_generated_occ_python_api/
+  - _results/gmsh/boundary_layer_size_field_meshing/runtime_distance_threshold_python_api/
+  - _results/gmsh/multi_solver_mesh_export_contract/runtime_import_replay_and_msh_fixture/
+  scope: Gmsh C02-C06 minimal runtime/replay smoke closure after static-ready package skeletons.
+  limitations:
+  - C02 and part of C06 replay existing OpenFOAM import evidence instead of rerunning OpenFOAM commands.
+  - C06 FEM-oriented target is a Gmsh mesh-summary fixture parser, not a true FEniCSx or CalculiX runtime.
+  - C04 uses generated BREP export/re-open smoke, not an external CAD healing benchmark.

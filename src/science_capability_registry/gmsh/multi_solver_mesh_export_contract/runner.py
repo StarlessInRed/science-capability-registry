@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,45 @@ from .validation import summarize_export_metrics, validate_manifest
 SCHEMA_ID = "schemas/gmsh_C06_multi_solver_mesh_export_contract.schema.json"
 
 
+def _resolve_observation(config: dict[str, Any], observation: dict[str, Any]) -> dict[str, Any]:
+    path = repo_relative_path(observation["source_summary_path"])
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if observation["summary_kind"] == "openfoam_downstream_import":
+        poly_mesh = data.get("polyMesh", {})
+        counts = poly_mesh.get("counts", {})
+        return {
+            "target_id": observation["target_id"],
+            "summary_kind": observation["summary_kind"],
+            "source_summary_path": observation["source_summary_path"],
+            "status": data.get("status"),
+            "boundary_names": poly_mesh.get("boundary_names", []),
+            "element_count": counts.get("neighbour") or counts.get("faces"),
+            "structural_checks": poly_mesh.get("structural_checks", {}),
+        }
+    if observation["summary_kind"] == "gmsh_mesh_summary_fixture":
+        level_summaries = data.get("level_summaries", [])
+        selected = level_summaries[-1] if level_summaries else {}
+        physical_groups = selected.get("physical_groups", {})
+        return {
+            "target_id": observation["target_id"],
+            "summary_kind": observation["summary_kind"],
+            "source_summary_path": observation["source_summary_path"],
+            "status": observation["expected_status"] if selected else "failed",
+            "boundary_names": sorted(name for name in physical_groups if name != "fluid_domain"),
+            "element_count": selected.get("element_count"),
+            "structural_checks": {
+                "has_nodes": int(selected.get("node_count", 0)) > 0,
+                "has_elements": int(selected.get("element_count", 0)) > 0,
+                "coordinates_finite": selected.get("coordinates_finite") is True,
+            },
+        }
+    raise ValueError(f"Unsupported import observation kind: {observation['summary_kind']!r}")
+
+
+def _resolve_observations(config: dict[str, Any]) -> list[dict[str, Any]]:
+    return [_resolve_observation(config, observation) for observation in config.get("import_observations", [])]
+
+
 def _write_export_artifacts(output_dir: Path, config: dict[str, Any]) -> list[str]:
     output_dir.mkdir(parents=True, exist_ok=True)
     export_manifest = {
@@ -21,6 +61,7 @@ def _write_export_artifacts(output_dir: Path, config: dict[str, Any]) -> list[st
         "unit_policy": config["unit_policy"],
         "orientation_policy": config["orientation_policy"],
         "export_targets": config["export_targets"],
+        "import_observations": config.get("_resolved_import_observations", []),
     }
     (output_dir / "export_manifest.json").write_text(json.dumps(export_manifest, indent=2), encoding="utf-8")
     with (output_dir / "format_matrix.csv").open("w", encoding="utf-8", newline="") as handle:
@@ -45,11 +86,13 @@ def _write_export_artifacts(output_dir: Path, config: dict[str, Any]) -> list[st
                     "expected_boundary_names": "|".join(target["expected_boundary_names"]),
                 }
             )
+    observations = config.get("_resolved_import_observations", [])
     import_summary = {
-        "status": "static_contract_only",
-        "successful_import_count": 0,
+        "status": "passed" if observations and all(item.get("status") == "passed" for item in observations) else "static_contract_only",
+        "successful_import_count": sum(1 for item in observations if item.get("status") == "passed"),
         "targets": config["export_targets"],
-        "scope": "no downstream import commands executed",
+        "observations": observations,
+        "scope": "replay/fixture observations; no new downstream solver command executed by C06",
     }
     (output_dir / "solver_import_summary.json").write_text(json.dumps(import_summary, indent=2), encoding="utf-8")
     return ["export_manifest.json", "format_matrix.csv", "solver_import_summary.json"]
@@ -68,6 +111,7 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "unit_policy": config["unit_policy"],
         "orientation_policy": config["orientation_policy"],
         "export_targets": config["export_targets"],
+        **({"import_observations": config["import_observations"]} if config.get("import_observations") else {}),
         "generated_files": generated_files,
         "expected_outputs": config["outputs"]["expected_outputs"],
         "validation_targets": config["validation"],
@@ -103,26 +147,28 @@ def run(
         raise NotImplementedError(f"Gmsh C06 backend {config['backend']['type']!r} is not implemented.")
 
     resolved_output_dir = Path(output_dir) if output_dir is not None else repo_relative_path(config["outputs"]["output_dir"])
-    generated_files = _write_export_artifacts(resolved_output_dir, config)
+    validation_config = deepcopy(config)
+    validation_config["_resolved_import_observations"] = _resolve_observations(validation_config)
+    generated_files = _write_export_artifacts(resolved_output_dir, validation_config)
     generated_files.extend(["metrics.json", "validation.json", "validation_report.md", "manifest.json"])
-    manifest = _build_manifest(config, resolved_output_dir, generated_files)
-    validation = validate_manifest(manifest, config)
-    metrics = summarize_export_metrics(config, validation)
+    manifest = _build_manifest(validation_config, resolved_output_dir, generated_files)
+    validation = validate_manifest(manifest, validation_config)
+    metrics = summarize_export_metrics(validation_config, validation)
     manifest["validation"] = validation
     manifest["metrics"] = metrics
 
     (resolved_output_dir / "validation.json").write_text(json.dumps(validation, indent=2), encoding="utf-8")
     (resolved_output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    write_validation_report(resolved_output_dir / "validation_report.md", config, metrics, validation)
+    write_validation_report(resolved_output_dir / "validation_report.md", validation_config, metrics, validation)
     (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-    validation = validate_manifest(manifest, config, resolved_output_dir)
-    metrics = summarize_export_metrics(config, validation)
+    validation = validate_manifest(manifest, validation_config, resolved_output_dir)
+    metrics = summarize_export_metrics(validation_config, validation)
     manifest["validation"] = validation
     manifest["metrics"] = metrics
     (resolved_output_dir / "validation.json").write_text(json.dumps(validation, indent=2), encoding="utf-8")
     (resolved_output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    write_validation_report(resolved_output_dir / "validation_report.md", config, metrics, validation)
+    write_validation_report(resolved_output_dir / "validation_report.md", validation_config, metrics, validation)
     (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return manifest
 

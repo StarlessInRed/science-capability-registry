@@ -37,7 +37,7 @@
       "additionalProperties": false,
       "required": ["type", "timeout_s"],
       "properties": {
-        "type": {"const": "dry_run_only"},
+        "type": {"enum": ["dry_run_only", "python_api"]},
         "timeout_s": {"type": "number", "exclusiveMinimum": 0}
       }
     },

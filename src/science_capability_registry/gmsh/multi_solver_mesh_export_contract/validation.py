@@ -126,6 +126,32 @@ def validate_export_contract(config: dict[str, Any]) -> dict[str, Any]:
         all(target.max_element_count_delta_fraction <= 0.05 for target in targets),
         json.dumps({target.target_id: target.max_element_count_delta_fraction for target in targets}, ensure_ascii=False),
     )
+    observations = {item["target_id"]: item for item in config.get("_resolved_import_observations", [])}
+    passed_targets = {target.target_id for target in targets if target.contract_status == "import_smoke_passed"}
+    if passed_targets:
+        _check(
+            checks,
+            "import_observations.cover_passed_targets",
+            passed_targets.issubset(set(observations)),
+            json.dumps({"passed_targets": sorted(passed_targets), "observations": sorted(observations)}, ensure_ascii=False),
+        )
+        for target in targets:
+            if target.target_id not in passed_targets:
+                continue
+            observation = observations.get(target.target_id, {})
+            observed_boundaries = set(observation.get("boundary_names", []))
+            _check(
+                checks,
+                f"import_observations.{target.target_id}.status",
+                observation.get("status") == "passed",
+                json.dumps(observation, ensure_ascii=False),
+            )
+            _check(
+                checks,
+                f"import_observations.{target.target_id}.boundary_names",
+                set(target.expected_boundary_names).issubset(observed_boundaries),
+                json.dumps({"observed": sorted(observed_boundaries), "expected": sorted(target.expected_boundary_names)}, ensure_ascii=False),
+            )
 
     return {
         "passed": all(item["passed"] for item in checks),
@@ -137,6 +163,7 @@ def validate_export_contract(config: dict[str, Any]) -> dict[str, Any]:
             "duplicate_target_ids": duplicate_ids,
             "solver_families": sorted(solver_families),
             "metrics": metrics,
+            "import_observations": list(observations.values()),
         },
     }
 

@@ -120,6 +120,17 @@
         }
       }
     },
+    "downstream_import_replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "source_summary_path", "expected_boundary_names", "expected_status"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "source_summary_path": {"type": "string", "minLength": 1},
+        "expected_boundary_names": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "expected_status": {"const": "passed"}
+      }
+    },
     "outputs": {
       "type": "object",
       "additionalProperties": false,
@@ -132,6 +143,7 @@
             "enum": [
               "physical_group_map.json",
               "boundary_contract.json",
+              "downstream_import_summary.json",
               "manifest.json",
               "metrics.json",
               "validation.json",
@@ -185,6 +197,7 @@
             "enum": [
               "physical_group_map.json",
               "boundary_contract.json",
+              "downstream_import_summary.json",
               "manifest.json",
               "metrics.json",
               "validation.json",

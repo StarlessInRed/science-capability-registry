@@ -105,6 +105,20 @@
         }
       }
     },
+    "import_observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["target_id", "summary_kind", "source_summary_path", "expected_status"],
+        "properties": {
+          "target_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "summary_kind": {"enum": ["openfoam_downstream_import", "gmsh_mesh_summary_fixture"]},
+          "source_summary_path": {"type": "string", "minLength": 1},
+          "expected_status": {"const": "passed"}
+        }
+      }
+    },
     "outputs": {
       "type": "object",
       "additionalProperties": false,

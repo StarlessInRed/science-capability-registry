@@ -138,6 +138,30 @@ def validate_boundary_contract(config: dict[str, Any]) -> dict[str, Any]:
             role_coverage["coverage"] == 1.0,
             json.dumps(role_coverage, ensure_ascii=False),
         )
+    replay = config.get("downstream_import_replay") or {}
+    if replay.get("enabled"):
+        replay_summary = replay.get("_summary", {})
+        boundary_names = set(replay_summary.get("polyMesh", {}).get("boundary_names", []))
+        expected_boundary_names = set(replay["expected_boundary_names"])
+        structural_checks = replay_summary.get("polyMesh", {}).get("structural_checks", {})
+        _check(
+            checks,
+            "downstream_import_replay.status",
+            replay_summary.get("status") == replay["expected_status"],
+            json.dumps({"status": replay_summary.get("status"), "expected": replay["expected_status"]}, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "downstream_import_replay.boundary_names",
+            expected_boundary_names.issubset(boundary_names),
+            json.dumps({"boundaries": sorted(boundary_names), "expected": sorted(expected_boundary_names)}, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "downstream_import_replay.structural_checks",
+            bool(structural_checks) and all(value is True for value in structural_checks.values()),
+            json.dumps(structural_checks, ensure_ascii=False),
+        )
 
     return {
         "passed": all(item["passed"] for item in checks),
@@ -150,6 +174,7 @@ def validate_boundary_contract(config: dict[str, Any]) -> dict[str, Any]:
             "duplicate_names": duplicate_names,
             "dimension_role_errors": dimension_errors,
             "role_coverage": role_coverage,
+            "downstream_import_replay": replay.get("_summary", {}) if replay.get("enabled") else None,
         },
     }
 

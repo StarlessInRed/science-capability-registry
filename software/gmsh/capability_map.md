@@ -7,21 +7,22 @@
 | C | capability slug | 主题 | 当前状态 | 关键验证量 | 下一步 |
 | --- | --- | --- | --- | --- | --- |
 | C01 | `parametric_geometry_mesh_generation` | 参数化几何和基础网格生成 | `package_skeleton_created`。已有 schema/config/package、Gmsh Python API runtime、OpenFOAM `gmshToFoam` import smoke 和 `potentialFoam -writep` solve smoke。 | `.geo/.msh`、physical groups、element/node count、坐标有限性、OpenFOAM 导入/求解 smoke | mesh-quality perturbation、尺寸/几何扰动、solver-ready regression |
-| C02 | `boundary_physical_group_contract` | physical group 和边界语义契约 | `package_skeleton_created`。已有 schema/config/package、dry-run contract artifacts、negative validation 和 registry static-ready dispatch。 | physical group 名称/维度/角色、边界完整性、下游 BC 映射、缺失/重复/维度不匹配拒绝 | downstream import smoke + renamed boundary negative case |
-| C03 | `mesh_refinement_quality_trend` | 网格加密和质量趋势 | `package_skeleton_created`。已有 schema/config/package、dry-run refinement matrix、quality trend validation 和 registry static-ready dispatch。 | element count、size field、quality proxy、Jacobian/angle/skew proxy、结果趋势 | actual Gmsh mesh summary parser + runtime refinement smoke |
-| C04 | `cad_import_geometry_healing` | CAD 导入、OpenCASCADE 几何修复和实体追踪 | `package_skeleton_created`。已有 schema/config/package、dry-run CAD import manifest、entity map、healing report、meshability validation 和 registry static-ready dispatch。 | imported entities、healing operations、entity map、physical group preservation、nonmanifold/duplicate detection | true OpenCASCADE import or generated CAD runtime smoke |
-| C05 | `boundary_layer_size_field_meshing` | 边界层和尺寸场网格 | `package_skeleton_created`。已有 schema/config/package、dry-run size-field manifest、boundary-layer summary、near-wall metric validation 和 registry static-ready dispatch。 | boundary-layer thickness/growth、distance/threshold fields、near-wall cell count、quality degradation | true Gmsh size-field generation + near-wall metric parser |
-| C06 | `multi_solver_mesh_export_contract` | 多求解器网格导出契约 | `package_skeleton_created`。已有 schema/config/package、dry-run export manifest、format matrix、solver import summary contract 和 registry static-ready dispatch。 | MSH2/MSH4/UNV/MED or solver import、boundary names、unit/orientation、downstream smoke | OpenFOAM replay + FEM-oriented import smoke |
+| C02 | `boundary_physical_group_contract` | physical group 和边界语义契约 | `package_skeleton_created`。已有 schema/config/package、dry-run contract artifacts、negative validation、registry static-ready dispatch，以及 OpenFOAM import replay smoke。 | physical group 名称/维度/角色、边界完整性、下游 BC 映射、缺失/重复/维度不匹配拒绝 | fresh downstream import command + renamed boundary negative case |
+| C03 | `mesh_refinement_quality_trend` | 网格加密和质量趋势 | `package_skeleton_created`。已有 schema/config/package、dry-run refinement matrix、quality trend validation、registry static-ready dispatch，以及 Gmsh Python API refinement runtime smoke。 | element count、size field、quality proxy、Jacobian/angle/skew proxy、结果趋势 | actual perturbation matrix regression |
+| C04 | `cad_import_geometry_healing` | CAD 导入、OpenCASCADE 几何修复和实体追踪 | `package_skeleton_created`。已有 schema/config/package、dry-run CAD import manifest、entity map、healing report、meshability validation、registry static-ready dispatch，以及 generated BREP export/re-open smoke。 | imported entities、healing operations、entity map、physical group preservation、nonmanifold/duplicate detection | external or generated STEP/BREP healing benchmark |
+| C05 | `boundary_layer_size_field_meshing` | 边界层和尺寸场网格 | `package_skeleton_created`。已有 schema/config/package、dry-run size-field manifest、boundary-layer summary、near-wall metric validation、registry static-ready dispatch，以及 Distance/Threshold size-field runtime smoke。 | boundary-layer thickness/growth、distance/threshold fields、near-wall cell count、quality degradation | boundary-layer field runtime + downstream wall validation handoff |
+| C06 | `multi_solver_mesh_export_contract` | 多求解器网格导出契约 | `package_skeleton_created`。已有 schema/config/package、dry-run export manifest、format matrix、solver import summary contract、registry static-ready dispatch，以及 OpenFOAM replay + FEM-oriented `.msh` fixture smoke。 | MSH2/MSH4/UNV/MED or solver import、boundary names、unit/orientation、downstream smoke | fresh OpenFOAM command + true FEM solver import smoke |
 
 ## 当前冻结标准
 
-Gmsh C02-C06 均已进入 static-ready package skeleton：
+Gmsh C02-C06 均已进入 static-ready package skeleton，并具备一轮最小 runtime/replay smoke closure：
 
 - capability card 通过 `schemas/capability_card.schema.json`。
 - `software/gmsh/examples_index.md` 能发现来源和下一步 gate。
 - 每个能力有可交给 intern 或 agent 的 task。
 - C02-C06 均已注册进 `configs/registry/capability_catalog.json`，但只宣称 `static-readiness`。
 - 后续 promotion 必须依次补真实 runtime smoke、integration evidence 或外部 double-v，不把 static contract 当成 runtime 成功。
+- `reports/gmsh_C02_C06_runtime_smoke_closure_2026-07-02.md` 记录本轮最小 runtime/replay smoke；其中 C02/C06 的 OpenFOAM 部分为 replay evidence，C06 FEM target 为 `.msh` fixture parser，不等于真实 FEM solver runtime。
 
 ## 从 OpenFOAM 继承的失败学习
 
