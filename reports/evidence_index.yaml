@@ -585,6 +585,26 @@ evidence:
   limitations:
   - Mesh quality remains failed with max_skewness above the configured threshold.
   - ForceCoeffs, Cd/Cl, and yPlus are intentionally not claimed by this solver-only diagnostic config.
+- evidence_id: openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01
+  capability_id: cfd.openfoam.external_aero_motorbike_rans_snappy
+  asset_path: software/openfoam/assets/C04_external_aero_motorbike_rans_snappy.yaml
+  evidence_kind: runtime_diagnostic_report
+  gate: smoke
+  status: failed
+  primary_evidence_path: reports/openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01.md
+  supporting_paths:
+  - configs/openfoam/runtime_profiles/openfoam_com_v2412.yaml
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412.yaml
+  - schemas/openfoam_C04_external_aero_motorbike_rans_snappy.schema.json
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runner.py
+  - src/science_capability_registry/openfoam/external_aero_motorbike_rans_snappy/runtime.py
+  runtime_evidence_paths:
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412/
+  scope: OpenFOAM.com v2412 C04 motorBike relaxed-skew diagnostic executes the full mesh/solver command chain and short simpleFoam path, but keeps validation failed because checkMesh still reports mesh quality failure.
+  limitations:
+  - Diagnostic profile explicitly relaxes mesh-quality dictionary settings and must not be promoted as production mesh evidence.
+  - Mesh quality remains failed with max_skewness=9.89474 and 13 highly skew faces.
+  - ForceCoeffs, Cd/Cl, and yPlus remain intentionally disabled and unvalidated.
 - evidence_id: openfoam_C05_strouhal_reference_policy_2026-07-01
   capability_id: cfd.openfoam.transient_cylinder_vortex_shedding
   asset_path: software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml

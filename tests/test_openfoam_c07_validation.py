@@ -137,13 +137,34 @@ def test_openfoam_c07_runtime_validation_rejects_proxy_only_heat_flux_for_promot
     failed = {check["name"] for check in result["checks"] if not check["passed"]}
     assert "postprocess.native_heat_flux_required_for_promotion" in failed
     assert "postprocess.energy_balance_required_for_promotion" in failed
+    assert "postprocess.heat_flux_parity_required_for_promotion" in failed
 
 
-def test_openfoam_c07_runtime_validation_accepts_face_field_heat_flux_for_promotion(tmp_path: Path) -> None:
+def test_openfoam_c07_runtime_validation_rejects_bare_face_field_heat_flux_for_promotion(tmp_path: Path) -> None:
     config = _mhr_config()
     config["validation"]["gate"] = "targeted-regression"
     config["outputs"]["expected_outputs"] = []
     config["radiation"]["required_generated_files"] = []
+    metrics = _promotion_metrics(config)
+
+    result = validate_runtime_metrics(metrics, config, tmp_path)
+
+    failed = {check["name"] for check in result["checks"] if not check["passed"]}
+    assert "postprocess.heat_flux_parity_required_for_promotion" in failed
+
+
+def test_openfoam_c07_runtime_validation_accepts_cross_validated_face_field_heat_flux_for_promotion(tmp_path: Path) -> None:
+    config = _mhr_config()
+    config["validation"]["gate"] = "targeted-regression"
+    config["outputs"]["expected_outputs"] = []
+    config["radiation"]["required_generated_files"] = []
+    config["postprocess"]["heat_flux_validation"] = {
+        **config["postprocess"]["heat_flux_validation"],
+        "evidence_role": "promotion_candidate",
+        "parity_status": "passed",
+        "parity_source_type": "external_reference",
+        "parity_evidence_id": "reviewed_heat_flux_parity_reference",
+    }
     metrics = _promotion_metrics(config)
 
     result = validate_runtime_metrics(metrics, config, tmp_path)

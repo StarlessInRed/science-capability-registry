@@ -96,6 +96,22 @@ validation:
   alpha_min_tolerance: -1.0e-06
   alpha_max_tolerance: 1.0e-06
   max_water_volume_relative_error: 0.03
+  sampling_parity:
+    required_for_gate: false
+    status: profile_disabled
+    source: python_alpha_postprocess_only
+    native_sampling_enabled: false
+  full_horizon:
+    required_for_gate: false
+    status: short_horizon_only
+    end_time_s: 0.1
+    reference_horizon_s: 1.0
+  reference_policy:
+    required_for_gate: false
+    status: not_selected
+    source_type: policy_report
+    comparison_quantity: front_position
+    target_change_policy: do_not_promote_without_reference
   required_generated_files:
   - case/0/U
   - case/0/alpha.water

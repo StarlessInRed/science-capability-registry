@@ -442,7 +442,11 @@
           "required": [
             "source",
             "native_required_for_promotion",
-            "energy_balance_source"
+            "energy_balance_source",
+            "evidence_role",
+            "promotion_policy",
+            "parity_status",
+            "parity_source_type"
           ],
           "properties": {
             "source": {
@@ -463,6 +467,36 @@
                 "face_field_integration",
                 "independent_reference"
               ]
+            },
+            "evidence_role": {
+              "enum": [
+                "mitigation_only",
+                "promotion_candidate"
+              ]
+            },
+            "promotion_policy": {
+              "enum": [
+                "native_or_independent_heat_flux_parity_required"
+              ]
+            },
+            "parity_status": {
+              "enum": [
+                "not_configured",
+                "failed",
+                "passed"
+              ]
+            },
+            "parity_source_type": {
+              "enum": [
+                "none",
+                "native_openfoam",
+                "external_reference",
+                "independent_reference"
+              ]
+            },
+            "parity_evidence_id": {
+              "type": "string",
+              "minLength": 1
             }
           }
         },

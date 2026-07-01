@@ -129,6 +129,9 @@ shock_reference:
   density_jump_ratio_reference: 3.282
   source_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01
   source_type: local_runtime_smoke
+  source_url_or_path: reports/openfoam_C08_compressible_shock_capturing_forward_step_cfl_reduced_runtime_smoke_2026-07-01.md
+  extraction_method: local_runtime_python_pressure_density_gradient
+  review_status: local_smoke_only
   flux_parity_policy: native_or_face_flux_required_for_promotion
   accepted_baseline_samples:
     evidence_id: openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01

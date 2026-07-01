@@ -27,7 +27,12 @@ def _relative_error(value: Any, reference: Any) -> float | None:
 
 
 def _has_promotion_grade_shock_reference(reference: dict[str, Any]) -> bool:
-    return reference.get("source_type") in {"external_benchmark", "independent_reference"}
+    return (
+        reference.get("source_type") in {"external_benchmark", "independent_reference"}
+        and bool(reference.get("source_url_or_path"))
+        and bool(reference.get("extraction_method"))
+        and reference.get("review_status") == "reviewed"
+    )
 
 
 def _owner_cell_conservation_proxy(conservation: dict[str, Any]) -> dict[str, Any]:
@@ -162,6 +167,12 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
             checks,
             "postprocess.shock_reference_provenance_required_for_promotion",
             reference_targets_present and _has_promotion_grade_shock_reference(reference),
+            json.dumps(reference, ensure_ascii=False),
+        )
+        _check(
+            checks,
+            "shock_reference.flux_parity_policy_required_for_promotion",
+            reference.get("flux_parity_policy") == "native_or_face_flux_required_for_promotion",
             json.dumps(reference, ensure_ascii=False),
         )
 

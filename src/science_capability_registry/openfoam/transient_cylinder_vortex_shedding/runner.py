@@ -147,6 +147,7 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         "fields": config["fields"],
         "numerics": config["numerics"],
         "function_objects": config["function_objects"],
+        "strouhal_reference_policy": config["strouhal_reference_policy"],
         "generated_files": generated_files,
         "mesh_commands": config["mesh"]["workflow"],
         "solver_commands": config["solver"]["command_sequence"],

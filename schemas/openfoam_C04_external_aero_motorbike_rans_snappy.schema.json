@@ -137,6 +137,9 @@
             "min_face_weight": {"type": "number", "minimum": 0},
             "max_non_orthogonality": {"type": "number", "exclusiveMinimum": 0},
             "max_skewness": {"type": "number", "exclusiveMinimum": 0},
+            "max_internal_skewness": {"type": "number", "exclusiveMinimum": 0},
+            "max_boundary_skewness": {"type": "number", "exclusiveMinimum": 0},
+            "min_twist": {"type": "number"},
             "max_aspect_ratio": {"type": "number", "exclusiveMinimum": 0},
             "min_cell_count": {"type": "integer", "minimum": 1}
           }

@@ -36,6 +36,7 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     generated_files = set(manifest.get("generated_files", []))
     force_required = bool(config["validation"]["force_coefficients_required"])
     openfoam_force_coeffs_required = force_required and _uses_openfoam_force_coeffs(config)
+    reference_policy = manifest.get("strouhal_reference_policy", {})
 
     _check(checks, "backend.dry_run_only", backend.get("type") == "dry_run_only", f"backend={backend.get('type')!r}")
     _check(checks, "solver.pimpleFoam", solver.get("name") == "pimpleFoam", json.dumps(solver, ensure_ascii=False))
@@ -56,6 +57,19 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         "cylinder" in force_coeffs.get("patches", []) or not openfoam_force_coeffs_required,
         json.dumps(force_coeffs, ensure_ascii=False),
     )
+    _check(
+        checks,
+        "strouhal_reference_policy.present",
+        reference_policy == config["strouhal_reference_policy"],
+        json.dumps(reference_policy, ensure_ascii=False),
+    )
+    if config["strouhal_reference_policy"]["target_change_policy"] == "do_not_relax_until_reference_selected":
+        _check(
+            checks,
+            "strouhal_reference_policy.target_range_locked",
+            config["validation"]["strouhal_target_range"] == [0.16, 0.24],
+            json.dumps(config["validation"]["strouhal_target_range"], ensure_ascii=False),
+        )
 
     for rel_path in config["validation"]["required_generated_files"]:
         _check(checks, f"generated_file.listed.{rel_path}", rel_path in generated_files, rel_path)

@@ -84,6 +84,19 @@ def test_openfoam_c04_v2412_snap_probe_config_binds_v2412_profile() -> None:
     assert config["postprocess"]["force_extraction_source"] == "not_required"
 
 
+def test_openfoam_c04_relaxed_skew_config_declares_mesh_quality_override() -> None:
+    config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412.yaml")
+
+    quality = config["mesh"]["quality"]
+    assert config["case_id"] == "runtime_layer0_relaxed_skew_wsl_v2412"
+    assert config["openfoam"]["runtime_profile"] == "openfoam_com_v2412"
+    assert quality["max_skewness"] == 12.0
+    assert quality["max_internal_skewness"] == 12.0
+    assert quality["max_boundary_skewness"] == 20.0
+    assert quality["min_twist"] == -1.0
+    assert config["function_objects"]["force_coefficients"]["enabled"] is False
+
+
 def test_openfoam_c04_schema_rejects_unknown_top_level_key() -> None:
     config = load_case_config("configs/openfoam/external_aero_motorbike_rans_snappy/baseline.yaml")
     config["unexpected"] = True

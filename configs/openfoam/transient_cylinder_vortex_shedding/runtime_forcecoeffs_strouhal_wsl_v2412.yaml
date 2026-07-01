@@ -110,6 +110,16 @@ postprocess:
   force_extraction_source: openfoam_forceCoeffs
   strouhal_estimation_method: lift_fft
   frequency_cross_checks: []
+strouhal_reference_policy:
+  reference_policy: reference_not_selected
+  source_id: openfoam_C05_strouhal_reference_policy_2026-07-01
+  source_type: policy_report
+  target_range_binding: keep_configured_range_until_reference_selected
+  target_change_policy: do_not_relax_until_reference_selected
+  force_source_policy: native_forceCoeffs_preferred_with_proxy_marked_diagnostic
+  frequency_method_policy: lift_fft_primary_with_peak_period_cross_check
+  frequency_parity_policy: native_dmd_or_independent_reference_required
+  sensitivity_requirement: mesh_and_timestep_sensitivity_required_before_promotion
 outputs:
   output_dir: _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412
   retain_generated_case: true
@@ -161,6 +171,7 @@ validation:
   - fields
   - numerics
   - function_objects
+  - strouhal_reference_policy
   - expected_outputs
   - validation_targets
   matrix_role: baseline

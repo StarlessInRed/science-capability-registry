@@ -20,6 +20,15 @@ def test_openfoam_c05_runner_dry_run_writes_manifest_and_force_coeffs() -> None:
     assert "forceCoeffs1" in control
     assert "DMDs/stdmd01" not in control
     assert "nu              0.0012" in (output_dir / "case/constant/transportProperties").read_text(encoding="utf-8")
+    assert result["strouhal_reference_policy"]["source_id"] == "openfoam_C05_strouhal_reference_policy_2026-07-01"
+    assert any(
+        check["name"] == "manifest.section.strouhal_reference_policy" and check["passed"]
+        for check in result["validation"]["checks"]
+    )
+    assert any(
+        check["name"] == "strouhal_reference_policy.target_range_locked" and check["passed"]
+        for check in result["validation"]["checks"]
+    )
 
 
 def test_openfoam_c05_runner_dry_run_writes_adjustable_time_controls() -> None:

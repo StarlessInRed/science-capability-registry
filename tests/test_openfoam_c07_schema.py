@@ -33,6 +33,9 @@ def test_openfoam_c07_configs_match_schema() -> None:
         assert config["solver"]["name"] == "chtMultiRegionSimpleFoam"
         assert config["regions"]["fluid"]
         assert config["regions"]["solid"]
+        heat_flux = config["postprocess"]["heat_flux_validation"]
+        assert heat_flux["promotion_policy"] == "native_or_independent_heat_flux_parity_required"
+        assert heat_flux["evidence_role"] == "mitigation_only"
         profiles.add(config["template"]["source_profile_key"])
     assert {"c07_cpu_cabinet", "c07_multi_region_heater_radiation"}.issubset(profiles)
 
@@ -75,6 +78,7 @@ def test_openfoam_c07_schema_accepts_multi_region_heater_radiation_profile() -> 
     assert config["postprocess"]["patch_heat_flux_proxy_summary"] is True
     assert config["postprocess"]["interface_heat_flux_field_summary"] is True
     assert config["postprocess"]["heat_flux_validation"]["source"] == "face_field_integration"
+    assert config["postprocess"]["heat_flux_validation"]["parity_status"] == "not_configured"
 
 
 def test_openfoam_c07_schema_accepts_heater_radiation_perturbation_matrix_configs() -> None:

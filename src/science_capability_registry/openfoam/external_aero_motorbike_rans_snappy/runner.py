@@ -38,6 +38,13 @@ def _replace_active_assignment(text: str, keyword: str, value: str) -> str:
     raise ValueError(f"Active OpenFOAM assignment {keyword!r} not found and no commented template entry is available.")
 
 
+def _upsert_active_assignment(text: str, keyword: str, value: str) -> str:
+    try:
+        return _replace_active_assignment(text, keyword, value)
+    except ValueError:
+        return text.rstrip() + f"\n{keyword} {value};\n"
+
+
 def _vector_text(values: list[float]) -> str:
     return f"({values[0]:g} {values[1]:g} {values[2]:g})"
 
@@ -147,7 +154,14 @@ def _patch_snappy_dict(case_dir: Path, config: dict[str, Any]) -> None:
 def _patch_mesh_quality_dict(case_dir: Path, config: dict[str, Any]) -> None:
     quality_path = case_dir / "system" / "meshQualityDict"
     text = quality_path.read_text(encoding="utf-8")
-    text = _replace_active_assignment(text, "minFaceWeight", f"{config['mesh']['quality']['min_face_weight']:g}")
+    quality = config["mesh"]["quality"]
+    text = _replace_active_assignment(text, "minFaceWeight", f"{quality['min_face_weight']:g}")
+    if "max_internal_skewness" in quality:
+        text = _upsert_active_assignment(text, "maxInternalSkewness", f"{quality['max_internal_skewness']:g}")
+    if "max_boundary_skewness" in quality:
+        text = _upsert_active_assignment(text, "maxBoundarySkewness", f"{quality['max_boundary_skewness']:g}")
+    if "min_twist" in quality:
+        text = _upsert_active_assignment(text, "minTwist", f"{quality['min_twist']:g}")
     _write_text(quality_path, text)
 
 

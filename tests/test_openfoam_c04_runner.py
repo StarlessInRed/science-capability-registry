@@ -113,6 +113,22 @@ def test_openfoam_c04_runner_applies_snap_controls_to_dictionary(tmp_path: Path)
     assert "multiRegionFeatureSnap false;" in snappy
 
 
+def test_openfoam_c04_runner_applies_relaxed_mesh_quality_overrides(tmp_path: Path) -> None:
+    result = run(
+        config_path=Path("configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412.yaml"),
+        output_dir=tmp_path,
+        dry_run=True,
+        backend="dry_run_only",
+    )
+
+    assert result["validation"]["passed"] is True
+    quality = (tmp_path / "case/system/meshQualityDict").read_text(encoding="utf-8")
+    assert "\nminFaceWeight 0.02;" in quality
+    assert "\nmaxInternalSkewness 12;" in quality
+    assert "\nmaxBoundarySkewness 20;" in quality
+    assert "\nminTwist -1;" in quality
+
+
 def test_openfoam_c04_cli_forwards_runtime_arguments(monkeypatch) -> None:
     captured = {}
 

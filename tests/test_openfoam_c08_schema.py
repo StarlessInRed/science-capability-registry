@@ -24,6 +24,9 @@ def test_openfoam_c08_configs_match_schema() -> None:
         if path.name == "cfl_reduced.yaml":
             assert config["validation"]["gate"] == "smoke"
             assert config["shock_reference"]["source_type"] == "local_runtime_smoke"
+            assert config["shock_reference"]["source_url_or_path"].startswith("reports/")
+            assert config["shock_reference"]["extraction_method"] == "local_runtime_python_pressure_density_gradient"
+            assert config["shock_reference"]["review_status"] == "local_smoke_only"
             assert config["shock_reference"]["accepted_baseline_samples"]["status"] == "smoke_reference_only"
             assert config["shock_reference"]["flux_parity_policy"] == "native_or_face_flux_required_for_promotion"
 

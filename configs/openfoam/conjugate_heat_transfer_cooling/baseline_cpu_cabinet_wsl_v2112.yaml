@@ -146,6 +146,10 @@ postprocess:
     source: proxy_only
     native_required_for_promotion: true
     energy_balance_source: not_configured
+    evidence_role: mitigation_only
+    promotion_policy: native_or_independent_heat_flux_parity_required
+    parity_status: not_configured
+    parity_source_type: none
   command_sequence:
   - reconstructParMesh -allRegions -constant
   - reconstructPar -allRegions

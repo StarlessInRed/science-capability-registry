@@ -178,6 +178,7 @@ def test_openfoam_c08_runtime_metrics_requires_reference_and_native_flux_for_pro
     validation = validate_runtime_metrics(metrics, config, tmp_path)
     failed = {item["name"] for item in validation["checks"] if not item["passed"]}
     assert "postprocess.shock_reference_required_for_promotion" in failed
+    assert "shock_reference.flux_parity_policy_required_for_promotion" in failed
     assert "boundary_flux.native_or_face_flux_parity_required_for_promotion" in failed
 
 
@@ -224,6 +225,9 @@ def test_openfoam_c08_runtime_metrics_accepts_independent_reference_and_face_flu
     config["validation"]["gate"] = "integration"
     config["outputs"]["expected_outputs"] = []
     config["shock_reference"]["source_type"] = "independent_reference"
+    config["shock_reference"]["source_url_or_path"] = "reports/reviewed_independent_shock_reference.md"
+    config["shock_reference"]["extraction_method"] = "independent_reviewed_line_sample"
+    config["shock_reference"]["review_status"] = "reviewed"
     metrics = {
         "runtime": {
             "commands": [

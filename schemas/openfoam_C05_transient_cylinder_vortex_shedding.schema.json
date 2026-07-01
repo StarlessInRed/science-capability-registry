@@ -20,8 +20,32 @@
     "numerics",
     "function_objects",
     "postprocess",
+    "strouhal_reference_policy",
     "outputs",
     "validation"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "strouhal_reference_policy": {
+            "properties": {
+              "target_change_policy": {"const": "do_not_relax_until_reference_selected"}
+            },
+            "required": ["target_change_policy"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "strouhal_target_range": {"const": [0.16, 0.24]}
+            }
+          }
+        }
+      }
+    }
   ],
   "properties": {
     "capability_id": {"const": "cfd.openfoam.transient_cylinder_vortex_shedding"},
@@ -192,6 +216,32 @@
           "items": {"enum": ["lift_peak_period", "lift_fft", "dmd_field_probe"]},
           "uniqueItems": true
         }
+      }
+    },
+    "strouhal_reference_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_policy",
+        "source_id",
+        "source_type",
+        "target_range_binding",
+        "target_change_policy",
+        "force_source_policy",
+        "frequency_method_policy",
+        "frequency_parity_policy",
+        "sensitivity_requirement"
+      ],
+      "properties": {
+        "reference_policy": {"enum": ["reference_not_selected", "external_reference_selected", "independent_reference_selected"]},
+        "source_id": {"type": "string", "minLength": 1},
+        "source_type": {"enum": ["policy_report", "external_benchmark", "independent_reference"]},
+        "target_range_binding": {"enum": ["keep_configured_range_until_reference_selected", "bind_to_external_reference", "bind_to_independent_reference"]},
+        "target_change_policy": {"enum": ["do_not_relax_until_reference_selected", "reviewed_reference_update_required"]},
+        "force_source_policy": {"enum": ["native_forceCoeffs_preferred_with_proxy_marked_diagnostic", "native_forceCoeffs_required"]},
+        "frequency_method_policy": {"enum": ["lift_fft_primary_with_peak_period_cross_check", "lift_peak_period_primary_with_fft_cross_check", "dmd_or_independent_reference_required"]},
+        "frequency_parity_policy": {"enum": ["native_dmd_or_independent_reference_required", "native_fft_and_peak_period_required"]},
+        "sensitivity_requirement": {"enum": ["mesh_and_timestep_sensitivity_required_before_promotion"]}
       }
     },
     "outputs": {

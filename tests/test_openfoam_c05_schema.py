@@ -54,6 +54,27 @@ def test_openfoam_c05_schema_accepts_v2412_native_forcecoeffs_smoke() -> None:
     assert config["postprocess"]["strouhal_estimate"] is False
 
 
+def test_openfoam_c05_all_configs_bind_strouhal_reference_policy() -> None:
+    for path in sorted(CONFIG_DIR.glob("*.yaml")):
+        config = yaml.safe_load(path.read_text(encoding="utf-8"))
+        policy = config["strouhal_reference_policy"]
+
+        assert policy["source_id"] == "openfoam_C05_strouhal_reference_policy_2026-07-01"
+        assert policy["source_type"] == "policy_report"
+        assert policy["target_change_policy"] == "do_not_relax_until_reference_selected"
+        assert config["validation"]["strouhal_target_range"] == [0.16, 0.24]
+
+
+def test_openfoam_c05_schema_rejects_relaxed_strouhal_target_without_reference() -> None:
+    config = _config()
+    config["validation"]["strouhal_target_range"] = [0.12, 0.16]
+
+    errors = list(Draft202012Validator(_schema()).iter_errors(config))
+
+    assert errors
+    assert any("strouhal_target_range" in ".".join(str(part) for part in error.path) for error in errors)
+
+
 def test_openfoam_c05_schema_rejects_untracked_top_level_key() -> None:
     config = _config()
     config["hidden_choice"] = True

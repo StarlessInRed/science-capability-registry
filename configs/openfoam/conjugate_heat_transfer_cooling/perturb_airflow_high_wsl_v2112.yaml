@@ -219,8 +219,12 @@ postprocess:
   interface_heat_flux_field_summary: true
   heat_flux_validation:
     source: face_field_integration
-    native_required_for_promotion: false
+    native_required_for_promotion: true
     energy_balance_source: face_field_integration
+    evidence_role: mitigation_only
+    promotion_policy: native_or_independent_heat_flux_parity_required
+    parity_status: not_configured
+    parity_source_type: none
   command_sequence:
   - python:write_region_temperature_summary
   - python:write_interface_balance_summary

@@ -164,11 +164,11 @@ entries:
   work_queue_status: active
   gate_blocked: smoke
   benchmark_status_effect: keep_package_skeleton_created
-  summary: The motorBike runtime reaches the real mesh/solver path, but checkMesh skewness remains above the configured threshold and solver-only long smoke is not stable.
-  owner_next_action: Run the layer-disabled snapControls probe on OpenFOAM.com v2412 and add skewFaces geometry localization so mesh failure can be separated from v2112 profile behavior.
+  summary: The motorBike runtime reaches the real mesh/solver path on v2112 and v2412, and the v2412 relaxed-skew profile runs five simpleFoam steps, but checkMesh still fails on localized skewness.
+  owner_next_action: Repair the non-diagnostic motorBike mesh path by changing geometry/snap/refinement controls until checkMesh passes before re-enabling forceCoeffs and y+ validation.
   blocked_by:
-  - c04_v2412_cross_profile_runtime
-  - skew_face_geometry_localization
+  - c04_strict_mesh_repair
+  - non_diagnostic_checkMesh_pass
   observed:
     layer0_max_skewness: 7.64875
     snap_probe_max_skewness: 10.7645
@@ -177,6 +177,10 @@ entries:
     v2412_snap_probe_highly_skew_faces: 32
     v2412_snap_probe_skew_face_set_count: 32
     v2412_snap_probe_solver_max_final_residual: 0.0728374
+    v2412_relaxed_skew_max_skewness: 9.89474
+    v2412_relaxed_skew_highly_skew_faces: 13
+    v2412_relaxed_skew_solver_max_final_residual: 0.0727057
+    v2412_relaxed_skew_openfoam_commands_returncode_ok: true
     max_skewness_threshold: 4.0
   evidence_refs:
   - evidence_id: openfoam_C04_runtime_smoke_attempt_2026-07-01
@@ -185,17 +189,20 @@ entries:
     evidence_level: repo_stable_report
   - evidence_id: openfoam_C04_v2412_motorbike_snap_probe_2026-07-01
     evidence_level: repo_stable_report
+  - evidence_id: openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_smoke_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_solver_only_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2112/
   - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412/
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412/
   feedback:
     parser: max_skewness, highly_skew_face_count, and skewFaces set parsing present
-    schema_field: snap_controls and max_skewness contract present
+    schema_field: snap_controls, max_skewness, maxInternalSkewness, maxBoundarySkewness, and minTwist contracts present
     validation_guard: mesh.max_skewness guard uses configured threshold
-    test_regression: tests retain skew-face details and snapControls writer behavior
-    config_contract: committed snap probe exposes snap_controls
+    test_regression: tests retain skew-face details, snapControls writer behavior, and relaxed meshQualityDict overrides
+    config_contract: committed snap probe exposes snap_controls; committed relaxed-skew profile isolates solver path without claiming benchmark validation
     promotion_guard: partial; asset blocks promotion until mesh, solver, force, and yPlus pass
   closure_criteria:
   - Pass checkMesh skewness threshold under a non-diagnostic mesh profile.
@@ -279,11 +286,11 @@ entries:
   - _results/openfoam/transient_cylinder_vortex_shedding/runtime_forcecoeffs_strouhal_wsl_v2412/
   feedback:
     parser: v2412 coefficient.dat header mapping is supported
-    schema_field: force source, Strouhal method, cross-check, and target range fields present
-    validation_guard: force source and Strouhal target checks present
-    test_regression: tests cover wrong source, target failure, v2412 header parser, and FFT checks
-    config_contract: v2112 proxy and v2412 native configs are explicit
-    promotion_guard: validation_failed asset status retained
+    schema_field: force source, Strouhal method, cross-check, target range, and Strouhal reference policy fields present
+    validation_guard: force source, Strouhal target, manifest policy, and no-relax target lock checks present
+    test_regression: tests cover wrong source, target failure, policy-bound target range, v2412 header parser, and FFT checks
+    config_contract: v2112 proxy and v2412 native configs explicitly bind openfoam_C05_strouhal_reference_policy_2026-07-01
+    promotion_guard: validation_failed asset status retained; target range cannot be relaxed before reference selection
   closure_criteria:
   - Define evidence-backed reference policy for the official cylinder2D setup.
   - Pass native, DMD, or independent shedding-frequency parity.
@@ -355,8 +362,10 @@ entries:
   - _results/openfoam/dam_break_vof_free_surface/
   - _results/openfoam/dam_break_vof_free_surface/baseline_wsl_v2412/
   feedback:
-    validation_guard: local short-horizon integration checks are present
-    promotion_guard: full-horizon and native sampling parity are not claimed
+    schema_field: sampling_parity, full_horizon, and reference_policy blocks are required in C06 configs
+    validation_guard: local short-horizon integration checks are present; double-v gate requires passed sampling parity, full horizon, and external or independent reference
+    runner_guard: native sampling include is removed only when config disables native sampling
+    promotion_guard: full-horizon, native sampling parity, and external reference remain blocked from double-v promotion
   closure_criteria:
   - Pass native sampling or independent sampling parity.
   - Add full-horizon front propagation and external reference comparison.
@@ -433,11 +442,11 @@ entries:
   - _results/openfoam/conjugate_heat_transfer_cooling/baseline_multi_region_heater_radiation_wsl_v2112_20260630_003/
   feedback:
     parser: patch proxy and face-field heat-rate integration are present, but native wallHeatFlux remains failed
-    schema_field: heat-flux source and interface field summary fields present
-    validation_guard: proxy and field integration checks are present
-    test_regression: proxy-only rejection and field heat-rate tests present
-    config_contract: native wallHeatFlux not claimed in MHR configs
-    promotion_guard: benchmark_candidate retained until native/reference heat-flux and convergence pass
+    schema_field: heat-flux source, evidence role, promotion policy, parity status, and parity source fields present
+    validation_guard: proxy and field integration checks are present; bare face-field integration is rejected for promotion without native/external/independent parity evidence
+    test_regression: proxy-only rejection, bare face-field rejection, cross-validated face-field acceptance, and field heat-rate tests present
+    config_contract: native wallHeatFlux not claimed in MHR configs; MHR heat-flux evidence is marked mitigation_only
+    promotion_guard: benchmark_candidate retained until native/reference heat-flux parity and convergence pass
   closure_criteria:
   - Pass native wallHeatFlux for all required regions, or establish independent heat-flux parity.
   - Add steady convergence and regional energy-balance evidence.
@@ -473,8 +482,8 @@ entries:
   - _results/openfoam/conjugate_heat_transfer_cooling/perturb_airflow_high_wsl_v2112_20260630_001/
   - _results/openfoam/conjugate_heat_transfer_cooling/perturb_mesh_refinement_wsl_v2112_20260630_001/
   feedback:
-    validation_guard: MHR integration matrix guards executable baseline and perturbation behavior
-    promotion_guard: asset keeps benchmark_candidate due native/reference heat-flux and convergence gaps
+    validation_guard: MHR integration matrix guards executable baseline and perturbation behavior while heat-flux parity remains mitigation-only
+    promotion_guard: asset keeps benchmark_candidate due native/reference heat-flux and convergence gaps; bare face-field integration no longer passes promotion gate
   closure_criteria:
   - Treat this only as mitigation evidence.
   - Add native/reference heat-flux and longer steady convergence before promotion.
@@ -509,11 +518,11 @@ entries:
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
   feedback:
     parser: owner-cell conservation proxy written with flux_parity explicitly unavailable
-    schema_field: shock reference and flux parity policy fields present
-    validation_guard: smoke and promotion gates are split
-    test_regression: tests reject local smoke reference for benchmark promotion
-    config_contract: cfl_reduced marks local smoke reference as smoke_reference_only
-    promotion_guard: explicit external or independent shock reference plus flux parity required
+    schema_field: shock reference, provenance, review status, and flux parity policy fields present
+    validation_guard: smoke and promotion gates are split; promotion requires reviewed external or independent reference provenance and native/face flux parity policy
+    test_regression: tests reject local smoke reference, local accepted-baseline promotion, missing flux policy, and bad flux parity
+    config_contract: cfl_reduced marks local smoke reference as smoke_reference_only with local_smoke_only provenance
+    promotion_guard: explicit reviewed external or independent shock reference plus flux parity required
   closure_criteria:
   - Keep as resolved smoke-level failure evidence.
   - Do not treat the old baseline failure as current active blocker.
@@ -553,10 +562,10 @@ entries:
   - _results/openfoam/compressible_shock_capturing_forward_step/cfl_reduced/
   feedback:
     parser: owner-cell proxy is parsed, flux_parity remains unavailable
-    schema_field: source_type and flux_parity_policy fields present
-    validation_guard: benchmark promotion requires external or independent reference provenance
-    test_regression: tests reject local accepted-baseline promotion and bad flux parity
-    config_contract: cfl_reduced is smoke_reference_only
+    schema_field: source_type, source_url_or_path, extraction_method, review_status, and flux_parity_policy fields present
+    validation_guard: benchmark promotion requires reviewed external or independent reference provenance plus native/face flux parity policy
+    test_regression: tests reject local accepted-baseline promotion, missing flux policy, local smoke provenance, and bad flux parity
+    config_contract: cfl_reduced is smoke_reference_only with local_smoke_only provenance
     promotion_guard: explicit and tested
   closure_criteria:
   - Add external or independently reviewed shock position, pressure jump, and density jump targets.
@@ -573,16 +582,16 @@ work_queue:
   priority: P0
   entry_failure_ids:
   - OF-C04-F001-mesh-skewness-and-solver-smoke-failed
-  title: C04 v2412 motorBike cross-profile smoke and skew-face localization
-  action: Add an OpenFOAM.com v2412 C04 snap-probe config/profile binding, run it locally, and persist skewFaces centroid/bounding-box diagnostics in metrics.
+  title: C04 strict motorBike mesh repair after v2412 solver-path isolation
+  action: Use the v2412 relaxed-skew evidence and skewFaces localization to repair the non-diagnostic motorBike mesh until checkMesh passes without treating relaxed solver-path diagnostics as benchmark evidence.
   acceptance_checks:
-  - C04 v2412 config validates against the C04 schema and runtime profile.
-  - Runtime attempt emits manifest, metrics, validation, and skew-face geometry localization when skewFaces sets exist.
-  - Ledger evidence records whether the failure follows v2412 or is isolated to v2112.
+  - A non-diagnostic C04 runtime config validates against the C04 schema and v2412 runtime profile.
+  - Runtime emits manifest, metrics, validation, and checkMesh pass evidence without relying on relaxed-skew diagnostic interpretation.
+  - Ledger evidence records whether forceCoeffs and y+ can be safely re-enabled after the mesh pass.
   expected_evidence:
-  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412.yaml
-  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_snap_probe_layer0_wsl_v2412/
-  - reports/openfoam_C04_v2412_motorbike_snap_probe_2026-07-01.md
+  - configs/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412.yaml
+  - _results/openfoam/external_aero_motorbike_rans_snappy/runtime_layer0_relaxed_skew_wsl_v2412/
+  - reports/openfoam_C04_v2412_relaxed_skew_solver_path_2026-07-01.md
 - queue_id: OF-WQ-002
   priority: P0
   entry_failure_ids:

@@ -212,6 +212,9 @@
         "density_jump_ratio_reference": {"type": ["number", "null"]},
         "source_id": {"type": "string"},
         "source_type": {"enum": ["local_runtime_smoke", "external_benchmark", "independent_reference"]},
+        "source_url_or_path": {"type": "string", "minLength": 1},
+        "extraction_method": {"type": "string", "minLength": 1},
+        "review_status": {"enum": ["local_smoke_only", "review_pending", "reviewed"]},
         "flux_parity_policy": {"enum": ["owner_cell_proxy_only", "native_or_face_flux_required_for_promotion"]},
         "accepted_baseline_samples": {
           "type": "object",

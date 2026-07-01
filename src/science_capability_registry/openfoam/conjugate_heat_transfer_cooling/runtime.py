@@ -271,6 +271,14 @@ def build_runtime_metrics(config: dict[str, Any], output_dir: Path, runtime: dic
         postprocess_metrics["patch_heat_flux_proxy"] = patch_heat_flux_metrics
     if interface_heat_flux_metrics is not None:
         postprocess_metrics["interface_heat_flux_field"] = interface_heat_flux_metrics
+    heat_flux_validation = config["postprocess"]["heat_flux_validation"]
+    postprocess_metrics["heat_flux_parity"] = {
+        "available": False,
+        "method": "not_configured",
+        "status": heat_flux_validation.get("parity_status", "not_configured"),
+        "source_type": heat_flux_validation.get("parity_source_type", "none"),
+        "reason": "No native wallHeatFlux or independent heat-flux parity artifact is configured.",
+    }
     return {
         "schema_version": "openfoam_c07_metrics_v1",
         "parser": {
@@ -308,6 +316,24 @@ def _max_final_residual(solver: dict[str, Any]) -> float:
             if _is_finite(value):
                 values.append(float(value))
     return max(values, default=float("inf"))
+
+
+def _heat_flux_promotion_ready(heat_flux_validation: dict[str, Any]) -> bool:
+    source = heat_flux_validation.get("source")
+    energy_source = heat_flux_validation.get("energy_balance_source")
+    parity_status = heat_flux_validation.get("parity_status")
+    parity_source = heat_flux_validation.get("parity_source_type")
+    has_evidence = bool(heat_flux_validation.get("parity_evidence_id"))
+    if source == "native_openfoam" and energy_source == "native_openfoam":
+        return True
+    if source == "independent_reference" and energy_source == "independent_reference":
+        return True
+    return (
+        source == "face_field_integration"
+        and parity_status == "passed"
+        and parity_source in {"native_openfoam", "external_reference", "independent_reference"}
+        and has_evidence
+    )
 
 
 def _temperatures_within_bounds(metrics: dict[str, Any], lower: float, upper: float) -> bool:
@@ -380,14 +406,20 @@ def validate_runtime_metrics(metrics: dict[str, Any], config: dict[str, Any], ou
                 f"value={max_mismatch}, threshold={config['validation']['max_interface_heat_flux_relative_mismatch']}",
             )
     if config["validation"]["gate"] in PROMOTION_GATES:
+        promotion_ready = _heat_flux_promotion_ready(heat_flux_validation)
         check(
             "postprocess.native_heat_flux_required_for_promotion",
-            heat_flux_validation["source"] in {"native_openfoam", "face_field_integration", "independent_reference"},
+            promotion_ready,
             json.dumps(heat_flux_validation, ensure_ascii=False),
         )
         check(
             "postprocess.energy_balance_required_for_promotion",
-            heat_flux_validation["energy_balance_source"] in {"native_openfoam", "face_field_integration", "independent_reference"},
+            promotion_ready,
+            json.dumps(heat_flux_validation, ensure_ascii=False),
+        )
+        check(
+            "postprocess.heat_flux_parity_required_for_promotion",
+            promotion_ready,
             json.dumps(heat_flux_validation, ensure_ascii=False),
         )
 

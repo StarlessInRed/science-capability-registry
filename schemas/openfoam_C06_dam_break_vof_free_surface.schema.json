@@ -4,6 +4,68 @@
   "title": "OpenFOAM C06 Dam Break VOF Run Config",
   "type": "object",
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gate": {
+                "const": "double-v"
+              }
+            },
+            "required": [
+              "gate"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "sampling_parity": {
+                "properties": {
+                  "status": {
+                    "const": "passed"
+                  },
+                  "source": {
+                    "enum": [
+                      "native_openfoam_sampling",
+                      "independent_sampling"
+                    ]
+                  },
+                  "native_sampling_enabled": {
+                    "const": true
+                  }
+                }
+              },
+              "full_horizon": {
+                "properties": {
+                  "status": {
+                    "const": "passed"
+                  }
+                }
+              },
+              "reference_policy": {
+                "properties": {
+                  "status": {
+                    "const": "passed"
+                  },
+                  "source_type": {
+                    "enum": [
+                      "external_benchmark",
+                      "independent_reference"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "required": [
     "capability_id",
     "case_id",
@@ -340,6 +402,9 @@
         "alpha_min_tolerance",
         "alpha_max_tolerance",
         "max_water_volume_relative_error",
+        "sampling_parity",
+        "full_horizon",
+        "reference_policy",
         "required_generated_files",
         "required_manifest_sections",
         "matrix_role",
@@ -373,6 +438,126 @@
         "max_water_volume_relative_error": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "sampling_parity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_for_gate",
+            "status",
+            "source",
+            "native_sampling_enabled"
+          ],
+          "properties": {
+            "required_for_gate": {
+              "type": "boolean"
+            },
+            "status": {
+              "enum": [
+                "profile_disabled",
+                "not_configured",
+                "failed",
+                "passed"
+              ]
+            },
+            "source": {
+              "enum": [
+                "python_alpha_postprocess_only",
+                "native_openfoam_sampling",
+                "independent_sampling"
+              ]
+            },
+            "native_sampling_enabled": {
+              "type": "boolean"
+            },
+            "evidence_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "full_horizon": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_for_gate",
+            "status",
+            "end_time_s",
+            "reference_horizon_s"
+          ],
+          "properties": {
+            "required_for_gate": {
+              "type": "boolean"
+            },
+            "status": {
+              "enum": [
+                "short_horizon_only",
+                "configured",
+                "failed",
+                "passed"
+              ]
+            },
+            "end_time_s": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "reference_horizon_s": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "evidence_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "reference_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_for_gate",
+            "status",
+            "source_type",
+            "comparison_quantity",
+            "target_change_policy"
+          ],
+          "properties": {
+            "required_for_gate": {
+              "type": "boolean"
+            },
+            "status": {
+              "enum": [
+                "not_selected",
+                "candidate_registered",
+                "failed",
+                "passed"
+              ]
+            },
+            "source_type": {
+              "enum": [
+                "policy_report",
+                "external_benchmark",
+                "independent_reference"
+              ]
+            },
+            "comparison_quantity": {
+              "enum": [
+                "front_position",
+                "free_surface_profile",
+                "probe_pressure"
+              ]
+            },
+            "target_change_policy": {
+              "enum": [
+                "do_not_promote_without_reference",
+                "reviewed_reference_required"
+              ]
+            },
+            "evidence_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         },
         "required_generated_files": {
           "type": "array",
