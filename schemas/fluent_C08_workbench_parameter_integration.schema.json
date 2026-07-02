@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_C08_workbench_parameter_integration.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C08 Workbench WBPZ static preflight config.",
+  "title": "Fluent C08 Workbench Parameter Integration Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "source_root",
+    "backend",
+    "source_package",
+    "workbench_scope",
+    "environment_preflight",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.workbench_parameter_integration"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "source_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_root_env", "logical_path"],
+      "properties": {
+        "source_root_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "logical_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "archive_access"],
+      "properties": {
+        "type": {"const": "workbench_project_manifest"},
+        "archive_access": {"const": "read_only_nested_zip"}
+      }
+    },
+    "source_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "rel_path", "nested_wbpz_entry", "package_role"],
+      "properties": {
+        "source_id": {"const": "C08_workbench_parameter"},
+        "rel_path": {"const": "Fluent_Workbench_Tutorial_Package/workbench_parameter.zip"},
+        "nested_wbpz_entry": {"const": "workbench_parameter/fluent-workbench-param.wbpz"},
+        "package_role": {"type": "string", "minLength": 1}
+      }
+    },
+    "workbench_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_class", "readiness_scope", "future_runtime_metrics", "migration_risks"],
+      "properties": {
+        "model_class": {"type": "string", "minLength": 1},
+        "readiness_scope": {"type": "string", "minLength": 1},
+        "future_runtime_metrics": {"$ref": "#/$defs/non_empty_string_array"},
+        "migration_risks": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    },
+    "environment_preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runwb2_executable_env",
+        "fluent_executable_env",
+        "ansys_root_env",
+        "static_gate_requires_runwb2"
+      ],
+      "properties": {
+        "runwb2_executable_env": {"const": "RUNWB2_EXE"},
+        "fluent_executable_env": {"const": "FLUENT_EXE"},
+        "ansys_root_env": {"const": "AWP_ROOT251"},
+        "static_gate_requires_runwb2": {"const": false}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 7,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_nested_entry_classes",
+        "min_current_parameters",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "required_nested_entry_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "workbench_project_file",
+              "design_point_file",
+              "workbench_journal",
+              "design_point_log",
+              "geometry_database",
+              "mesh_database"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "min_current_parameters": {"type": "integer", "minimum": 1},
+        "required_artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 7,
+          "uniqueItems": true
+        },
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  },
+  "$defs": {
+    "artifact_name": {
+      "enum": [
+        "workbench_project_manifest.json",
+        "workbench_entries.json",
+        "parameter_table.csv",
+        "metrics.json",
+        "validation.json",
+        "validation_report.md",
+        "manifest.json"
+      ]
+    },
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    }
+  }
+}

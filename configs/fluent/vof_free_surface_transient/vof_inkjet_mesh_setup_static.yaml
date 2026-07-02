@@ -1,0 +1,49 @@
+capability_id: cfd.fluent.vof_free_surface_transient
+case_id: vof_inkjet_mesh_setup_static
+description: Read-only mesh/setup manifest for the official VOF inkjet mesh before any transient VOF solver replay.
+source_root:
+  source_root_env: FLUENT_TUTORIAL_ROOT
+  logical_path: AgentKnowledge/case_library/fluent/cases/official_tutorials
+backend:
+  type: mesh_setup_manifest
+  archive_access: read_only_zip
+source_package:
+  source_id: C05_vof_mesh
+  rel_path: Fluent_Tutorial_Package/vof.zip
+  package_role: official VOF tutorial mesh-only setup seed
+setup_scope:
+  model_class: Fluent VOF/free-surface transient setup seed
+  readiness_scope: Confirm the official source is mesh-only and must be completed with model, phases, initialization, monitors, and transient controls before runtime claims.
+  future_runtime_metrics:
+  - max_volume_fraction_overshoot
+  - phase_volume_error
+  - interface_position
+  - final_time
+  no_homology_claims:
+  - official vof.zip does not contain a runnable case/data pair
+  - legacy dam-break or tank case/data replays must be labeled separately from this official mesh-only source
+outputs:
+  output_dir: _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static
+  expected_outputs:
+  - vof_setup_manifest.json
+  - mesh_entries.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+validation:
+  gate: static-readiness
+  required_entry_classes:
+  - mesh
+  min_mesh_entries: 1
+  required_artifacts:
+  - vof_setup_manifest.json
+  - mesh_entries.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+  no_claims:
+  - no Fluent VOF transient solver replay is launched by this config
+  - no alpha boundedness, phase conservation, interface motion, or probe pressure validation is claimed
+  - no official VOF source package case/data replay is claimed because vof.zip is mesh-only

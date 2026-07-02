@@ -20,12 +20,17 @@ inputs:
   - legacy_2020_r2_unique/single_rotating.zip
 outputs:
   required_artifacts:
+  - rotating_mesh_setup_manifest.json
+  - mesh_entries.json
   - rotating_zone_manifest.json
   - transient_history.csv
   - metrics.json
   - validation.json
   - validation_report.md
   scalar_metrics:
+  - source_package_count
+  - mesh_entry_count
+  - solver_replay_status
   - completed_revolutions
   - monitored_periodicity_error
   - max_residual
@@ -33,16 +38,23 @@ benchmark:
   source_name: Fluent sliding mesh and legacy single rotating candidates
   source_type: tutorial and legacy supplement
   benchmark_role: Moving-mesh smoke and workflow-learning seed.
-  status_rationale: Candidate selected to cover motion interfaces and time-history extraction.
+  status_rationale: sliding_mesh.zip and legacy single_rotating.zip now have a committed multi-source mesh/setup manifest config, schema, package, tests, and local source-package evidence. Both sources are mesh-only, so moving-zone/runtime validation remains downstream setup work.
+  evidence:
+  - report: reports/fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02.md
+    gate: static-readiness
+    result_root: _results/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static/
 validation_criteria:
 - Runtime must prove moving-zone settings are visible in the manifest before solver execution is claimed.
 - Time-history comparison must separate setup failure from transient numerical failure.
 - Legacy source must remain labeled and not be promoted as 2025 R1 official tutorial evidence.
 integration_targets:
+  package_entrypoint: science_capability_registry.fluent.sliding_rotating_mesh:run
+  input_schema: schemas/fluent_C06_sliding_rotating_mesh.schema.json
+  default_config: configs/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static.yaml
   workflow_stage: cfd.fluent.sliding_rotating_mesh
   runtime_target: _results/fluent/sliding_rotating_mesh/
 intern_deliverables:
-- Build moving-zone manifest extraction.
+- Extend the current mesh/setup manifest into moving-zone and sliding-interface extraction.
 - Add official/legacy replay comparison.
 - Record module or license blockers for rotating machinery features.
 card_status: review

@@ -1324,6 +1324,27 @@ evidence:
   - Static-readiness evidence only; Fluent is not launched for VMFL005.
   - The local verification-manual runnable project payload is not present in the current source library.
   - Benchmark validation still requires a self-generated Fluent case and mesh/refinement evidence.
+- evidence_id: fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02
+  capability_id: cfd.fluent.verification_reference_validation
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml
+  - schemas/fluent_C02_verification_reference_validation.schema.json
+  - src/science_capability_registry/fluent/verification_reference_validation/runner.py
+  - src/science_capability_registry/fluent/verification_reference_validation/validation.py
+  - tests/test_fluent_c02_schema.py
+  - tests/test_fluent_c02_runner.py
+  - tests/test_fluent_c02_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke/
+  scope: Local Fluent 2025 R1/v251 C02 smoke reads a self-generated VMFL005 2D axisymmetric half-domain mesh, completes mesh/check, and records mesh/cell/face-zone metrics.
+  limitations:
+  - Mesh-readability smoke only; pressure-drop solve, axisymmetric setup closure, inlet-profile application, pressure sampling, and mesh-trend validation remain open.
+  - No official local poiseuille-flow.cas payload is claimed.
 - evidence_id: fluent_C01_C08_official_replay_manifest_2026-07-02
   capability_id: cfd.fluent.official_replay_manifest
   asset_path: software/fluent/capability_map.md
@@ -1346,3 +1367,126 @@ evidence:
   limitations:
   - Source-manifest evidence only; C04-C08 runtime smoke and benchmark validation remain separate capability work.
   - Mesh-only and Workbench archives are explicitly not standalone Fluent batch solver inputs.
+- evidence_id: fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02
+  capability_id: cfd.fluent.external_aero_force_coefficients
+  asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static.yaml
+  - schemas/fluent_C04_external_aero_force_coefficients.schema.json
+  - src/science_capability_registry/fluent/external_aero_force_coefficients/runner.py
+  - src/science_capability_registry/fluent/external_aero_force_coefficients/validation.py
+  - tests/test_fluent_c04_schema.py
+  - tests/test_fluent_c04_runner.py
+  - tests/test_fluent_c04_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static/
+  scope: Fluent C04 read-only reference CSV parser validates ONERA Cl-vs-AoA, ONERA Cp section, and IRT swept-wing Cp reference tables from fluent_aero_tutorial.zip without launching Fluent.
+  limitations:
+  - Parser/static-readiness evidence only; no Fluent solver replay, force report extraction, Cp field comparison, or mesh-independent aero benchmark validation is claimed.
+  - Future replay must declare geometry, angle of attack or flow condition, turbulence model, and section station homology before comparing Cd, Cl, or Cp.
+- evidence_id: fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02
+  capability_id: cfd.fluent.vof_free_surface_transient
+  asset_path: software/fluent/assets/C05_vof_free_surface_transient.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static.yaml
+  - schemas/fluent_C05_vof_free_surface_transient.schema.json
+  - src/science_capability_registry/fluent/vof_free_surface_transient/runner.py
+  - src/science_capability_registry/fluent/vof_free_surface_transient/validation.py
+  - tests/test_fluent_c05_schema.py
+  - tests/test_fluent_c05_runner.py
+  - tests/test_fluent_c05_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static/
+  scope: Fluent C05 read-only mesh/setup manifest validates that official vof.zip is mesh-only and not a direct transient VOF solver replay.
+  limitations:
+  - Source-readiness evidence only; no VOF transient runtime, alpha boundedness, phase conservation, interface motion, or dam-break validation is claimed.
+  - Future replay must use a completed setup or separately labeled legacy case/data source before transient smoke promotion.
+- evidence_id: fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02
+  capability_id: cfd.fluent.sliding_rotating_mesh
+  asset_path: software/fluent/assets/C06_sliding_rotating_mesh.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static.yaml
+  - schemas/fluent_C06_sliding_rotating_mesh.schema.json
+  - src/science_capability_registry/fluent/sliding_rotating_mesh/runner.py
+  - src/science_capability_registry/fluent/sliding_rotating_mesh/validation.py
+  - tests/test_fluent_c06_schema.py
+  - tests/test_fluent_c06_runner.py
+  - tests/test_fluent_c06_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static/
+  scope: Fluent C06 read-only multi-source mesh/setup manifest validates official sliding_mesh.zip and legacy single_rotating.zip as mesh-only setup seeds.
+  limitations:
+  - Source-readiness evidence only; no moving-zone setup, sliding-interface pairing, transient history, periodicity, or rotating-machinery runtime validation is claimed.
+  - Legacy single-rotating evidence remains labeled as a legacy supplement.
+- evidence_id: fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02
+  capability_id: cfd.fluent.heat_transfer_energy_balance
+  asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static.yaml
+  - schemas/fluent_C07_heat_transfer_energy_balance.schema.json
+  - src/science_capability_registry/fluent/heat_transfer_energy_balance/runner.py
+  - src/science_capability_registry/fluent/heat_transfer_energy_balance/validation.py
+  - tests/test_fluent_c07_schema.py
+  - tests/test_fluent_c07_runner.py
+  - tests/test_fluent_c07_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static/
+  scope: Fluent C07 read-only source manifest validates that 2d_heat_exchanger_optimizer.zip contains one matched heat-exchanger case/data pair.
+  limitations:
+  - Source-readiness evidence only; no Fluent heat-transfer replay, temperature extrema, heat-rate balance, CHT interface continuity, or battery thermal benchmark validation is claimed.
+  - Future replay must export canonical temperature and heat-rate metrics before thermal smoke promotion.
+- evidence_id: fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02
+  capability_id: cfd.fluent.workbench_parameter_integration
+  asset_path: software/fluent/assets/C08_workbench_parameter_integration.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static.yaml
+  - schemas/fluent_C08_workbench_parameter_integration.schema.json
+  - src/science_capability_registry/fluent/workbench_parameter_integration/runner.py
+  - src/science_capability_registry/fluent/workbench_parameter_integration/validation.py
+  - tests/test_fluent_c08_schema.py
+  - tests/test_fluent_c08_runner.py
+  - tests/test_fluent_c08_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
+  scope: Fluent C08 read-only Workbench WBPZ preflight parses nested project entries, Workbench 2020 R2 metadata, current P1/P2/P3 parameters, and DesignPointLog history.
+  limitations:
+  - Static-preflight evidence only; no RunWB2 execution, Workbench migration, design-point update, result extraction, or standalone Fluent batch equivalence is claimed.
+  - Future runtime needs explicit RUNWB2_EXE profile and copy-to-runtime project isolation.
+- evidence_id: fluent_failure_ledger_2026-07-02
+  capability_id: cfd.fluent.failure_learning
+  asset_path: software/fluent/capability_map.md
+  evidence_kind: governance_learning_report
+  gate: governance
+  status: indexed
+  primary_evidence_path: reports/fluent_failure_ledger.yaml
+  supporting_paths:
+  - schemas/fluent_failure_ledger.schema.json
+  - tests/test_fluent_failure_ledger.py
+  - reports/evidence_index.yaml
+  - software/fluent/capability_map.md
+  - tasks/fluent_C01_C08_seed_intake_intern_task.md
+  runtime_evidence_paths: []
+  scope: Structured Fluent C01-C08 failure ledger records runtime prompt fixes, missing official payloads, mesh-only source boundaries, parser-only evidence, WBPZ non-batch boundary, and recovery queue.
+  limitations:
+  - Governance and learning evidence only; it does not add new Fluent solver validation.
+  - Conversation history is not canonical unless distilled into repository evidence.

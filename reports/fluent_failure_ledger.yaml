@@ -1,0 +1,469 @@
+ledger_id: science_capability_registry.fluent_failure_ledger
+schema_version: 0.1.0
+schema_path: schemas/fluent_failure_ledger.schema.json
+index_role: failure_classification
+scope: Fluent C01-C08
+created_on: '2026-07-02'
+source_policy:
+  canonical_sources:
+  - schemas/fluent_failure_ledger.schema.json
+  - reports/evidence_index.yaml
+  - reports/fluent_*.md
+  - software/fluent/examples_index.md
+  - software/fluent/assets/*.yaml
+  runtime_policy: Runtime outputs under _results are supporting evidence only and are not canonical assets.
+  conversation_policy: Conversation memory is not canonical unless it has been distilled into repository reports, configs, tests, or assets.
+  status_policy: Parser/static-readiness and runtime-smoke claims must keep their no-claim boundary explicit; tutorial, Workbench, mesh-only, and reference sources are not interchangeable.
+evidence_levels:
+  repo_stable_report: Submitted report plus evidence_index entry.
+  runtime_result: _results manifest, metrics, validation, or logs referenced by stable evidence.
+  test_code_guard: Parser, schema, validation, config, or pytest guard that prevents silent regression.
+  conversation_memory: Non-canonical lead; not used by this ledger.
+work_queue_policy:
+  priority_scale:
+    P0: Blocks current Fluent C01-C08 source/runtime closure.
+    P1: Required before first benchmark-oriented Fluent runtime promotion.
+    P2: Required for replay, physics validation, external reference, or Workbench execution after source-readiness.
+    P3: Historical, mitigated, or observation-only item retained for traceability.
+  status_values:
+  - active
+  - blocked
+  - gap
+  - mitigation_only
+  - resolved
+  ordering_rule: Work queue is ordered by priority first, then by ability to separate runtime-profile problems from capability problems.
+  closure_rule: A queue item closes only when referenced ledger entries gain stable repo evidence plus config/schema/test guards for the new claim boundary.
+entries:
+- failure_id: FL-C01-F001-dimension-profile-mismatch
+  cxx_group: C01
+  capability_id: cfd.fluent.steady_internal_flow_runtime
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  state: resolved
+  failure_class: runtime_profile_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_c01_smoke
+  benchmark_status_effect: runtime_smoke_retained
+  summary: The legacy elbow case rejected a 3D Fluent profile; the smoke path now uses configured 2ddp precision.
+  owner_next_action: Keep dimension precision config-driven and do not infer dimensionality from a hardcoded runner default.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/
+  closure_criteria:
+  - Config declares Fluent dimension precision.
+  - Runner uses configured dimension mode rather than a hardcoded fallback.
+  do_not_claim:
+  - Pressure-drop validation.
+  - Verification-manual benchmark validation.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C01-F002-legacy-report-client-prompt
+  cxx_group: C01
+  capability_id: cfd.fluent.steady_internal_flow_runtime
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  state: resolved
+  failure_class: legacy_case_prompt
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_c01_smoke
+  benchmark_status_effect: runtime_smoke_retained
+  summary: The legacy elbow case prompted for stale report-client path handling; the runner now answers the prompt explicitly.
+  owner_next_action: Keep legacy prompt responses declared in config and transcript evidence, not hidden in ad hoc manual operation.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/
+  closure_criteria:
+  - Prompt behavior is visible in the config/report boundary.
+  - Transcript parser remains tolerant of the legacy prompt.
+  do_not_claim:
+  - Legacy prompt handling proves physics correctness.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C01-F003-mass-flow-tui-prompt
+  cxx_group: C01
+  capability_id: cfd.fluent.steady_internal_flow_runtime
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  state: resolved
+  failure_class: parser_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_c01_smoke
+  benchmark_status_effect: runtime_smoke_retained
+  summary: Fluent mass-flow report commands require interactive yes/no answers; scripted extraction now emits the expected prompt sequence.
+  owner_next_action: Treat every Fluent TUI postprocess command as a prompt contract before adding new report parsers.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/
+  closure_criteria:
+  - Mass-flow imbalance is parsed from transcript artifacts.
+  - Missing or reordered prompt output fails validation rather than silently passing.
+  do_not_claim:
+  - Other surface-integral TUI commands use the same prompt order.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C01-F004-empty-stderr-artifact-false-negative
+  cxx_group: C01
+  capability_id: cfd.fluent.steady_internal_flow_runtime
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  state: resolved
+  failure_class: artifact_validation_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_c01_smoke
+  benchmark_status_effect: runtime_smoke_retained
+  summary: A successful Fluent run may produce an empty stderr artifact; validation now treats required transcript/stdout/metrics as stronger evidence than non-empty stderr.
+  owner_next_action: Keep artifact completeness checks semantic, not merely non-empty for every file.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/
+  closure_criteria:
+  - Successful return code plus transcript and metrics remain required.
+  - Empty stderr is accepted only when validation and solver status pass.
+  do_not_claim:
+  - Empty stderr means no warnings occurred.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C02-G001-official-vmfl005-payload-missing
+  cxx_group: C02
+  capability_id: cfd.fluent.verification_reference_validation
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  state: active_gap
+  failure_class: evidence_gap
+  priority: P1
+  work_queue_status: gap
+  gate_blocked: benchmark_runtime_promotion
+  benchmark_status_effect: static_and_mesh_smoke_only
+  summary: VMFL005 Poiseuille reference values are mapped, but no official local poiseuille-flow.cas runnable payload exists in the current tutorial library.
+  owner_next_action: Continue the self-generated VMFL005 path and keep official-payload absence explicit in config/report evidence.
+  blocked_by:
+  - missing_official_poiseuille_payload
+  evidence_refs:
+  - evidence_id: fluent_C02_verification_reference_validation_static_readiness_2026-07-02
+    evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke/
+  closure_criteria:
+  - Either locate an official VMFL005 payload or keep the self-generated source explicitly labeled.
+  - Do not promote C02 until pressure-drop solve and mesh trend pass.
+  do_not_claim:
+  - Official local poiseuille-flow.cas payload exists.
+  - C02 benchmark_validated.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C02-G002-axisymmetric-pressure-solve-open
+  cxx_group: C02
+  capability_id: cfd.fluent.verification_reference_validation
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  state: active_gap
+  failure_class: setup_evidence_gap
+  priority: P1
+  work_queue_status: active
+  gate_blocked: pressure_drop_benchmark
+  benchmark_status_effect: mesh_smoke_passed_benchmark_open
+  summary: The self-generated VMFL005 mesh reads and passes mesh/check, but axisymmetric model setup, fully developed inlet profile, pressure sampling, and mesh trend are not yet closed.
+  owner_next_action: Add the next Fluent journal stage for axisymmetric setup, parabolic inlet/profile, inlet/outlet pressure reports, and at least three mesh levels.
+  blocked_by:
+  - axisymmetric_model_tui
+  - fully_developed_inlet_profile
+  - pressure_sampling_tui
+  - mesh_trend_matrix
+  evidence_refs:
+  - evidence_id: fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke/
+  closure_criteria:
+  - Fluent solve produces pressure drop near the 10.24 Pa analytical target.
+  - Pressure sampling and mesh trend are written to metrics and validation reports.
+  do_not_claim:
+  - Pressure-drop solve passed.
+  - Mesh refinement trend passed.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C03-G001-adaptation-static-only-mesh-convergence-gap
+  cxx_group: C03
+  capability_id: cfd.fluent.mesh_convergence_trend
+  asset_path: software/fluent/assets/C03_mesh_convergence_trend.yaml
+  state: source_intake_only
+  failure_class: evidence_gap
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: targeted_regression
+  benchmark_status_effect: benchmark_candidate_retained
+  summary: C03 has source-intake evidence for the adaptation tutorial, but no mesh/refinement matrix or convergence trend package has been built yet.
+  owner_next_action: Define the C03 mesh/adaptation levels and residual or field trend metrics after C02 pressure-solve closure.
+  blocked_by:
+  - mesh_level_contract
+  - adaptation_metric_selection
+  evidence_refs:
+  - evidence_id: fluent_C01_C08_seed_suite_static_readiness_2026-07-02
+    evidence_level: repo_stable_report
+  - evidence_id: fluent_C01_C08_official_replay_manifest_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/official_replay_manifest/c01_c08_sources/
+  closure_criteria:
+  - Add schema/config/package/tests for at least three mesh/adaptation levels.
+  - Validate monotonic or explainable trend metrics.
+  do_not_claim:
+  - Mesh convergence trend exists.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C04-G001-reference-csv-parser-only
+  cxx_group: C04
+  capability_id: cfd.fluent.external_aero_force_coefficients
+  asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  state: parser_static_ready_solver_gap
+  failure_class: replay_gap
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: force_cp_runtime_smoke
+  benchmark_status_effect: benchmark_candidate_retained
+  summary: C04 reference CSV intake passes, including segmented Cp rows, but Fluent solver replay and force/Cp extraction are not implemented.
+  owner_next_action: Add a replay backend that declares geometry, AoA, flow condition, section station, and force/Cp extraction homology.
+  blocked_by:
+  - force_report_extraction
+  - cp_field_or_section_export
+  - reference_homology_policy
+  evidence_refs:
+  - evidence_id: fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static/
+  closure_criteria:
+  - Extract finite Cd/Cl or Cp metrics from a replayed Fluent case.
+  - Compare only against reference CSVs with declared homology.
+  do_not_claim:
+  - Fluent aero solver replay passed.
+  - Cd/Cl/Cp benchmark validation.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C05-G001-official-vof-mesh-only-source
+  cxx_group: C05
+  capability_id: cfd.fluent.vof_free_surface_transient
+  asset_path: software/fluent/assets/C05_vof_free_surface_transient.yaml
+  state: source_role_reclassified
+  failure_class: source_role_mismatch
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: transient_vof_runtime_smoke
+  benchmark_status_effect: benchmark_candidate_retained
+  summary: Official vof.zip contains only an inkjet mesh, so it cannot be treated as a direct transient VOF solver replay.
+  owner_next_action: Build a completed VOF setup or use a separately labeled legacy case/data replay before transient validation.
+  blocked_by:
+  - mesh_only_official_source
+  - missing_phase_setup
+  - missing_transient_controls
+  evidence_refs:
+  - evidence_id: fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static/
+  closure_criteria:
+  - Completed setup or labeled legacy case/data produces alpha, volume, interface, and final-time metrics.
+  do_not_claim:
+  - Official vof.zip is a runnable case/data replay.
+  - VOF transient validation passed.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C06-G001-sliding-rotating-mesh-only-sources
+  cxx_group: C06
+  capability_id: cfd.fluent.sliding_rotating_mesh
+  asset_path: software/fluent/assets/C06_sliding_rotating_mesh.yaml
+  state: source_role_reclassified
+  failure_class: source_role_mismatch
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: moving_mesh_runtime_smoke
+  benchmark_status_effect: benchmark_candidate_retained
+  summary: The selected official and legacy C06 sources are mesh-only; they do not contain moving-zone settings, interfaces, time steps, or monitor histories.
+  owner_next_action: Generate or recover moving-zone and interface setup before attempting runtime smoke.
+  blocked_by:
+  - mesh_only_sources
+  - moving_zone_manifest
+  - sliding_interface_pairing
+  evidence_refs:
+  - evidence_id: fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static/
+  closure_criteria:
+  - Moving-zone and interface metadata are visible in a manifest.
+  - Runtime smoke exports time-history or periodicity metrics.
+  do_not_claim:
+  - Sliding/rotating mesh runtime passed.
+  - Legacy single-rotating source is 2025 R1 official evidence.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C07-G001-heat-transfer-source-readiness-only
+  cxx_group: C07
+  capability_id: cfd.fluent.heat_transfer_energy_balance
+  asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  state: source_ready_runtime_gap
+  failure_class: replay_gap
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: heat_transfer_runtime_smoke
+  benchmark_status_effect: benchmark_candidate_retained
+  summary: The 2D heat exchanger source contains a matched case/data pair, but temperature and heat-rate extraction are not implemented.
+  owner_next_action: Add a Fluent replay/export backend for temperature extrema and heat-rate balance metrics.
+  blocked_by:
+  - thermal_postprocess_export
+  - heat_rate_balance_parser
+  evidence_refs:
+  - evidence_id: fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static/
+  closure_criteria:
+  - Replay the case/data pair and export finite canonical thermal metrics.
+  - Keep CHT and battery thermal validation separate from this tutorial replay.
+  do_not_claim:
+  - Heat-rate balance passed.
+  - CHT interface validation passed.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C08-G001-workbench-wbpz-not-batch-input
+  cxx_group: C08
+  capability_id: cfd.fluent.workbench_parameter_integration
+  asset_path: software/fluent/assets/C08_workbench_parameter_integration.yaml
+  state: source_role_reclassified
+  failure_class: source_role_mismatch
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: workbench_runtime_smoke
+  benchmark_status_effect: benchmark_candidate_retained
+  summary: The C08 source is a Workbench WBPZ, not a standalone Fluent batch input; static preflight parses project metadata but does not execute Workbench.
+  owner_next_action: Keep Workbench runtime separate from Fluent batch runners and require copy-to-runtime isolation before RunWB2 execution.
+  blocked_by:
+  - workbench_runtime_profile
+  - project_copy_isolation
+  - version_migration_policy
+  evidence_refs:
+  - evidence_id: fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
+  closure_criteria:
+  - Configure explicit RunWB2 runtime profile.
+  - Execute copied project state and export parameter/result handoff artifacts.
+  do_not_claim:
+  - WBPZ is a standalone Fluent batch case.
+  - Workbench design-point update passed.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C08-G002-runwb2-profile-not-configured
+  cxx_group: C08
+  capability_id: cfd.fluent.workbench_parameter_integration
+  asset_path: software/fluent/assets/C08_workbench_parameter_integration.yaml
+  state: environment_profile_gap
+  failure_class: runtime_profile_gap
+  priority: P2
+  work_queue_status: gap
+  gate_blocked: workbench_runtime_smoke
+  benchmark_status_effect: static_preflight_only
+  summary: The C08 static preflight records that RUNWB2_EXE is not configured for the current run; Workbench runtime remains intentionally unclaimed.
+  owner_next_action: Add an explicit machine-local RunWB2 profile outside committed configs before Workbench execution.
+  blocked_by:
+  - RUNWB2_EXE_not_configured
+  evidence_refs:
+  - evidence_id: fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
+  closure_criteria:
+  - RUNWB2_EXE, FLUENT_EXE, and Ansys root are injected through environment/profile and verified before execution.
+  - No committed config stores machine-specific drive-letter executable paths.
+  do_not_claim:
+  - Workbench headless availability.
+  - Workbench runtime smoke.
+  confidence: high
+  last_reviewed: '2026-07-02'
+work_queue:
+- queue_id: FL-WQ-001
+  priority: P1
+  entry_failure_ids:
+  - FL-C02-G001-official-vmfl005-payload-missing
+  - FL-C02-G002-axisymmetric-pressure-solve-open
+  title: C02 VMFL005 pressure-drop benchmark closure
+  action: Add axisymmetric solve, fully developed inlet profile, pressure sampling, and mesh trend around the self-generated VMFL005 mesh.
+  acceptance_checks:
+  - No official payload is claimed unless it is found and indexed.
+  - Pressure-drop metrics compare against 10.24 Pa analytical target.
+  - At least three mesh levels are reported before benchmark promotion.
+  expected_evidence:
+  - reports/fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02.md
+  - configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml
+- queue_id: FL-WQ-002
+  priority: P2
+  entry_failure_ids:
+  - FL-C03-G001-adaptation-static-only-mesh-convergence-gap
+  title: C03 mesh convergence/adaptation package
+  action: Define C03 schema/config/package/tests for refinement or adaptation levels and trend validation.
+  acceptance_checks:
+  - Three or more mesh/adaptation levels are explicit in config.
+  - Trend failures are classified separately from Fluent runtime failures.
+  expected_evidence:
+  - configs/fluent/official_replay_manifest/c01_c08_sources.yaml
+- queue_id: FL-WQ-003
+  priority: P2
+  entry_failure_ids:
+  - FL-C04-G001-reference-csv-parser-only
+  title: C04 force/Cp replay
+  action: Extend C04 parser evidence into a Fluent replay backend that extracts finite Cd, Cl, or Cp metrics under declared homology.
+  acceptance_checks:
+  - Reference CSV comparison declares geometry, AoA or flow condition, turbulence model, and station homology.
+  - Solver replay artifacts are separate from parser-only evidence.
+  expected_evidence:
+  - reports/fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02.md
+- queue_id: FL-WQ-004
+  priority: P2
+  entry_failure_ids:
+  - FL-C05-G001-official-vof-mesh-only-source
+  - FL-C06-G001-sliding-rotating-mesh-only-sources
+  title: C05/C06 setup-to-runtime promotion
+  action: Convert mesh-only setup manifests into complete solver setups or clearly labeled legacy case/data replays.
+  acceptance_checks:
+  - Mesh-only official sources remain non-runtime evidence.
+  - Runtime smoke exports canonical VOF or moving-mesh metrics before promotion.
+  expected_evidence:
+  - reports/fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02.md
+  - reports/fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02.md
+- queue_id: FL-WQ-005
+  priority: P2
+  entry_failure_ids:
+  - FL-C07-G001-heat-transfer-source-readiness-only
+  title: C07 heat-transfer replay
+  action: Replay the 2D heat exchanger case/data pair and extract temperature extrema plus heat-rate balance metrics.
+  acceptance_checks:
+  - Thermal metrics are finite and canonical.
+  - CHT or battery thermal validation is not inferred from this tutorial replay.
+  expected_evidence:
+  - reports/fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02.md
+- queue_id: FL-WQ-006
+  priority: P2
+  entry_failure_ids:
+  - FL-C08-G001-workbench-wbpz-not-batch-input
+  - FL-C08-G002-runwb2-profile-not-configured
+  title: C08 Workbench runtime profile and copied-project execution
+  action: Configure explicit RunWB2 profile, copy WBPZ state to runtime output space, and run a controlled design-point/update smoke.
+  acceptance_checks:
+  - RUNWB2_EXE is injected through environment/profile, not committed as a drive-letter path.
+  - Source WBPZ is never opened in place.
+  - Workbench output is not treated as standalone Fluent batch evidence without homology.
+  expected_evidence:
+  - reports/fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02.md

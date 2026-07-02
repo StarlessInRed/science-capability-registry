@@ -23,12 +23,16 @@ inputs:
   - Fluent_Tutorial_Package/battery_pack.zip
 outputs:
   required_artifacts:
+  - heat_transfer_source_manifest.json
+  - case_data_entries.json
   - heat_rate_summary.json
   - temperature_extrema.json
   - metrics.json
   - validation.json
   - validation_report.md
   scalar_metrics:
+  - case_data_pair_count
+  - total_uncompressed_bytes
   - min_temperature
   - max_temperature
   - heat_rate_balance_error
@@ -36,16 +40,23 @@ benchmark:
   source_name: Fluent heat-transfer tutorial candidates
   source_type: official tutorial package
   benchmark_role: Thermal smoke and energy-balance validation seed.
-  status_rationale: Candidate selected for energy equation and heat-transfer postprocess coverage.
+  status_rationale: 2d_heat_exchanger_optimizer.zip now has a committed case/data pair readiness config, schema, package, tests, and local source-package evidence. The current evidence proves source replay readiness only; it does not extract temperatures or heat-rate balance.
+  evidence:
+  - report: reports/fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02.md
+    gate: static-readiness
+    result_root: _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static/
 validation_criteria:
 - Temperature, heat flux, and energy-balance quantities must use canonical names.
 - Reports must separate thermal runtime smoke from CHT benchmark validation.
 - Material/unit mismatches must be classified explicitly.
 integration_targets:
+  package_entrypoint: science_capability_registry.fluent.heat_transfer_energy_balance:run
+  input_schema: schemas/fluent_C07_heat_transfer_energy_balance.schema.json
+  default_config: configs/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static.yaml
   workflow_stage: cfd.fluent.heat_transfer_energy_balance
   runtime_target: _results/fluent/heat_transfer_energy_balance/
 intern_deliverables:
-- Implement heat-rate and temperature parser.
+- Extend the current case/data source manifest into heat-rate and temperature extraction.
 - Compare self-generated heat-transfer case with tutorial replay.
 - Add material/unit mismatch diagnostics.
 card_status: review

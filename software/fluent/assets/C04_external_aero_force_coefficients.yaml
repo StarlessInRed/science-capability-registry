@@ -20,12 +20,17 @@ inputs:
   - Fluent_Tutorial_Package/sedan_2m.zip
 outputs:
   required_artifacts:
+  - aero_reference_manifest.json
+  - reference_tables.json
   - force_history.csv
   - pressure_coefficient.csv
   - metrics.json
   - validation.json
   - validation_report.md
   scalar_metrics:
+  - reference_csv_count
+  - reference_row_counts
+  - cl_curve_monotonic_non_decreasing
   - drag_coefficient
   - lift_coefficient
   - cp_error
@@ -33,16 +38,23 @@ benchmark:
   source_name: Fluent aero tutorial package with reference CSV candidates
   source_type: official tutorial package
   benchmark_role: Candidate external-aero replay and reference-data comparison.
-  status_rationale: fluent_aero_tutorial.zip contains reference CSV files, making it a strong C04 seed after runtime profile closure.
+  status_rationale: fluent_aero_tutorial.zip now has a committed read-only reference CSV parser config, schema, package, tests, and local source-package evidence. The parser validates ONERA Cl-vs-AoA and Cp section tables plus IRT swept-wing Cp reference data, but does not launch Fluent or extract force coefficients.
+  evidence:
+  - report: reports/fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02.md
+    gate: static-readiness
+    result_root: _results/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static/
 validation_criteria:
 - Force and Cp outputs must be extracted through canonical metric names.
 - Reference CSV comparison must state geometry and condition homology.
 - Smoke pass must not claim mesh-independent aero benchmark.
 integration_targets:
+  package_entrypoint: science_capability_registry.fluent.external_aero_force_coefficients:run
+  input_schema: schemas/fluent_C04_external_aero_force_coefficients.schema.json
+  default_config: configs/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static.yaml
   workflow_stage: cfd.fluent.external_aero_force_coefficients
   runtime_target: _results/fluent/external_aero_force_coefficients/
 intern_deliverables:
-- Build force/Cp parser for Fluent reports and reference CSV.
+- Extend the current reference CSV parser into a Fluent force/Cp replay parser.
 - Add AoA or case-variant comparison once replay works.
 - Record license/module/runtime blockers if aero workflow cannot run headless.
 card_status: review

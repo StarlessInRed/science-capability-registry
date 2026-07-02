@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_C04_external_aero_force_coefficients.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C04 external-aero reference CSV parser config.",
+  "title": "Fluent C04 External Aero Force Coefficients Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "source_root",
+    "backend",
+    "source_package",
+    "governing_model",
+    "outputs",
+    "reference_csvs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.external_aero_force_coefficients"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "source_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_root_env", "logical_path"],
+      "properties": {
+        "source_root_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "logical_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "archive_access"],
+      "properties": {
+        "type": {"const": "reference_csv_parser"},
+        "archive_access": {"const": "read_only_zip"}
+      }
+    },
+    "source_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "rel_path", "package_role"],
+      "properties": {
+        "source_id": {"const": "C04_aero_tutorial"},
+        "rel_path": {"const": "Fluent_Tutorial_Package/fluent_aero_tutorial.zip"},
+        "package_role": {"type": "string", "minLength": 1}
+      }
+    },
+    "governing_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_class", "solver_context", "reference_scope", "homology_requirements"],
+      "properties": {
+        "model_class": {"type": "string", "minLength": 1},
+        "solver_context": {"type": "string", "minLength": 1},
+        "reference_scope": {"type": "string", "minLength": 1},
+        "homology_requirements": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 6,
+          "uniqueItems": true
+        }
+      }
+    },
+    "reference_csvs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/reference_csv"},
+      "minItems": 3
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_entry_classes",
+        "required_artifacts",
+        "required_reference_roles",
+        "trend_checks",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "required_entry_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "case",
+              "mesh",
+              "data",
+              "journal",
+              "reference_csv",
+              "design_or_table_csv",
+              "workbench_archive"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "required_reference_roles": {
+          "type": "array",
+          "items": {"enum": ["lift_curve", "pressure_coefficient_section"]},
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "trend_checks": {
+          "type": "array",
+          "items": {"enum": ["lift_curve_cl_monotonic_non_decreasing"]},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  },
+  "$defs": {
+    "artifact_name": {
+      "enum": [
+        "aero_reference_manifest.json",
+        "reference_tables.json",
+        "metrics.json",
+        "validation.json",
+        "validation_report.md",
+        "manifest.json"
+      ]
+    },
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    },
+    "reference_csv": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_id",
+        "reference_role",
+        "entry_path",
+        "required_columns",
+        "min_rows"
+      ],
+      "properties": {
+        "reference_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "reference_role": {"enum": ["lift_curve", "pressure_coefficient_section"]},
+        "entry_path": {"type": "string", "pattern": "^[A-Za-z0-9_./+ -]+\\.csv$"},
+        "required_columns": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "min_rows": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

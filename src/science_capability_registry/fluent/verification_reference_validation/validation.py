@@ -46,6 +46,12 @@ def summarize_reference_metrics(config: dict[str, Any], validation: dict[str, An
     return result
 
 
+def summarize_mesh_runtime_metrics(config: dict[str, Any], runtime_metrics: dict[str, Any]) -> dict[str, Any]:
+    result = summarize_reference_metrics(config)
+    result.update(runtime_metrics)
+    return result
+
+
 def validate_reference_contract(config: dict[str, Any]) -> dict[str, Any]:
     checks: list[dict[str, Any]] = []
     metrics = summarize_reference_metrics(config)
@@ -134,4 +140,75 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         "scope": "Fluent C02 reference manifest and artifact completeness",
         "checks": checks,
         "details": validation["details"],
+    }
+
+
+def validate_mesh_runtime_smoke(
+    manifest: dict[str, Any],
+    config: dict[str, Any],
+    metrics: dict[str, Any],
+    output_dir: str | Path,
+    check_artifacts: bool = True,
+) -> dict[str, Any]:
+    validation = validate_manifest(manifest, config, output_dir if check_artifacts else None)
+    checks = list(validation["checks"])
+    mesh = config["mesh_generation"]
+    expected_cells = mesh["axial_cells"] * mesh["radial_cells"]
+    face_counts = metrics["mesh_face_counts"]
+    required_face_zones = ["axis", "interior", "pressure-outlet", "velocity-inlet", "wall"]
+
+    _check(
+        checks,
+        "runtime.return_code_zero",
+        metrics["fluent_return_code"] == 0,
+        str(metrics["fluent_return_code"]),
+    )
+    _check(
+        checks,
+        "runtime.mesh_check_completed",
+        bool(metrics["mesh_check_completed"]),
+        str(metrics["mesh_check_completed"]),
+    )
+    _check(
+        checks,
+        "runtime.no_fluent_errors",
+        metrics["fluent_error_count"] == 0,
+        str(metrics["fluent_error_count"]),
+    )
+    _check(
+        checks,
+        "runtime.cells_match_mesh_config",
+        metrics["mesh_cell_count"] == expected_cells,
+        f"{metrics['mesh_cell_count']} == {expected_cells}",
+    )
+    for zone_name in required_face_zones:
+        _check(
+            checks,
+            f"runtime.face_zone.{zone_name}",
+            zone_name in face_counts and face_counts[zone_name] > 0,
+            json.dumps(face_counts, ensure_ascii=False, sort_keys=True),
+        )
+    _check(
+        checks,
+        "runtime.warning_budget",
+        metrics["fluent_warning_count"] <= config["runtime_smoke"]["max_warning_count"],
+        f"{metrics['fluent_warning_count']} <= {config['runtime_smoke']['max_warning_count']}",
+    )
+    _check(
+        checks,
+        "runtime.pressure_drop_not_claimed",
+        metrics["pressure_drop_runtime_status"] == "not_extracted_in_mesh_smoke",
+        metrics["pressure_drop_runtime_status"],
+    )
+
+    return {
+        "passed": all(item["passed"] for item in checks),
+        "gate": config["validation"]["gate"],
+        "scope": "Fluent C02 self-generated VMFL005 mesh-readability smoke; pressure-drop solve not claimed",
+        "checks": checks,
+        "details": {
+            "metrics": metrics,
+            "no_claims": config["validation"]["no_claims"],
+            "allowed_runtime_warnings": config["runtime_smoke"]["allowed_warning_fragments"],
+        },
     }

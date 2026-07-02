@@ -21,10 +21,19 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
         f"- target pressure drop: {metrics['target_pressure_drop_pa']:.6g} Pa",
         f"- manual Fluent pressure drop: {metrics['manual_fluent_pressure_drop_pa']:.6g} Pa",
         f"- manual relative error: {metrics['manual_relative_error']:.6g}",
-        "",
-        "## Checks",
-        "",
     ]
+    if "fluent_return_code" in metrics:
+        lines.extend(
+            [
+                f"- Fluent return code: {metrics['fluent_return_code']}",
+                f"- mesh cell count: {metrics['mesh_cell_count']} / expected {metrics['expected_mesh_cell_count']}",
+                f"- mesh check completed: {metrics['mesh_check_completed']}",
+                f"- Fluent warnings: {metrics['fluent_warning_count']}",
+                f"- Fluent errors: {metrics['fluent_error_count']}",
+                f"- pressure-drop runtime status: {metrics['pressure_drop_runtime_status']}",
+            ]
+        )
+    lines.extend(["", "## Checks", ""])
     for item in validation["checks"]:
         mark = "PASS" if item["passed"] else "FAIL"
         lines.append(f"- {item['name']}: {mark}")
@@ -33,7 +42,9 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
             "",
             "## Scope",
             "",
-            "This static-readiness report maps a verification-manual reference into a machine-checkable Fluent C02 contract. It does not launch Fluent, does not claim a local runnable VMFL005 payload, and does not promote the case to benchmark validation.",
+            validation["scope"],
+            "",
+            "No pressure-drop benchmark validation is claimed unless this report explicitly includes a Fluent pressure-drop solve and mesh-trend closure.",
         ]
     )
     Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")

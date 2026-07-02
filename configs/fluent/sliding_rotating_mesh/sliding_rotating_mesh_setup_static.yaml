@@ -1,0 +1,55 @@
+capability_id: cfd.fluent.sliding_rotating_mesh
+case_id: sliding_rotating_mesh_setup_static
+description: Read-only mesh/setup manifest for sliding and rotating mesh tutorial sources before moving-zone runtime replay.
+source_root:
+  source_root_env: FLUENT_TUTORIAL_ROOT
+  logical_path: AgentKnowledge/case_library/fluent/cases/official_tutorials
+backend:
+  type: mesh_setup_manifest
+  archive_access: read_only_zip
+source_packages:
+- source_id: C06_sliding_mesh
+  source_role: official sliding-mesh tutorial mesh-only seed
+  rel_path: Fluent_Tutorial_Package/sliding_mesh.zip
+- source_id: C06_single_rotating_legacy
+  source_role: legacy single-rotating mesh-only supplement
+  rel_path: legacy_2020_r2_unique/single_rotating.zip
+setup_scope:
+  model_class: Fluent sliding mesh and rotating reference frame setup seed
+  readiness_scope: Confirm available official and legacy sources are mesh-only before any moving-zone or transient solver replay claim.
+  future_runtime_metrics:
+  - moving_zone_count
+  - interface_pair_count
+  - completed_revolutions
+  - monitored_periodicity_error
+  no_homology_claims:
+  - these sources do not contain runnable case/data pairs
+  - moving-zone settings, sliding interfaces, time step, and monitors must be generated or recovered before runtime smoke
+outputs:
+  output_dir: _results/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static
+  expected_outputs:
+  - rotating_mesh_setup_manifest.json
+  - mesh_entries.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+validation:
+  gate: static-readiness
+  required_source_ids:
+  - C06_sliding_mesh
+  - C06_single_rotating_legacy
+  required_entry_classes:
+  - mesh
+  min_mesh_entries: 2
+  required_artifacts:
+  - rotating_mesh_setup_manifest.json
+  - mesh_entries.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+  no_claims:
+  - no Fluent sliding-mesh or rotating-zone solver replay is launched by this config
+  - no moving-zone settings, sliding interface, periodicity, or transient history validation is claimed
+  - legacy single-rotating mesh evidence remains labeled as legacy supplement

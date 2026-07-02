@@ -1,0 +1,135 @@
+capability_id: cfd.fluent.verification_reference_validation
+case_id: vmfl005_poiseuille_pipe_mesh_smoke
+description: Self-generated VMFL005 Poiseuille pipe mesh-readability smoke for Fluent C02 before pressure-drop benchmark closure.
+fluent:
+  runtime_profile: local_fluent_preflight
+  runtime_profile_config: configs/fluent/runtime_profiles/local_fluent_preflight.yaml
+  vendor: Ansys
+  product: Fluent
+  version_family: 2025_R1
+  executable_env: FLUENT_EXE
+  dimension_precision: 2ddp
+  headless_flags:
+  - -g
+  processor_count: 1
+  journal_argument: -i
+backend:
+  type: fluent_mesh_check
+  timeout_s: 90
+reference_source:
+  source_role: verification_manual_reference
+  source_root: AgentKnowledge/case_library/fluent/cases/official_tutorials
+  document: ansys_fluid_dynamics_verification_manual.pdf
+  manual_release: 2021_R1
+  manual_case_id: VMFL005
+  manual_case_title: Poiseuille Flow in a Pipe
+  input_file_hint: poiseuille-flow.cas
+  runnable_payload_status: not_found_in_current_library
+  reference_scope: Self-generated mesh smoke uses VMFL005 geometry and boundary names; no local official poiseuille-flow.cas payload is claimed.
+governing_model:
+  model_class: self-generated Fluent mesh smoke with verification-manual analytical reference
+  flow_regime: steady laminar incompressible pipe flow
+  equation_family: incompressible Navier-Stokes with Hagen-Poiseuille pressure-drop reference
+  assumptions:
+  - steady flow
+  - constant density and viscosity
+  - fully developed laminar velocity profile remains pending for solver benchmark closure
+  - half of the axisymmetric domain represents the circular tube
+geometry:
+  length_m: 0.1
+  radius_m: 0.00125
+  domain_assumption: 2D axisymmetric half-domain pipe mesh
+material_properties:
+  density_kg_m3: 1.0
+  dynamic_viscosity_kg_m_s: 1.0e-5
+boundary_conditions:
+  inlet_profile: fully developed laminar velocity profile pending solver setup closure
+  inlet_average_velocity_m_s: 2.0
+  wall: no-slip pipe wall
+  axis: Fluent axis face zone named axis
+  outlet_closure: pressure outlet or equivalent pressure-reference closure must be declared before pressure-drop benchmark promotion
+reference_formula:
+  formula_id: hagen_poiseuille_pressure_drop
+  formula: delta_p = 32 * mu * L * U_mean / D^2
+  pressure_drop_inputs:
+    dynamic_viscosity_kg_m_s: 1.0e-5
+    length_m: 0.1
+    mean_velocity_m_s: 2.0
+    diameter_m: 0.0025
+reference_values:
+  quantity: pressure_drop
+  unit: Pa
+  target_pressure_drop_pa: 10.24
+  manual_fluent_pressure_drop_pa: 10.22
+  manual_fluent_ratio: 0.998
+sampling_policy:
+  metric_location: pressure difference between inlet and outlet after solver setup closure
+  homology_policy: geometry, fully developed inlet profile, material properties, axisymmetric model state, and pressure-drop sampling must match VMFL005 before benchmark promotion
+  future_mesh_levels:
+  - coarse
+  - baseline
+  - refined
+mesh_generation:
+  mesh_file: pipe_axisymmetric_mesh.msh
+  axial_cells: 80
+  radial_cells: 16
+  zone_names:
+    fluid: fluid
+    interior: interior
+    wall: wall
+    axis: axis
+    outlet: outlet
+    inlet: inlet
+runtime_smoke:
+  journal_file: journal.jou
+  write_case: false
+  case_file: pipe_axisymmetric_mesh.cas
+  max_warning_count: 4
+  allowed_warning_fragments:
+  - axis boundary conditions is not appropriate for planar solver state before axisymmetric setup closure
+  scope: Read the self-generated Fluent mesh and run mesh/check only; do not claim pressure-drop solve.
+outputs:
+  output_dir: _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke
+  expected_outputs:
+  - reference_manifest.json
+  - pipe_axisymmetric_mesh.msh
+  - mesh_manifest.json
+  - journal.jou
+  - stdout.txt
+  - stderr.txt
+  - transcript.txt
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  max_manual_relative_error: 0.03
+  required_manifest_sections:
+  - reference_source
+  - governing_model
+  - geometry
+  - material_properties
+  - boundary_conditions
+  - reference_formula
+  - reference_values
+  - sampling_policy
+  - validation_targets
+  - mesh_generation
+  - runtime_smoke
+  required_artifacts:
+  - reference_manifest.json
+  - pipe_axisymmetric_mesh.msh
+  - mesh_manifest.json
+  - journal.jou
+  - stdout.txt
+  - stderr.txt
+  - transcript.txt
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no official local VMFL005 poiseuille-flow.cas payload is claimed
+  - no Fluent pressure-drop solve is claimed by this mesh-readability smoke
+  - no benchmark validation promotion is claimed until axisymmetric setup, inlet profile, pressure sampling, and mesh trend closure pass

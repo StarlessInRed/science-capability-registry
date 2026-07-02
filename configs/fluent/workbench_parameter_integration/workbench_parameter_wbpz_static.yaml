@@ -1,0 +1,63 @@
+capability_id: cfd.fluent.workbench_parameter_integration
+case_id: workbench_parameter_wbpz_static
+description: Read-only Workbench WBPZ static preflight for Fluent parameter integration before any RunWB2 execution.
+source_root:
+  source_root_env: FLUENT_TUTORIAL_ROOT
+  logical_path: AgentKnowledge/case_library/fluent/cases/official_tutorials
+backend:
+  type: workbench_project_manifest
+  archive_access: read_only_nested_zip
+source_package:
+  source_id: C08_workbench_parameter
+  rel_path: Fluent_Workbench_Tutorial_Package/workbench_parameter.zip
+  nested_wbpz_entry: workbench_parameter/fluent-workbench-param.wbpz
+  package_role: official Workbench parameter tutorial archive for Fluent workflow integration
+workbench_scope:
+  model_class: Workbench-driven Fluent parameter and result handoff
+  readiness_scope: Parse WBPZ structure, Workbench project metadata, current input parameters, and historical design-point log before any headless Workbench run.
+  future_runtime_metrics:
+  - design_point_count
+  - current_parameter_count
+  - parameter_roundtrip_count
+  - result_extraction_count
+  migration_risks:
+  - source project is stored as an older Workbench release and may require migration before execution
+  - Workbench project state must be copied to runtime output space before any run, never opened in place
+  - Workbench headless execution uses RunWB2 and must remain separate from standalone Fluent batch gates
+environment_preflight:
+  runwb2_executable_env: RUNWB2_EXE
+  fluent_executable_env: FLUENT_EXE
+  ansys_root_env: AWP_ROOT251
+  static_gate_requires_runwb2: false
+outputs:
+  output_dir: _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static
+  expected_outputs:
+  - workbench_project_manifest.json
+  - workbench_entries.json
+  - parameter_table.csv
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+validation:
+  gate: static-readiness
+  required_nested_entry_classes:
+  - workbench_project_file
+  - design_point_file
+  - workbench_journal
+  - design_point_log
+  - geometry_database
+  - mesh_database
+  min_current_parameters: 3
+  required_artifacts:
+  - workbench_project_manifest.json
+  - workbench_entries.json
+  - parameter_table.csv
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+  no_claims:
+  - no RunWB2 or Workbench headless execution is launched by this config
+  - no project migration, design-point update, or result extraction is claimed
+  - no standalone Fluent batch equivalence is claimed for the WBPZ archive

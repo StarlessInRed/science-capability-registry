@@ -21,11 +21,15 @@ inputs:
 outputs:
   required_artifacts:
   - workbench_project_manifest.json
+  - workbench_entries.json
   - parameter_table.csv
   - metrics.json
   - validation.json
   - validation_report.md
   scalar_metrics:
+  - current_parameter_count
+  - historical_design_point_row_count
+  - workbench_journal_count
   - design_point_count
   - parameter_roundtrip_count
   - result_extraction_count
@@ -33,16 +37,23 @@ benchmark:
   source_name: Fluent Workbench Tutorial Package
   source_type: official Workbench tutorial package
   benchmark_role: Engineering workflow integration seed, not a physics benchmark.
-  status_rationale: Candidate selected for Workbench parameter and problem-definition integration after executable profile is configured.
+  status_rationale: workbench_parameter.zip now has a committed nested-WBPZ static preflight config, schema, package, tests, and local source-package evidence. The preflight parses Workbench 2020 R2 project metadata and current P1/P2/P3 input parameters, but does not execute RunWB2, migrate the project, update design points, or extract results.
+  evidence:
+  - report: reports/fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02.md
+    gate: static-readiness
+    result_root: _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
 validation_criteria:
 - Workbench gate must be separate from standalone Fluent batch gate.
 - Smoke validation must prove parameter and result handoff artifacts exist.
 - GUI/headless and project-state blockers must be recorded as runtime-profile failures.
 integration_targets:
+  package_entrypoint: science_capability_registry.fluent.workbench_parameter_integration:run
+  input_schema: schemas/fluent_C08_workbench_parameter_integration.schema.json
+  default_config: configs/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static.yaml
   workflow_stage: cfd.fluent.workbench_parameter_integration
   runtime_target: _results/fluent/workbench_parameter_integration/
 intern_deliverables:
-- Define Workbench project manifest contract.
+- Extend the current WBPZ static preflight into copy-to-runtime Workbench execution.
 - Detect headless Workbench availability before runtime.
 - Compare Workbench tutorial output with standalone Fluent metrics only when workflows are homologous.
 card_status: review

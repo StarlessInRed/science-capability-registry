@@ -472,12 +472,13 @@
       "domain": "CFD",
       "asset_path": "software/fluent/assets/C02_verification_reference_validation.yaml",
       "run_schema_path": "schemas/fluent_C02_verification_reference_validation.schema.json",
-      "default_config_path": "configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_static_reference.yaml",
+      "default_config_path": "configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml",
       "package_entrypoint": "science_capability_registry.fluent.verification_reference_validation:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "fluent_C02_verification_reference_validation_static_readiness_2026-07-02"
+        "fluent_C02_verification_reference_validation_static_readiness_2026-07-02",
+        "fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02"
       ],
       "result_contract": {
         "required_files": [
@@ -490,9 +491,149 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/fluent/runtime_profiles/local_fluent_preflight.yaml",
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02"
+    },
+    {
+      "capability_id": "cfd.fluent.external_aero_force_coefficients",
+      "asset_id": "C04_external_aero_force_coefficients",
+      "software": "Fluent",
+      "domain": "CFD",
+      "asset_path": "software/fluent/assets/C04_external_aero_force_coefficients.yaml",
+      "run_schema_path": "schemas/fluent_C04_external_aero_force_coefficients.schema.json",
+      "default_config_path": "configs/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.external_aero_force_coefficients:run",
+      "card_status": "review",
+      "benchmark_status": "benchmark_candidate",
+      "evidence_ids": [
+        "fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
       "dispatch_status": "static_ready",
       "current_gate": "static-readiness",
-      "primary_evidence_id": "fluent_C02_verification_reference_validation_static_readiness_2026-07-02"
+      "primary_evidence_id": "fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02"
+    },
+    {
+      "capability_id": "cfd.fluent.vof_free_surface_transient",
+      "asset_id": "C05_vof_free_surface_transient",
+      "software": "Fluent",
+      "domain": "CFD",
+      "asset_path": "software/fluent/assets/C05_vof_free_surface_transient.yaml",
+      "run_schema_path": "schemas/fluent_C05_vof_free_surface_transient.schema.json",
+      "default_config_path": "configs/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.vof_free_surface_transient:run",
+      "card_status": "review",
+      "benchmark_status": "benchmark_candidate",
+      "evidence_ids": [
+        "fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02"
+    },
+    {
+      "capability_id": "cfd.fluent.sliding_rotating_mesh",
+      "asset_id": "C06_sliding_rotating_mesh",
+      "software": "Fluent",
+      "domain": "CFD",
+      "asset_path": "software/fluent/assets/C06_sliding_rotating_mesh.yaml",
+      "run_schema_path": "schemas/fluent_C06_sliding_rotating_mesh.schema.json",
+      "default_config_path": "configs/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.sliding_rotating_mesh:run",
+      "card_status": "review",
+      "benchmark_status": "benchmark_candidate",
+      "evidence_ids": [
+        "fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02"
+    },
+    {
+      "capability_id": "cfd.fluent.heat_transfer_energy_balance",
+      "asset_id": "C07_heat_transfer_energy_balance",
+      "software": "Fluent",
+      "domain": "CFD",
+      "asset_path": "software/fluent/assets/C07_heat_transfer_energy_balance.yaml",
+      "run_schema_path": "schemas/fluent_C07_heat_transfer_energy_balance.schema.json",
+      "default_config_path": "configs/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.heat_transfer_energy_balance:run",
+      "card_status": "review",
+      "benchmark_status": "benchmark_candidate",
+      "evidence_ids": [
+        "fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02"
+    },
+    {
+      "capability_id": "cfd.fluent.workbench_parameter_integration",
+      "asset_id": "C08_workbench_parameter_integration",
+      "software": "Fluent",
+      "domain": "CFD workflow",
+      "asset_path": "software/fluent/assets/C08_workbench_parameter_integration.yaml",
+      "run_schema_path": "schemas/fluent_C08_workbench_parameter_integration.schema.json",
+      "default_config_path": "configs/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.workbench_parameter_integration:run",
+      "card_status": "review",
+      "benchmark_status": "benchmark_candidate",
+      "evidence_ids": [
+        "fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02"
     },
     {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",

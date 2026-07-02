@@ -49,19 +49,23 @@ def test_fluent_capability_map_evidence_entries_resolve() -> None:
     evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
     evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
 
-    for evidence_id in [
-        "fluent_C01_C08_source_intake_2026-07-02",
-        "fluent_C01_C08_seed_suite_static_readiness_2026-07-02",
-        "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02",
-        "fluent_C02_verification_reference_validation_static_readiness_2026-07-02",
-        "fluent_C01_C08_official_replay_manifest_2026-07-02",
-    ]:
+    evidence_asset_paths = {
+        "fluent_C01_C08_source_intake_2026-07-02": MAP_PATH.as_posix(),
+        "fluent_C01_C08_seed_suite_static_readiness_2026-07-02": MAP_PATH.as_posix(),
+        "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02": "software/fluent/assets/C01_steady_internal_flow_runtime.yaml",
+        "fluent_C02_verification_reference_validation_static_readiness_2026-07-02": "software/fluent/assets/C02_verification_reference_validation.yaml",
+        "fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02": "software/fluent/assets/C02_verification_reference_validation.yaml",
+        "fluent_C01_C08_official_replay_manifest_2026-07-02": MAP_PATH.as_posix(),
+        "fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02": "software/fluent/assets/C04_external_aero_force_coefficients.yaml",
+        "fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02": "software/fluent/assets/C05_vof_free_surface_transient.yaml",
+        "fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02": "software/fluent/assets/C06_sliding_rotating_mesh.yaml",
+        "fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02": "software/fluent/assets/C07_heat_transfer_energy_balance.yaml",
+        "fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02": "software/fluent/assets/C08_workbench_parameter_integration.yaml",
+        "fluent_failure_ledger_2026-07-02": MAP_PATH.as_posix(),
+    }
+
+    for evidence_id, expected_asset_path in evidence_asset_paths.items():
         evidence = evidence_by_id[evidence_id]
-        expected_asset_path = MAP_PATH.as_posix()
-        if evidence_id == "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02":
-            expected_asset_path = "software/fluent/assets/C01_steady_internal_flow_runtime.yaml"
-        if evidence_id == "fluent_C02_verification_reference_validation_static_readiness_2026-07-02":
-            expected_asset_path = "software/fluent/assets/C02_verification_reference_validation.yaml"
         assert evidence["asset_path"] == expected_asset_path
         assert Path(evidence["primary_evidence_path"]).exists()
         for path in evidence["supporting_paths"]:

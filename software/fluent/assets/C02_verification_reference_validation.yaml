@@ -26,6 +26,9 @@ inputs:
 outputs:
   required_artifacts:
   - reference_manifest.json
+  - pipe_axisymmetric_mesh.msh
+  - mesh_manifest.json
+  - journal.jou
   - metrics.json
   - validation.json
   - validation_report.md
@@ -34,11 +37,14 @@ outputs:
   - target_pressure_drop_pa
   - manual_fluent_pressure_drop_pa
   - manual_relative_error
+  - mesh_cell_count
+  - fluent_warning_count
+  - pressure_drop_runtime_status
 benchmark:
   source_name: Ansys Fluid Dynamics Verification Manual
   source_type: verification manual
   benchmark_role: VMFL005 Poiseuille pipe pressure-drop reference for future self-generated Fluent benchmark promotion.
-  status_rationale: Verification source and formula target are mapped; runnable Fluent VMFL005 payload is not present in the current local library.
+  status_rationale: Verification source and formula target are mapped; a self-generated VMFL005 mesh-readability smoke passed locally, but pressure-drop solve and mesh-trend closure are not yet benchmark validated.
 validation_criteria:
 - Reference geometry, boundary conditions, units, and sampling must be declared before numeric thresholds are applied.
 - Tutorial replay must not be promoted to benchmark without reference homology.

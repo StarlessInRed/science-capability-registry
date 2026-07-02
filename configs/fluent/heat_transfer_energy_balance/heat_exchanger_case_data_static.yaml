@@ -1,0 +1,50 @@
+capability_id: cfd.fluent.heat_transfer_energy_balance
+case_id: heat_exchanger_case_data_static
+description: Read-only case/data pair readiness check for the 2D heat exchanger tutorial before thermal runtime replay.
+source_root:
+  source_root_env: FLUENT_TUTORIAL_ROOT
+  logical_path: AgentKnowledge/case_library/fluent/cases/official_tutorials
+backend:
+  type: case_data_manifest
+  archive_access: read_only_zip
+source_package:
+  source_id: C07_heat_exchanger
+  rel_path: Fluent_Tutorial_Package/2d_heat_exchanger_optimizer.zip
+  package_role: official heat-transfer tutorial case/data pair for future energy-equation replay
+thermal_scope:
+  model_class: Fluent energy-equation heat-transfer case/data replay seed
+  readiness_scope: Confirm the official tutorial zip contains a matched case/data pair before thermal metrics extraction.
+  future_runtime_metrics:
+  - min_temperature
+  - max_temperature
+  - inlet_outlet_temperature_delta
+  - heat_rate_balance_error
+  no_homology_claims:
+  - this source package does not by itself validate CHT interface heat-flux continuity
+  - this source package does not by itself validate energy conservation or material-property homology
+outputs:
+  output_dir: _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static
+  expected_outputs:
+  - heat_transfer_source_manifest.json
+  - case_data_entries.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+validation:
+  gate: static-readiness
+  required_entry_classes:
+  - case
+  - data
+  min_case_data_pairs: 1
+  required_artifacts:
+  - heat_transfer_source_manifest.json
+  - case_data_entries.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+  no_claims:
+  - no Fluent heat-transfer solver replay is launched by this config
+  - no heat-rate balance or temperature extrema extraction is claimed
+  - no CHT or battery thermal benchmark validation is claimed

@@ -21,12 +21,17 @@ inputs:
   - Fluent_tutorial_case/ch10/tank
 outputs:
   required_artifacts:
+  - vof_setup_manifest.json
+  - mesh_entries.json
   - phase_volume_history.csv
   - interface_position.csv
   - metrics.json
   - validation.json
   - validation_report.md
   scalar_metrics:
+  - mesh_entry_count
+  - total_mesh_bytes
+  - solver_replay_status
   - max_volume_fraction_overshoot
   - phase_volume_error
   - final_time
@@ -34,16 +39,23 @@ benchmark:
   source_name: Fluent VOF and legacy dam-break/tank tutorials
   source_type: official and legacy tutorial evidence
   benchmark_role: Transient multiphase smoke and later targeted-regression seed.
-  status_rationale: Candidate selected for complex transient physics after C01 runtime envelope exists.
+  status_rationale: Official vof.zip now has a committed mesh/setup manifest config, schema, package, tests, and local source-package evidence. The source is mesh-only, so transient VOF runtime validation must use a completed setup or separately labeled legacy case/data replay.
+  evidence:
+  - report: reports/fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02.md
+    gate: static-readiness
+    result_root: _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static/
 validation_criteria:
 - Volume fraction must remain bounded within configured tolerance.
 - Transient gate must record final time, time-step count, and conservation metrics.
 - Tutorial replay must not be treated as external dam-break validation without reference evidence.
 integration_targets:
+  package_entrypoint: science_capability_registry.fluent.vof_free_surface_transient:run
+  input_schema: schemas/fluent_C05_vof_free_surface_transient.schema.json
+  default_config: configs/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static.yaml
   workflow_stage: cfd.fluent.vof_free_surface_transient
   runtime_target: _results/fluent/vof_free_surface_transient/
 intern_deliverables:
-- Implement transient monitor extraction.
+- Extend the current mesh/setup manifest into completed VOF setup and transient monitor extraction.
 - Compare self-generated VOF case with official replay.
 - Classify time-step, initialization, and interface parser failures.
 card_status: review

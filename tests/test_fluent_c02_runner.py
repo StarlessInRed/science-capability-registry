@@ -34,6 +34,26 @@ def test_fluent_c02_runner_writes_reference_manifest(tmp_path: Path) -> None:
     assert "VMFL001" not in report_text
 
 
+def test_fluent_c02_runner_writes_self_generated_mesh_contract(tmp_path: Path) -> None:
+    result = run(
+        config_path=Path("configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml"),
+        output_dir=tmp_path,
+        dry_run=True,
+    )
+
+    assert result["validated_config"] is True
+    assert result["mesh_generation"]["axial_cells"] == 80
+    mesh_text = (tmp_path / "pipe_axisymmetric_mesh.msh").read_text(encoding="ascii")
+    journal_text = (tmp_path / "journal.jou").read_text(encoding="ascii")
+    mesh_manifest = json.loads((tmp_path / "mesh_manifest.json").read_text(encoding="utf-8"))
+
+    assert "(45 (4 axis axis)())" in mesh_text
+    assert "/file/read-case" in journal_text
+    assert "/mesh/check" in journal_text
+    assert mesh_manifest["cell_count"] == 80 * 16
+    assert mesh_manifest["axis_face_zone_type"] == "axis"
+
+
 def test_fluent_c02_runner_rejects_non_dry_run(tmp_path: Path) -> None:
     try:
         run(

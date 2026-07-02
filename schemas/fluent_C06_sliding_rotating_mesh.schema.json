@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_C06_sliding_rotating_mesh.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C06 sliding/rotating mesh setup source manifest config.",
+  "title": "Fluent C06 Sliding Rotating Mesh Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "source_root",
+    "backend",
+    "source_packages",
+    "setup_scope",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.sliding_rotating_mesh"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "source_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_root_env", "logical_path"],
+      "properties": {
+        "source_root_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "logical_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "archive_access"],
+      "properties": {
+        "type": {"const": "mesh_setup_manifest"},
+        "archive_access": {"const": "read_only_zip"}
+      }
+    },
+    "source_packages": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/source_package"},
+      "minItems": 2
+    },
+    "setup_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_class", "readiness_scope", "future_runtime_metrics", "no_homology_claims"],
+      "properties": {
+        "model_class": {"type": "string", "minLength": 1},
+        "readiness_scope": {"type": "string", "minLength": 1},
+        "future_runtime_metrics": {"$ref": "#/$defs/non_empty_string_array"},
+        "no_homology_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 6,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_source_ids",
+        "required_entry_classes",
+        "min_mesh_entries",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "required_source_ids": {
+          "type": "array",
+          "items": {"enum": ["C06_sliding_mesh", "C06_single_rotating_legacy"]},
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "required_entry_classes": {
+          "type": "array",
+          "items": {"enum": ["mesh"]},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "min_mesh_entries": {"type": "integer", "minimum": 2},
+        "required_artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  },
+  "$defs": {
+    "artifact_name": {
+      "enum": [
+        "rotating_mesh_setup_manifest.json",
+        "mesh_entries.json",
+        "metrics.json",
+        "validation.json",
+        "validation_report.md",
+        "manifest.json"
+      ]
+    },
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    },
+    "source_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_role", "rel_path"],
+      "properties": {
+        "source_id": {"enum": ["C06_sliding_mesh", "C06_single_rotating_legacy"]},
+        "source_role": {"type": "string", "minLength": 1},
+        "rel_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+\\.zip$"}
+      }
+    }
+  }
+}

@@ -17,8 +17,13 @@ from science_capability_registry.gmsh.cad_import_geometry_healing import run as 
 from science_capability_registry.gmsh.mesh_refinement_quality_trend import run as run_gmsh_c03
 from science_capability_registry.gmsh.multi_solver_mesh_export_contract import run as run_gmsh_c06
 from science_capability_registry.gmsh.parametric_geometry_mesh_generation import run as run_gmsh_c01
+from science_capability_registry.fluent.external_aero_force_coefficients import run as run_fluent_c04
+from science_capability_registry.fluent.heat_transfer_energy_balance import run as run_fluent_c07
+from science_capability_registry.fluent.sliding_rotating_mesh import run as run_fluent_c06
 from science_capability_registry.fluent.steady_internal_flow_runtime import run as run_fluent_c01
 from science_capability_registry.fluent.verification_reference_validation import run as run_fluent_c02
+from science_capability_registry.fluent.vof_free_surface_transient import run as run_fluent_c05
+from science_capability_registry.fluent.workbench_parameter_integration import run as run_fluent_c08
 from science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation import run as run_openfoam_c02
 from science_capability_registry.openfoam.backward_facing_step_rans_internal_flow import run as run_openfoam_c03
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step import run as run_openfoam_c08
@@ -49,6 +54,11 @@ RUNNERS: dict[str, Runner] = {
     "cfd.openfoam.compressible_shock_capturing_forward_step": run_openfoam_c08,
     "cfd.fluent.steady_internal_flow_runtime": run_fluent_c01,
     "cfd.fluent.verification_reference_validation": run_fluent_c02,
+    "cfd.fluent.external_aero_force_coefficients": run_fluent_c04,
+    "cfd.fluent.vof_free_surface_transient": run_fluent_c05,
+    "cfd.fluent.sliding_rotating_mesh": run_fluent_c06,
+    "cfd.fluent.heat_transfer_energy_balance": run_fluent_c07,
+    "cfd.fluent.workbench_parameter_integration": run_fluent_c08,
     "meshing.gmsh.parametric_geometry_mesh_generation": run_gmsh_c01,
     "meshing.gmsh.boundary_physical_group_contract": run_gmsh_c02,
     "meshing.gmsh.mesh_refinement_quality_trend": run_gmsh_c03,

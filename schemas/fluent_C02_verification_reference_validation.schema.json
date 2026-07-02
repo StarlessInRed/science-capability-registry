@@ -35,7 +35,17 @@
         "runtime_profile_config": {"type": "string", "minLength": 1},
         "vendor": {"const": "Ansys"},
         "product": {"const": "Fluent"},
-        "version_family": {"type": "string", "minLength": 1}
+        "version_family": {"type": "string", "minLength": 1},
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "dimension_precision": {"enum": ["2ddp"]},
+        "headless_flags": {
+          "type": "array",
+          "items": {"enum": ["-g"]},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "processor_count": {"type": "integer", "minimum": 1},
+        "journal_argument": {"const": "-i"}
       }
     },
     "backend": {
@@ -43,7 +53,7 @@
       "additionalProperties": false,
       "required": ["type", "timeout_s"],
       "properties": {
-        "type": {"const": "dry_run_only"},
+        "type": {"enum": ["dry_run_only", "fluent_mesh_check"]},
         "timeout_s": {"type": "number", "exclusiveMinimum": 0}
       }
     },
@@ -172,6 +182,12 @@
           "items": {
             "enum": [
               "reference_manifest.json",
+              "pipe_axisymmetric_mesh.msh",
+              "mesh_manifest.json",
+              "journal.jou",
+              "stdout.txt",
+              "stderr.txt",
+              "transcript.txt",
               "manifest.json",
               "metrics.json",
               "validation.json",
@@ -181,6 +197,49 @@
           "minItems": 5,
           "uniqueItems": true
         }
+      }
+    },
+    "mesh_generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mesh_file", "axial_cells", "radial_cells", "zone_names"],
+      "properties": {
+        "mesh_file": {"const": "pipe_axisymmetric_mesh.msh"},
+        "axial_cells": {"type": "integer", "minimum": 1},
+        "radial_cells": {"type": "integer", "minimum": 1},
+        "zone_names": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fluid", "interior", "wall", "axis", "outlet", "inlet"],
+          "properties": {
+            "fluid": {"const": "fluid"},
+            "interior": {"const": "interior"},
+            "wall": {"const": "wall"},
+            "axis": {"const": "axis"},
+            "outlet": {"const": "outlet"},
+            "inlet": {"const": "inlet"}
+          }
+        }
+      }
+    },
+    "runtime_smoke": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "journal_file",
+        "write_case",
+        "case_file",
+        "max_warning_count",
+        "allowed_warning_fragments",
+        "scope"
+      ],
+      "properties": {
+        "journal_file": {"const": "journal.jou"},
+        "write_case": {"type": "boolean"},
+        "case_file": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+\\.cas$"},
+        "max_warning_count": {"type": "integer", "minimum": 0},
+        "allowed_warning_fragments": {"$ref": "#/$defs/non_empty_string_array"},
+        "scope": {"type": "string", "minLength": 1}
       }
     },
     "validation": {
@@ -194,7 +253,7 @@
         "no_claims"
       ],
       "properties": {
-        "gate": {"const": "static-readiness"},
+        "gate": {"enum": ["static-readiness", "smoke"]},
         "max_manual_relative_error": {"type": "number", "exclusiveMinimum": 0},
         "required_manifest_sections": {
           "type": "array",
@@ -208,7 +267,9 @@
               "reference_formula",
               "reference_values",
               "sampling_policy",
-              "validation_targets"
+              "validation_targets",
+              "mesh_generation",
+              "runtime_smoke"
             ]
           },
           "minItems": 9,
@@ -219,6 +280,12 @@
           "items": {
             "enum": [
               "reference_manifest.json",
+              "pipe_axisymmetric_mesh.msh",
+              "mesh_manifest.json",
+              "journal.jou",
+              "stdout.txt",
+              "stderr.txt",
+              "transcript.txt",
               "manifest.json",
               "metrics.json",
               "validation.json",
@@ -232,6 +299,47 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "fluent_mesh_check"}}}}},
+      "then": {
+        "required": ["mesh_generation", "runtime_smoke"],
+        "properties": {
+          "fluent": {
+            "required": [
+              "runtime_profile",
+              "runtime_profile_config",
+              "vendor",
+              "product",
+              "version_family",
+              "executable_env",
+              "dimension_precision",
+              "headless_flags",
+              "processor_count",
+              "journal_argument"
+            ]
+          },
+          "validation": {
+            "properties": {
+              "gate": {"const": "smoke"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "dry_run_only"}}}}},
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gate": {"const": "static-readiness"}
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "non_empty_string_array": {
       "type": "array",
