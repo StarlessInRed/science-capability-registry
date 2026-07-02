@@ -1,6 +1,6 @@
 capability_id: multiphysics.comsol.matlab_server_bridge_runtime
-case_id: local_preflight
-description: COMSOL C01 local MATLAB/LiveLink runtime preflight; verifies the configured boundary before any COMSOL solver smoke is claimed.
+case_id: local_livelink_smoke
+description: COMSOL C01 local MATLAB/LiveLink smoke; connects MATLAB to a running COMSOL server, creates a minimal model, and extracts one finite scalar through mphevaluate.
 comsol:
   runtime_profile: local_matlab_comsol_preflight
   runtime_profile_config: configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
@@ -20,14 +20,14 @@ server:
   port_env: COMSOL_SERVER_PORT
   connection_mode: local_or_server
 backend:
-  type: preflight_only
-  timeout_s: 60
+  type: matlab_livelink_smoke
+  timeout_s: 180
 smoke_script:
   filename: matlab_bridge_smoke.m
   model_tag: c01_minimal_bridge
   expected_scalar_name: bridge_scalar
 outputs:
-  output_dir: _results/comsol/matlab_server_bridge_runtime/local_preflight
+  output_dir: _results/comsol/matlab_server_bridge_runtime/local_livelink_smoke
   expected_outputs:
   - manifest.json
   - matlab_bridge_smoke.m
@@ -36,8 +36,9 @@ outputs:
   - validation_report.md
   - stdout.txt
   - stderr.txt
+  - comsol_c01_scalar.txt
 validation:
-  gate: static-readiness
+  gate: smoke
   required_environment:
   - MATLAB_EXE
   - COMSOL_BIN
@@ -47,14 +48,15 @@ validation:
   - COMSOL_SERVER_HOST
   - COMSOL_SERVER_PORT
   require_path_exists: true
-  require_matlab_execution: false
+  require_matlab_execution: true
   required_artifacts:
   - manifest.json
   - matlab_bridge_smoke.m
   - metrics.json
   - validation.json
   - validation_report.md
+  - comsol_c01_scalar.txt
   no_claims:
-  - preflight_only does not execute MATLAB or COMSOL
-  - package skeleton does not prove LiveLink startup, COMSOL study execution, or physics benchmark validation
+  - local_livelink_smoke proves MATLAB-COMSOL bridge connectivity and finite parameter evaluation only
+  - no COMSOL study solve, field result extraction, official model replay, or physics benchmark validation is claimed
   - local executable, license, server, and Application Library paths must remain environment-injected

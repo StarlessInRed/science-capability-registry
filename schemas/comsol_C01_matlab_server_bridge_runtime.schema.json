@@ -51,7 +51,7 @@
         "mli_dir_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
         "required_matlab_functions": {
           "type": "array",
-          "items": {"enum": ["mphstart", "mphglobal", "mphinterp"]},
+          "items": {"enum": ["mphstart", "mphevaluate", "mphglobal", "mphinterp"]},
           "minItems": 1,
           "uniqueItems": true
         }
@@ -101,6 +101,7 @@
               "metrics.json",
               "validation.json",
               "validation_report.md",
+              "comsol_c01_scalar.txt",
               "stdout.txt",
               "stderr.txt"
             ]
@@ -147,6 +148,7 @@
               "metrics.json",
               "validation.json",
               "validation_report.md",
+              "comsol_c01_scalar.txt",
               "stdout.txt",
               "stderr.txt"
             ]

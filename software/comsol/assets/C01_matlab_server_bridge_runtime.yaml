@@ -37,7 +37,7 @@ benchmark:
   source_name: COMSOL LiveLink for MATLAB product and user-guide evidence
   source_type: official product documentation
   benchmark_role: Runtime envelope seed; not a physics benchmark.
-  status_rationale: Capability card and static plan created. Local MATLAB/COMSOL executable discovery did not pass on this host, so no runtime smoke is claimed.
+  status_rationale: Package skeleton and local LiveLink smoke passed. The evidence proves MATLAB-to-COMSOL bridge connectivity and finite parameter evaluation only; no physics benchmark is claimed.
 validation_criteria:
 - Environment preflight must require MATLAB and COMSOL paths through environment variables, not committed paths.
 - Runtime smoke must separate MATLAB startup, COMSOL bridge, model open/create, study run, and result extraction.
@@ -45,7 +45,7 @@ validation_criteria:
 integration_targets:
   workflow_stage: multiphysics.comsol.matlab_server_bridge_runtime
   input_schema: schemas/comsol_C01_matlab_server_bridge_runtime.schema.json
-  default_config: configs/comsol/matlab_server_bridge_runtime/local_preflight.yaml
+  default_config: configs/comsol/matlab_server_bridge_runtime/local_livelink_smoke.yaml
   runtime_target: _results/comsol/matlab_server_bridge_runtime/
   package_entrypoint: science_capability_registry.comsol.matlab_server_bridge_runtime:run
   runtime_profile: local_matlab_comsol

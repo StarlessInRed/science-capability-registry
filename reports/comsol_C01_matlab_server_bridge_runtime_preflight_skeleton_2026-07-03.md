@@ -29,3 +29,7 @@ Current gate: `static-readiness`.
 ## Next Gate
 
 The next promotion requires a real runtime profile with `MATLAB_EXE`, `COMSOL_BIN`, and `COMSOL_MLI_DIR` set to existing local paths. After that, run the same config with `backend.type=matlab_livelink_smoke` and record the generated `_results` summary as a new stable report.
+
+## Later Same-Day Update
+
+This preflight blocker was superseded by `reports/comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03.md`, which records a passed MATLAB LiveLink smoke after the local runtime profile was supplied through environment variables.

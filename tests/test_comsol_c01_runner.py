@@ -28,7 +28,9 @@ def test_comsol_c01_runner_dry_run_writes_script_manifest(tmp_path: Path) -> Non
     script_text = (tmp_path / "matlab_bridge_smoke.m").read_text(encoding="ascii")
     assert manifest["runtime_profile"] == "local_matlab_comsol_preflight"
     assert "ModelUtil.create" in script_text
+    assert "mphevaluate(model, 'bridge_scalar')" in script_text
     assert "COMSOL_MLI_DIR" in script_text
+    assert "function comsol_c01_bridge_smoke()" not in script_text
 
 
 def test_comsol_c01_preflight_records_missing_environment(monkeypatch, tmp_path: Path) -> None:

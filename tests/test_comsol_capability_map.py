@@ -96,6 +96,20 @@ def test_comsol_c01_package_skeleton_evidence_entry_resolves() -> None:
         assert Path(path).exists(), path
 
 
+def test_comsol_c01_livelink_smoke_evidence_entry_resolves() -> None:
+    evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
+    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
+    evidence = evidence_by_id["comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03"]
+
+    assert evidence["asset_path"] == COMSOL_ASSETS["C01"]
+    assert evidence["gate"] == "smoke"
+    assert evidence["status"] == "passed"
+    assert evidence["runtime_evidence_paths"] == ["_results/comsol/matlab_server_bridge_runtime/local_livelink_smoke/"]
+    assert Path(evidence["primary_evidence_path"]).exists()
+    for path in evidence["supporting_paths"]:
+        assert Path(path).exists(), path
+
+
 def test_comsol_first_gate_does_not_claim_runtime() -> None:
     report_text = Path("reports/comsol_C01_C06_matlab_driver_capability_map_2026-07-02.md").read_text(
         encoding="utf-8"

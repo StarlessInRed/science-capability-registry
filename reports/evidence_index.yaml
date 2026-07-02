@@ -1600,3 +1600,28 @@ evidence:
   limitations:
   - No MATLAB batch execution, COMSOL server connection, LiveLink API import, COMSOL study run, official model replay, or benchmark validation is claimed.
   - Runtime promotion requires environment-injected MATLAB_EXE, COMSOL_BIN, and COMSOL_MLI_DIR paths plus a new stable runtime report.
+- evidence_id: comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03
+  capability_id: multiphysics.comsol.matlab_server_bridge_runtime
+  asset_path: software/comsol/assets/C01_matlab_server_bridge_runtime.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C01_matlab_server_bridge_runtime.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/matlab_server_bridge_runtime/local_livelink_smoke.yaml
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  - schemas/comsol_C01_matlab_server_bridge_runtime.schema.json
+  - src/science_capability_registry/comsol/matlab_server_bridge_runtime/runner.py
+  - src/science_capability_registry/comsol/matlab_server_bridge_runtime/validation.py
+  - tests/test_comsol_c01_schema.py
+  - tests/test_comsol_c01_runner.py
+  - tests/test_comsol_c01_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/matlab_server_bridge_runtime/local_livelink_smoke/
+  scope: Local COMSOL 6.3 MATLAB LiveLink smoke creates a minimal model and extracts a finite parameter value with mphevaluate.
+  limitations:
+  - Bridge smoke only; no COMSOL study solve, field extraction, official model replay, or physics benchmark validation is claimed.
+  - Local executable paths and server details remain environment-injected and are not committed in configs.
