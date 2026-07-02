@@ -18,6 +18,19 @@ def test_fluent_c06_config_matches_schema() -> None:
     assert config["validation"]["min_mesh_entries"] == 2
 
 
+def test_fluent_c06_runtime_smoke_config_matches_schema() -> None:
+    schema = json.loads(Path("schemas/fluent_C06_sliding_rotating_mesh.schema.json").read_text(encoding="utf-8"))
+    config = yaml.safe_load(
+        Path("configs/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    errors = sorted(Draft202012Validator(schema).iter_errors(config), key=lambda error: error.path)
+    assert errors == []
+    assert config["backend"]["type"] == "fluent_mesh_read_smoke"
+
+
 def test_fluent_c06_schema_rejects_unknown_key() -> None:
     schema = json.loads(Path("schemas/fluent_C06_sliding_rotating_mesh.schema.json").read_text(encoding="utf-8"))
     config = yaml.safe_load(

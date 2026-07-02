@@ -32,6 +32,9 @@ def summarize_metrics(manifest: dict[str, Any], validation: dict[str, Any] | Non
         "pressure_drop_runtime_status": "not_applicable_for_c04_reference_parser",
         "force_runtime_status": "not_extracted_in_reference_parser",
     }
+    if "runtime_metrics" in manifest:
+        result.update(manifest["runtime_metrics"])
+        result["force_runtime_status"] = "case_read_only_no_force_or_cp_extraction"
     if validation is not None:
         result["validation"] = {"passed": bool(validation["passed"]), "gate": validation["gate"]}
     return result
@@ -103,6 +106,23 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         bool(cl_table and cl_table["trend_checks"]["cl_monotonic_non_decreasing"]),
         json.dumps(cl_table["trend_checks"] if cl_table else {}, ensure_ascii=False),
     )
+    if config["backend"]["type"] == "fluent_case_read_smoke":
+        runtime_metrics = manifest.get("runtime_metrics", {})
+        _check(checks, "runtime.return_code_zero", runtime_metrics.get("fluent_return_code") == 0, str(runtime_metrics.get("fluent_return_code")))
+        _check(checks, "runtime.mesh_check_completed", bool(runtime_metrics.get("mesh_check_completed")), str(runtime_metrics.get("mesh_check_completed")))
+        _check(checks, "runtime.no_fluent_errors", runtime_metrics.get("fluent_error_count") == 0, str(runtime_metrics.get("fluent_error_count")))
+        _check(
+            checks,
+            "runtime.warning_budget",
+            runtime_metrics.get("fluent_warning_count", 999999) <= config["runtime_smoke"]["max_warning_count"],
+            f"{runtime_metrics.get('fluent_warning_count')} <= {config['runtime_smoke']['max_warning_count']}",
+        )
+        _check(
+            checks,
+            "runtime.case_cell_count_optional",
+            runtime_metrics.get("mesh_cell_count") is None or runtime_metrics["mesh_cell_count"] > 0,
+            str(runtime_metrics.get("mesh_cell_count")),
+        )
 
     generated_files = set(manifest.get("generated_files", []))
     for rel_path in config["validation"]["required_artifacts"]:
@@ -111,12 +131,16 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         root = Path(output_dir)
         for rel_path in config["validation"]["required_artifacts"]:
             path = root / rel_path
-            _check(checks, f"artifact.exists.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
+            if rel_path == "stderr.txt":
+                passed = path.exists()
+            else:
+                passed = path.exists() and path.stat().st_size > 0
+            _check(checks, f"artifact.exists.{rel_path}", passed, str(path))
 
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
-        "scope": "Fluent C04 aero reference CSV parser; no Fluent solver execution or force/Cp replay claim",
+        "scope": "Fluent C04 aero reference CSV parser/case-read smoke; no force/Cp replay claim",
         "checks": checks,
         "details": {
             "no_claims": config["validation"]["no_claims"],

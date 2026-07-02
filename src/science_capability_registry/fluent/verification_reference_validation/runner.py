@@ -15,6 +15,7 @@ from .report import write_validation_report
 from .validation import (
     summarize_mesh_runtime_metrics,
     summarize_reference_metrics,
+    validate_pressure_solve_smoke,
     validate_manifest,
     validate_mesh_runtime_smoke,
 )
@@ -42,6 +43,8 @@ def _reference_manifest(config: dict[str, Any]) -> dict[str, Any]:
         manifest["mesh_generation"] = config["mesh_generation"]
     if "runtime_smoke" in config:
         manifest["runtime_smoke"] = config["runtime_smoke"]
+    if "solver_setup" in config:
+        manifest["solver_setup"] = config["solver_setup"]
     return manifest
 
 
@@ -225,12 +228,63 @@ def _write_mesh_manifest(output_dir: Path, config: dict[str, Any], mesh_path: Pa
     (output_dir / "mesh_manifest.json").write_text(json.dumps(mesh_manifest, indent=2), encoding="utf-8")
 
 
+def _material_setup_lines(config: dict[str, Any]) -> list[str]:
+    material = config["material_properties"]
+    return [
+        "/define/materials/change-create air air",
+        "yes",
+        "constant",
+        f"{material['density_kg_m3']}",
+        "no",
+        "no",
+        "yes",
+        "constant",
+        f"{material['dynamic_viscosity_kg_m_s']}",
+        "no",
+        "no",
+        "no",
+    ]
+
+
+def _velocity_inlet_lines(config: dict[str, Any]) -> list[str]:
+    velocity = config["boundary_conditions"]["inlet_average_velocity_m_s"]
+    return [
+        "/define/boundary-conditions/velocity-inlet inlet",
+        "yes",
+        "yes",
+        "no",
+        f"{velocity}",
+        "no",
+        "0",
+        "no",
+        "1",
+        "no",
+        "0",
+    ]
+
+
+def _pressure_solve_lines(config: dict[str, Any]) -> list[str]:
+    setup = config["solver_setup"]
+    return [
+        "/define/models/axisymmetric yes",
+        "/define/models/viscous/laminar yes",
+        *_material_setup_lines(config),
+        *_velocity_inlet_lines(config),
+        "/mesh/check",
+        "/solve/initialize/hyb-initialization",
+        f"/solve/iterate {setup['max_iterations']}",
+    ]
+
+
 def _journal_text(config: dict[str, Any], mesh_path: Path, resolved_paths: bool) -> str:
     mesh_text = _to_fluent_path(mesh_path) if resolved_paths else mesh_path.as_posix()
     lines = [
         f'/file/read-case "{mesh_text}"',
-        "/mesh/check",
     ]
+    if config["backend"]["type"] == "fluent_pressure_solve_smoke":
+        lines.extend(_pressure_solve_lines(config))
+    else:
+        lines.append("/mesh/check")
     if config["runtime_smoke"]["write_case"]:
         case_path = mesh_path.parent / config["runtime_smoke"]["case_file"]
         case_text = _to_fluent_path(case_path) if resolved_paths else case_path.as_posix()
@@ -277,7 +331,11 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, generated_files: l
         ],
         "scope": "Fluent C02 verification reference static-readiness"
         if config["backend"]["type"] == "dry_run_only"
-        else "Fluent C02 self-generated VMFL005 mesh runtime smoke",
+        else (
+            "Fluent C02 self-generated VMFL005 axisymmetric solve smoke"
+            if config["backend"]["type"] == "fluent_pressure_solve_smoke"
+            else "Fluent C02 self-generated VMFL005 mesh runtime smoke"
+        ),
         **reference_manifest,
     }
 
@@ -345,7 +403,7 @@ def _collect_runtime_metrics(config: dict[str, Any], output_dir: Path, return_co
     cell_match = re.search(r"\s+(\d+)\s+quadrilateral\s+cells,\s+zone\s+\d+", text)
     mesh = config["mesh_generation"]
     expected_cells = mesh["axial_cells"] * mesh["radial_cells"]
-    return {
+    metrics = {
         "fluent_return_code": return_code,
         "mesh_node_count": (mesh["axial_cells"] + 1) * (mesh["radial_cells"] + 1),
         "mesh_cell_count": int(cell_match.group(1)) if cell_match else None,
@@ -361,6 +419,34 @@ def _collect_runtime_metrics(config: dict[str, Any], output_dir: Path, return_co
         "pressure_drop_runtime_status": "not_extracted_in_mesh_smoke",
         "runtime_scope": "mesh-readability and mesh/check only; no pressure-drop solve",
     }
+    if config["backend"]["type"] == "fluent_pressure_solve_smoke":
+        residual_rows = [
+            {
+                "iteration": int(match.group(1)),
+                "continuity": float(match.group(2)),
+                "x_velocity": float(match.group(3)),
+                "y_velocity": float(match.group(4)),
+            }
+            for match in re.finditer(
+                r"^\s*(\d+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+",
+                text,
+                re.MULTILINE,
+            )
+        ]
+        final_residuals = residual_rows[-1] if residual_rows else {}
+        metrics.update(
+            {
+                "solution_converged": "solution is converged" in text,
+                "iteration_count": int(final_residuals["iteration"]) if final_residuals else None,
+                "final_residuals": final_residuals,
+                "pressure_drop_runtime_status": "report_command_not_closed",
+                "runtime_scope": (
+                    "axisymmetric laminar pressure-solve smoke; pressure-drop report command remains a tracked "
+                    "postprocess gap"
+                ),
+            }
+        )
+    return metrics
 
 
 def run(
@@ -382,14 +468,14 @@ def run(
     backend_type = config["backend"]["type"]
     if not dry_run and backend_type == "dry_run_only":
         raise ValueError("Fluent C02 dry_run_only backend requires dry_run=True.")
-    if backend_type not in {"dry_run_only", "fluent_mesh_check"}:
+    if backend_type not in {"dry_run_only", "fluent_mesh_check", "fluent_pressure_solve_smoke"}:
         raise NotImplementedError(f"Fluent C02 backend {config['backend']['type']!r} is not implemented.")
 
     resolved_output_dir = Path(output_dir) if output_dir is not None else repo_relative_path(config["outputs"]["output_dir"])
     resolved_output_dir.mkdir(parents=True, exist_ok=True)
     generated_files = _write_reference_artifacts(resolved_output_dir, config)
 
-    if backend_type == "fluent_mesh_check":
+    if backend_type in {"fluent_mesh_check", "fluent_pressure_solve_smoke"}:
         mesh_path = _write_pipe_mesh(resolved_output_dir, config)
         _write_mesh_manifest(resolved_output_dir, config, mesh_path)
         journal_path = _write_journal(config, resolved_output_dir, mesh_path, resolved_paths=not dry_run)
@@ -425,14 +511,20 @@ def run(
     manifest["generated_files"] = generated_files
     runtime_metrics = _collect_runtime_metrics(config, resolved_output_dir, return_code)
     metrics = summarize_mesh_runtime_metrics(config, runtime_metrics)
-    validation = validate_mesh_runtime_smoke(manifest, config, metrics, resolved_output_dir, check_artifacts=False)
+    if backend_type == "fluent_pressure_solve_smoke":
+        validation = validate_pressure_solve_smoke(manifest, config, metrics, resolved_output_dir, check_artifacts=False)
+    else:
+        validation = validate_mesh_runtime_smoke(manifest, config, metrics, resolved_output_dir, check_artifacts=False)
     manifest["validation"] = validation
     manifest["metrics"] = metrics
     (resolved_output_dir / "validation.json").write_text(json.dumps(validation, indent=2), encoding="utf-8")
     (resolved_output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     write_validation_report(resolved_output_dir / "validation_report.md", config, metrics, validation)
     (resolved_output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    validation = validate_mesh_runtime_smoke(manifest, config, metrics, resolved_output_dir, check_artifacts=True)
+    if backend_type == "fluent_pressure_solve_smoke":
+        validation = validate_pressure_solve_smoke(manifest, config, metrics, resolved_output_dir, check_artifacts=True)
+    else:
+        validation = validate_mesh_runtime_smoke(manifest, config, metrics, resolved_output_dir, check_artifacts=True)
     manifest["validation"] = validation
     (resolved_output_dir / "validation.json").write_text(json.dumps(validation, indent=2), encoding="utf-8")
     write_validation_report(resolved_output_dir / "validation_report.md", config, metrics, validation)

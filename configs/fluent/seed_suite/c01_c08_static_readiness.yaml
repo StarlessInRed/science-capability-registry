@@ -129,7 +129,7 @@ seed_cases:
 - seed_id: C03
   asset_path: software/fluent/assets/C03_mesh_convergence_trend.yaml
   capability_slug: mesh_convergence_trend
-  benchmark_status: benchmark_candidate
+  benchmark_status: package_skeleton_created
   problem_definition: Validate mesh, adaptation, and numerical trend behavior rather than one fixed tutorial mesh.
   governing_model: Configured CFD model with repeated mesh or adaptation levels and monitored quantities.
   boundary_conditions:

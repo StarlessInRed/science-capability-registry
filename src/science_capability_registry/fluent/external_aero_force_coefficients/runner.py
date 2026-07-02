@@ -11,6 +11,13 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import Any
 
+from science_capability_registry.fluent.batch_smoke import (
+    collect_mesh_metrics,
+    execute_fluent,
+    extract_zip_entries,
+    fluent_path,
+    write_journal,
+)
 from science_capability_registry.fluent.official_replay_manifest.zip_catalog import (
     inspect_zip_archive,
     summarize_entries,
@@ -158,8 +165,29 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, source_root: Path)
         "reference_tables": reference_tables,
         "validation_targets": config["validation"],
         "no_claims": config["validation"]["no_claims"],
-        "scope": "read-only Fluent C04 aero reference parser; no archive extraction or solver execution",
+        "runtime_smoke": config.get("runtime_smoke", {}),
+        "scope": "read-only Fluent C04 aero reference parser; no archive extraction or solver execution"
+        if config["backend"]["type"] == "reference_csv_parser"
+        else "Fluent C04 aero case-read smoke; no force or Cp extraction",
     }
+
+
+def _write_runtime_journal(config: dict[str, Any], output_dir: Path, case_path: Path, dry_run: bool) -> Path:
+    case_text = case_path.as_posix() if dry_run else fluent_path(case_path)
+    return write_journal(
+        output_dir / config["runtime_smoke"]["journal_file"],
+        [
+            f'/file/read-case "{case_text}"',
+            "/mesh/check",
+            "/exit yes",
+        ],
+    )
+
+
+def _write_dry_run_placeholders(output_dir: Path) -> None:
+    placeholder = "dry-run placeholder; Fluent was not executed for this artifact.\n"
+    for name in ["stdout.txt", "stderr.txt", "transcript.txt"]:
+        (output_dir / name).write_text(placeholder, encoding="utf-8")
 
 
 def run(
@@ -178,9 +206,10 @@ def run(
     if backend is not None:
         config = {**config, "backend": {**config["backend"], "type": backend}}
         config = validate_case_config(config)
-    if not dry_run:
+    backend_type = config["backend"]["type"]
+    if not dry_run and backend_type == "reference_csv_parser":
         raise ValueError("Fluent C04 parser is read-only and uses dry_run=True.")
-    if config["backend"]["type"] != "reference_csv_parser":
+    if backend_type not in {"reference_csv_parser", "fluent_case_read_smoke"}:
         raise NotImplementedError(f"Fluent C04 backend {config['backend']['type']!r} is not implemented.")
 
     resolved_output_dir = Path(output_dir) if output_dir is not None else repo_relative_path(config["outputs"]["output_dir"])
@@ -195,6 +224,28 @@ def run(
         "validation_report.md",
         "manifest.json",
     ]
+    if backend_type == "fluent_case_read_smoke":
+        archive_path = source_root / config["source_package"]["rel_path"]
+        extracted = extract_zip_entries(archive_path, [config["runtime_smoke"]["case_entry"]], resolved_output_dir)
+        journal_path = _write_runtime_journal(config, resolved_output_dir, extracted[0], dry_run)
+        generated_files.extend([extracted[0].name, journal_path.name, "stdout.txt", "stderr.txt", "transcript.txt"])
+        if dry_run:
+            _write_dry_run_placeholders(resolved_output_dir)
+            runtime_metrics = {
+                "fluent_return_code": None,
+                "mesh_cell_count": None,
+                "mesh_face_counts": {},
+                "mesh_check_completed": False,
+                "fluent_warning_count": 0,
+                "fluent_error_count": 0,
+                "runtime_status": "dry_run_not_executed",
+            }
+        else:
+            runtime_metrics = collect_mesh_metrics(
+                resolved_output_dir,
+                execute_fluent(config, resolved_output_dir, journal_path),
+            )
+        c04_manifest["runtime_metrics"] = runtime_metrics
     c04_manifest["generated_files"] = generated_files
     (resolved_output_dir / "aero_reference_manifest.json").write_text(json.dumps(c04_manifest, indent=2), encoding="utf-8")
     (resolved_output_dir / "reference_tables.json").write_text(

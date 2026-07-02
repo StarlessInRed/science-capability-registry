@@ -24,6 +24,10 @@ def summarize_metrics(manifest: dict[str, Any], validation: dict[str, Any] | Non
         "moving_zone_runtime_status": "not_extracted_in_setup_manifest",
         "solver_replay_status": "not_available_from_mesh_only_sources",
     }
+    if "runtime_metrics" in manifest:
+        result.update(manifest["runtime_metrics"])
+        result["solver_replay_status"] = manifest["runtime_metrics"]["runtime_status"]
+        result["moving_zone_runtime_status"] = "mesh_read_only_no_moving_zone_solve"
     if validation is not None:
         result["validation"] = {"passed": bool(validation["passed"]), "gate": validation["gate"]}
     return result
@@ -57,6 +61,23 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
             json.dumps(kind_counts, sort_keys=True),
         )
     _check(checks, "source.mesh_entry_count", metrics["mesh_entry_count"] >= config["validation"]["min_mesh_entries"], str(metrics["mesh_entry_count"]))
+    if config["backend"]["type"] == "fluent_mesh_read_smoke":
+        runtime_metrics = manifest.get("runtime_metrics", {})
+        _check(checks, "runtime.return_code_zero", runtime_metrics.get("fluent_return_code") == 0, str(runtime_metrics.get("fluent_return_code")))
+        _check(checks, "runtime.mesh_check_completed", bool(runtime_metrics.get("mesh_check_completed")), str(runtime_metrics.get("mesh_check_completed")))
+        _check(checks, "runtime.no_fluent_errors", runtime_metrics.get("fluent_error_count") == 0, str(runtime_metrics.get("fluent_error_count")))
+        _check(
+            checks,
+            "runtime.warning_budget",
+            runtime_metrics.get("fluent_warning_count", 999999) <= config["runtime_smoke"]["max_warning_count"],
+            f"{runtime_metrics.get('fluent_warning_count')} <= {config['runtime_smoke']['max_warning_count']}",
+        )
+        _check(
+            checks,
+            "runtime.mesh_cells_present",
+            runtime_metrics.get("mesh_cell_count") is not None and runtime_metrics["mesh_cell_count"] > 0,
+            str(runtime_metrics.get("mesh_cell_count")),
+        )
 
     generated_files = set(manifest.get("generated_files", []))
     for rel_path in config["validation"]["required_artifacts"]:
@@ -65,7 +86,11 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         root = Path(output_dir)
         for rel_path in config["validation"]["required_artifacts"]:
             path = root / rel_path
-            _check(checks, f"artifact.exists.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
+            if rel_path == "stderr.txt":
+                passed = path.exists()
+            else:
+                passed = path.exists() and path.stat().st_size > 0
+            _check(checks, f"artifact.exists.{rel_path}", passed, str(path))
 
     return {
         "passed": all(item["passed"] for item in checks),

@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_C03_mesh_convergence_trend.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C03 mesh convergence trend static config.",
+  "title": "Fluent C03 Mesh Convergence Trend Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "backend",
+    "source_basis",
+    "mesh_levels",
+    "monitored_quantities",
+    "failure_classification",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.mesh_convergence_trend"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "execution_mode"],
+      "properties": {
+        "type": {"const": "mesh_trend_static"},
+        "execution_mode": {"const": "no_solver_execution"}
+      }
+    },
+    "source_basis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "source_role", "source_path", "use_scope"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "source_role": {"enum": ["self_generated_mesh_family", "official_adaptation_candidate", "runtime_reference_seed"]},
+          "source_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"},
+          "use_scope": {"type": "string", "minLength": 1}
+        }
+      },
+      "minItems": 2
+    },
+    "mesh_levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "level_id",
+          "refinement_index",
+          "nominal_cell_count",
+          "relative_cell_size",
+          "input_role",
+          "runtime_status"
+        ],
+        "properties": {
+          "level_id": {"enum": ["coarse", "baseline", "refined"]},
+          "refinement_index": {"type": "integer", "minimum": 0},
+          "nominal_cell_count": {"type": "integer", "minimum": 1},
+          "relative_cell_size": {"type": "number", "exclusiveMinimum": 0},
+          "input_role": {"enum": ["generated_perturbation", "adaptation_candidate"]},
+          "runtime_status": {"const": "pending_fluent_runtime"}
+        }
+      },
+      "minItems": 3,
+      "uniqueItems": true
+    },
+    "monitored_quantities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["quantity_id", "canonical_quantity", "unit", "trend_expectation", "status"],
+        "properties": {
+          "quantity_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "canonical_quantity": {"type": "string", "minLength": 1},
+          "unit": {"type": "string", "minLength": 1},
+          "trend_expectation": {"type": "string", "minLength": 1},
+          "status": {"const": "pending_runtime_values"}
+        }
+      },
+      "minItems": 2
+    },
+    "failure_classification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["failure_class", "description"],
+        "properties": {
+          "failure_class": {
+            "enum": [
+              "mesh_generation_failure",
+              "fluent_runtime_failure",
+              "parser_failure",
+              "trend_validation_failure"
+            ]
+          },
+          "description": {"type": "string", "minLength": 1}
+        }
+      },
+      "minItems": 4,
+      "uniqueItems": true
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 6,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "min_mesh_levels",
+        "required_source_roles",
+        "required_monitored_quantities",
+        "required_failure_classes",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "min_mesh_levels": {"type": "integer", "minimum": 3},
+        "required_source_roles": {
+          "type": "array",
+          "items": {"enum": ["self_generated_mesh_family", "official_adaptation_candidate", "runtime_reference_seed"]},
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "required_monitored_quantities": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "required_failure_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "mesh_generation_failure",
+              "fluent_runtime_failure",
+              "parser_failure",
+              "trend_validation_failure"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_name"},
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  },
+  "$defs": {
+    "artifact_name": {
+      "enum": [
+        "trend_contract.json",
+        "refinement_matrix.csv",
+        "metrics.json",
+        "validation.json",
+        "validation_report.md",
+        "manifest.json"
+      ]
+    },
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    }
+  }
+}
+

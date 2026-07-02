@@ -20,10 +20,18 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
         f"- mesh format counts: {metrics['mesh_format_counts']}",
         f"- total mesh bytes: {metrics['total_mesh_bytes']}",
         f"- solver replay status: {metrics['solver_replay_status']}",
-        "",
-        "## Checks",
-        "",
     ]
+    if "fluent_return_code" in metrics:
+        lines.extend(
+            [
+                f"- Fluent return code: {metrics['fluent_return_code']}",
+                f"- mesh cell count: {metrics['mesh_cell_count']}",
+                f"- mesh check completed: {metrics['mesh_check_completed']}",
+                f"- Fluent warnings: {metrics['fluent_warning_count']}",
+                f"- Fluent errors: {metrics['fluent_error_count']}",
+            ]
+        )
+    lines.extend(["", "## Checks", ""])
     for item in validation["checks"]:
         mark = "PASS" if item["passed"] else "FAIL"
         lines.append(f"- {item['name']}: {mark}")

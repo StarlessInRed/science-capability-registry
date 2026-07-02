@@ -54,6 +54,28 @@ def test_fluent_c02_runner_writes_self_generated_mesh_contract(tmp_path: Path) -
     assert mesh_manifest["axis_face_zone_type"] == "axis"
 
 
+def test_fluent_c02_runner_writes_pressure_solve_journal_contract(tmp_path: Path) -> None:
+    result = run(
+        config_path=Path(
+            "configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml"
+        ),
+        output_dir=tmp_path,
+        dry_run=True,
+    )
+
+    assert result["validated_config"] is True
+    assert result["solver_setup"]["model_state"] == "axisymmetric"
+    journal_text = (tmp_path / "journal.jou").read_text(encoding="ascii")
+
+    assert "/define/models/axisymmetric yes" in journal_text
+    assert "/define/models/viscous/laminar yes" in journal_text
+    assert "/define/materials/change-create air air" in journal_text
+    assert "/define/boundary-conditions/velocity-inlet inlet" in journal_text
+    assert "/solve/initialize/hyb-initialization" in journal_text
+    assert "/solve/iterate 50" in journal_text
+    assert "area-weighted" not in journal_text
+
+
 def test_fluent_c02_runner_rejects_non_dry_run(tmp_path: Path) -> None:
     try:
         run(

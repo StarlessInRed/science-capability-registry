@@ -43,6 +43,7 @@ science-openfoam-c07 = "science_capability_registry.openfoam.conjugate_heat_tran
 science-openfoam-c08 = "science_capability_registry.openfoam.compressible_shock_capturing_forward_step.cli:main"
 science-fluent-c01 = "science_capability_registry.fluent.steady_internal_flow_runtime.cli:main"
 science-fluent-c02 = "science_capability_registry.fluent.verification_reference_validation.cli:main"
+science-fluent-c03 = "science_capability_registry.fluent.mesh_convergence_trend.cli:main"
 science-fluent-c04 = "science_capability_registry.fluent.external_aero_force_coefficients.cli:main"
 science-fluent-c05 = "science_capability_registry.fluent.vof_free_surface_transient.cli:main"
 science-fluent-c06 = "science_capability_registry.fluent.sliding_rotating_mesh.cli:main"

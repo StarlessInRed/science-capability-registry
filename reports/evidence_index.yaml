@@ -1490,3 +1490,31 @@ evidence:
   limitations:
   - Governance and learning evidence only; it does not add new Fluent solver validation.
   - Conversation history is not canonical unless distilled into repository evidence.
+- evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+  capability_id: cfd.fluent.runtime_smoke_closure
+  asset_path: software/fluent/capability_map.md
+  evidence_kind: runtime_smoke_closure_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/fluent_C02_C08_runtime_smoke_closure_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml
+  - configs/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static.yaml
+  - configs/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke.yaml
+  - configs/fluent/vof_free_surface_transient/vof_inkjet_mesh_read_smoke.yaml
+  - configs/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke.yaml
+  - configs/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke.yaml
+  - configs/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static.yaml
+  - src/science_capability_registry/fluent/batch_smoke.py
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke/
+  - _results/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static/
+  - _results/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke/
+  - _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_read_smoke/
+  - _results/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke/
+  - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke/
+  - _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
+  scope: Local Fluent 2025 R1/v251 C02-C08 closure adds pressure-solve, mesh/case/case-data read smokes, C03 trend contract, and C08 env preflight.
+  limitations:
+  - Runtime/readability smoke only; physics benchmark validation and postprocess extraction remain separate gates.
+  - Local executable and tutorial roots are injected through environment variables and are not committed as machine-specific paths.

@@ -132,7 +132,11 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         root = Path(output_dir)
         for rel_path in config["validation"]["required_artifacts"]:
             path = root / rel_path
-            _check(checks, f"artifact.exists.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
+            if rel_path == "stderr.txt":
+                passed = path.exists()
+            else:
+                passed = path.exists() and path.stat().st_size > 0
+            _check(checks, f"artifact.exists.{rel_path}", passed, str(path))
 
     return {
         "passed": all(item["passed"] for item in checks),
@@ -205,6 +209,66 @@ def validate_mesh_runtime_smoke(
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
         "scope": "Fluent C02 self-generated VMFL005 mesh-readability smoke; pressure-drop solve not claimed",
+        "checks": checks,
+        "details": {
+            "metrics": metrics,
+            "no_claims": config["validation"]["no_claims"],
+            "allowed_runtime_warnings": config["runtime_smoke"]["allowed_warning_fragments"],
+        },
+    }
+
+
+def validate_pressure_solve_smoke(
+    manifest: dict[str, Any],
+    config: dict[str, Any],
+    metrics: dict[str, Any],
+    output_dir: str | Path,
+    check_artifacts: bool = True,
+) -> dict[str, Any]:
+    validation = validate_mesh_runtime_smoke(manifest, config, metrics, output_dir, check_artifacts)
+    checks = [item for item in validation["checks"] if item["name"] != "runtime.pressure_drop_not_claimed"]
+    setup = config["solver_setup"]
+    final_residuals = metrics.get("final_residuals", {})
+
+    _check(
+        checks,
+        "runtime.solution_converged",
+        bool(metrics.get("solution_converged")),
+        str(metrics.get("solution_converged")),
+    )
+    _check(
+        checks,
+        "runtime.iteration_budget",
+        metrics.get("iteration_count") is not None and metrics["iteration_count"] <= setup["max_iterations"],
+        f"{metrics.get('iteration_count')} <= {setup['max_iterations']}",
+    )
+    for quantity, threshold_key in [
+        ("continuity", "max_final_continuity_residual"),
+        ("x_velocity", "max_final_velocity_residual"),
+        ("y_velocity", "max_final_velocity_residual"),
+    ]:
+        value = final_residuals.get(quantity)
+        threshold = setup[threshold_key]
+        _check(
+            checks,
+            f"runtime.final_residual.{quantity}",
+            value is not None and value <= threshold,
+            f"{value} <= {threshold}",
+        )
+    _check(
+        checks,
+        "runtime.pressure_report_gap_tracked",
+        metrics["pressure_drop_runtime_status"] == "report_command_not_closed",
+        metrics["pressure_drop_runtime_status"],
+    )
+
+    return {
+        "passed": all(item["passed"] for item in checks),
+        "gate": config["validation"]["gate"],
+        "scope": (
+            "Fluent C02 self-generated VMFL005 axisymmetric laminar solve smoke; pressure-drop sampling remains "
+            "unclaimed"
+        ),
         "checks": checks,
         "details": {
             "metrics": metrics,

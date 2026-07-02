@@ -40,9 +40,12 @@ validation_criteria:
 integration_targets:
   workflow_stage: cfd.fluent.mesh_convergence_trend
   runtime_target: _results/fluent/mesh_convergence_trend/
+  package_entrypoint: science_capability_registry.fluent.mesh_convergence_trend.cli:main
+  default_config: configs/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static.yaml
+  input_schema: schemas/fluent_C03_mesh_convergence_trend.schema.json
 intern_deliverables:
 - Define refinement/adaptation config matrix.
 - Parse monitored quantities across levels.
 - Compare self-generated and tutorial replay trends.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

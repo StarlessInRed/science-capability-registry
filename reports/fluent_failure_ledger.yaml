@@ -174,23 +174,25 @@ entries:
   work_queue_status: active
   gate_blocked: pressure_drop_benchmark
   benchmark_status_effect: mesh_smoke_passed_benchmark_open
-  summary: The self-generated VMFL005 mesh reads and passes mesh/check, but axisymmetric model setup, fully developed inlet profile, pressure sampling, and mesh trend are not yet closed.
-  owner_next_action: Add the next Fluent journal stage for axisymmetric setup, parabolic inlet/profile, inlet/outlet pressure reports, and at least three mesh levels.
+  summary: The self-generated VMFL005 mesh and axisymmetric laminar solve smoke now pass, but fully developed inlet homology, pressure sampling, and solved mesh trend are not yet closed.
+  owner_next_action: Add pressure-report extraction, parabolic inlet/profile homology, and at least three solved mesh levels before benchmark promotion.
   blocked_by:
-  - axisymmetric_model_tui
   - fully_developed_inlet_profile
   - pressure_sampling_tui
-  - mesh_trend_matrix
+  - solved_mesh_trend_matrix
   evidence_refs:
   - evidence_id: fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02
     evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke/
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke/
   closure_criteria:
-  - Fluent solve produces pressure drop near the 10.24 Pa analytical target.
+  - Fluent pressure report produces pressure drop near the 10.24 Pa analytical target.
   - Pressure sampling and mesh trend are written to metrics and validation reports.
   do_not_claim:
-  - Pressure-drop solve passed.
+  - Pressure-drop value extraction passed.
   - Mesh refinement trend passed.
   confidence: high
   last_reviewed: '2026-07-02'
@@ -198,43 +200,46 @@ entries:
   cxx_group: C03
   capability_id: cfd.fluent.mesh_convergence_trend
   asset_path: software/fluent/assets/C03_mesh_convergence_trend.yaml
-  state: source_intake_only
+  state: package_skeleton_created_runtime_gap
   failure_class: evidence_gap
   priority: P2
-  work_queue_status: gap
+  work_queue_status: active
   gate_blocked: targeted_regression
-  benchmark_status_effect: benchmark_candidate_retained
-  summary: C03 has source-intake evidence for the adaptation tutorial, but no mesh/refinement matrix or convergence trend package has been built yet.
-  owner_next_action: Define the C03 mesh/adaptation levels and residual or field trend metrics after C02 pressure-solve closure.
+  benchmark_status_effect: package_skeleton_created_runtime_trend_open
+  summary: C03 now has schema/config/package/tests and a three-level static refinement contract, but no solved mesh/adaptation trend has been run yet.
+  owner_next_action: Promote C03 from static trend contract to targeted regression by solving all configured levels and extracting monitored quantities.
   blocked_by:
-  - mesh_level_contract
-  - adaptation_metric_selection
+  - solved_mesh_level_runtime
+  - adaptation_replay_runtime
   evidence_refs:
   - evidence_id: fluent_C01_C08_seed_suite_static_readiness_2026-07-02
     evidence_level: repo_stable_report
   - evidence_id: fluent_C01_C08_official_replay_manifest_2026-07-02
     evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/official_replay_manifest/c01_c08_sources/
+  - _results/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static/
   closure_criteria:
-  - Add schema/config/package/tests for at least three mesh/adaptation levels.
-  - Validate monotonic or explainable trend metrics.
+  - Run Fluent for at least three configured mesh/adaptation levels.
+  - Validate monotonic or explainable trend metrics from solved outputs.
   do_not_claim:
-  - Mesh convergence trend exists.
+  - Solved mesh convergence trend exists.
   confidence: high
   last_reviewed: '2026-07-02'
 - failure_id: FL-C04-G001-reference-csv-parser-only
   cxx_group: C04
   capability_id: cfd.fluent.external_aero_force_coefficients
   asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
-  state: parser_static_ready_solver_gap
+  state: case_read_smoke_passed_postprocess_gap
   failure_class: replay_gap
   priority: P2
   work_queue_status: gap
-  gate_blocked: force_cp_runtime_smoke
-  benchmark_status_effect: benchmark_candidate_retained
-  summary: C04 reference CSV intake passes, including segmented Cp rows, but Fluent solver replay and force/Cp extraction are not implemented.
-  owner_next_action: Add a replay backend that declares geometry, AoA, flow condition, section station, and force/Cp extraction homology.
+  gate_blocked: force_cp_postprocess
+  benchmark_status_effect: case_read_smoke_passed_benchmark_open
+  summary: C04 reference CSV intake and official case-read smoke pass, but Fluent force/Cp extraction is not implemented.
+  owner_next_action: Add force and Cp report extraction with declared geometry, AoA, flow condition, section station, and reference homology.
   blocked_by:
   - force_report_extraction
   - cp_field_or_section_export
@@ -242,8 +247,11 @@ entries:
   evidence_refs:
   - evidence_id: fluent_C04_external_aero_force_coefficients_reference_csv_static_2026-07-02
     evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static/
+  - _results/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke/
   closure_criteria:
   - Extract finite Cd/Cl or Cp metrics from a replayed Fluent case.
   - Compare only against reference CSVs with declared homology.
@@ -256,13 +264,13 @@ entries:
   cxx_group: C05
   capability_id: cfd.fluent.vof_free_surface_transient
   asset_path: software/fluent/assets/C05_vof_free_surface_transient.yaml
-  state: source_role_reclassified
+  state: mesh_read_smoke_passed_transient_gap
   failure_class: source_role_mismatch
   priority: P2
   work_queue_status: gap
-  gate_blocked: transient_vof_runtime_smoke
-  benchmark_status_effect: benchmark_candidate_retained
-  summary: Official vof.zip contains only an inkjet mesh, so it cannot be treated as a direct transient VOF solver replay.
+  gate_blocked: transient_vof_solver_setup
+  benchmark_status_effect: mesh_read_smoke_passed_transient_open
+  summary: Official vof.zip contains only an inkjet mesh; mesh-read smoke now passes, but it still cannot be treated as a direct transient VOF solver replay.
   owner_next_action: Build a completed VOF setup or use a separately labeled legacy case/data replay before transient validation.
   blocked_by:
   - mesh_only_official_source
@@ -271,8 +279,11 @@ entries:
   evidence_refs:
   - evidence_id: fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02
     evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_setup_static/
+  - _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_read_smoke/
   closure_criteria:
   - Completed setup or labeled legacy case/data produces alpha, volume, interface, and final-time metrics.
   do_not_claim:
@@ -284,13 +295,13 @@ entries:
   cxx_group: C06
   capability_id: cfd.fluent.sliding_rotating_mesh
   asset_path: software/fluent/assets/C06_sliding_rotating_mesh.yaml
-  state: source_role_reclassified
+  state: mesh_read_smoke_passed_moving_zone_gap
   failure_class: source_role_mismatch
   priority: P2
   work_queue_status: gap
-  gate_blocked: moving_mesh_runtime_smoke
-  benchmark_status_effect: benchmark_candidate_retained
-  summary: The selected official and legacy C06 sources are mesh-only; they do not contain moving-zone settings, interfaces, time steps, or monitor histories.
+  gate_blocked: moving_zone_runtime_setup
+  benchmark_status_effect: mesh_read_smoke_passed_moving_zone_open
+  summary: The selected official and legacy C06 sources are mesh-only; official axial_comp mesh-read smoke now passes, but sources still do not contain moving-zone settings, interfaces, time steps, or monitor histories.
   owner_next_action: Generate or recover moving-zone and interface setup before attempting runtime smoke.
   blocked_by:
   - mesh_only_sources
@@ -299,8 +310,11 @@ entries:
   evidence_refs:
   - evidence_id: fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02
     evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/sliding_rotating_mesh/sliding_rotating_mesh_setup_static/
+  - _results/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke/
   closure_criteria:
   - Moving-zone and interface metadata are visible in a manifest.
   - Runtime smoke exports time-history or periodicity metrics.
@@ -313,13 +327,13 @@ entries:
   cxx_group: C07
   capability_id: cfd.fluent.heat_transfer_energy_balance
   asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
-  state: source_ready_runtime_gap
+  state: case_data_read_smoke_passed_thermal_gap
   failure_class: replay_gap
   priority: P2
   work_queue_status: gap
-  gate_blocked: heat_transfer_runtime_smoke
-  benchmark_status_effect: benchmark_candidate_retained
-  summary: The 2D heat exchanger source contains a matched case/data pair, but temperature and heat-rate extraction are not implemented.
+  gate_blocked: thermal_postprocess
+  benchmark_status_effect: case_data_read_smoke_passed_thermal_reports_open
+  summary: The 2D heat exchanger source contains a matched case/data pair and case/data-read smoke passes, but temperature and heat-rate extraction are not implemented.
   owner_next_action: Add a Fluent replay/export backend for temperature extrema and heat-rate balance metrics.
   blocked_by:
   - thermal_postprocess_export
@@ -327,8 +341,11 @@ entries:
   evidence_refs:
   - evidence_id: fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02
     evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_static/
+  - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke/
   closure_criteria:
   - Replay the case/data pair and export finite canonical thermal metrics.
   - Keep CHT and battery thermal validation separate from this tutorial replay.
@@ -370,18 +387,20 @@ entries:
   cxx_group: C08
   capability_id: cfd.fluent.workbench_parameter_integration
   asset_path: software/fluent/assets/C08_workbench_parameter_integration.yaml
-  state: environment_profile_gap
+  state: environment_profile_preflight_resolved
   failure_class: runtime_profile_gap
   priority: P2
-  work_queue_status: gap
-  gate_blocked: workbench_runtime_smoke
-  benchmark_status_effect: static_preflight_only
-  summary: The C08 static preflight records that RUNWB2_EXE is not configured for the current run; Workbench runtime remains intentionally unclaimed.
-  owner_next_action: Add an explicit machine-local RunWB2 profile outside committed configs before Workbench execution.
+  work_queue_status: active
+  gate_blocked: copied_project_runwb2_execution
+  benchmark_status_effect: env_preflight_passed_runtime_execution_open
+  summary: The C08 static preflight now verifies RUNWB2_EXE, FLUENT_EXE, and AWP_ROOT251 through environment injection; Workbench runtime remains intentionally unclaimed.
+  owner_next_action: Use a copied-project RunWB2 execution gate before any design-point update or result extraction claim.
   blocked_by:
-  - RUNWB2_EXE_not_configured
+  - copied_project_execution_policy
   evidence_refs:
   - evidence_id: fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02
+    evidence_level: repo_stable_report
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
     evidence_level: repo_stable_report
   runtime_evidence_paths:
   - _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
@@ -389,8 +408,111 @@ entries:
   - RUNWB2_EXE, FLUENT_EXE, and Ansys root are injected through environment/profile and verified before execution.
   - No committed config stores machine-specific drive-letter executable paths.
   do_not_claim:
-  - Workbench headless availability.
+  - Workbench design-point execution.
   - Workbench runtime smoke.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C02-F003-velocity-inlet-zone-token
+  cxx_group: C02
+  capability_id: cfd.fluent.verification_reference_validation
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  state: resolved
+  failure_class: fluent_tui_prompt_contract
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_pressure_solve_smoke
+  benchmark_status_effect: solve_smoke_passed_pressure_sampling_open
+  summary: The generated pressure-solve journal initially used a parenthesized velocity-inlet zone token, which Fluent rejected as an invalid zone.
+  owner_next_action: Keep zone names as plain TUI tokens in generated journals and protect the command sequence with runner tests.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke/
+  closure_criteria:
+  - The pressure-solve journal uses `/define/boundary-conditions/velocity-inlet inlet`.
+  - Fluent C02 solve smoke converges without Fluent errors.
+  do_not_claim:
+  - Pressure-drop surface-integral extraction is solved.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C04-F002-case-read-cell-count-optional
+  cxx_group: C04
+  capability_id: cfd.fluent.external_aero_force_coefficients
+  asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  state: resolved
+  failure_class: parser_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_case_read_smoke
+  benchmark_status_effect: case_read_smoke_passed_force_cp_open
+  summary: Reading an existing aero case completed `mesh/check` but did not emit mesh-import cell-count lines, so cell count must be optional for case-read smoke.
+  owner_next_action: Require mesh/check completion and zero Fluent errors for case-read smoke; keep force/Cp extraction as the next benchmark gate.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke/
+  closure_criteria:
+  - Case-read smoke passes with mesh/check completion.
+  - Missing cell-count text does not fail the gate when no Fluent error occurs.
+  do_not_claim:
+  - Force coefficient extraction.
+  - Cp field or section benchmark comparison.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C06-F002-3d-mesh-dimension-profile
+  cxx_group: C06
+  capability_id: cfd.fluent.sliding_rotating_mesh
+  asset_path: software/fluent/assets/C06_sliding_rotating_mesh.yaml
+  state: resolved
+  failure_class: runtime_profile_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_mesh_read_smoke
+  benchmark_status_effect: mesh_read_smoke_passed_moving_zone_open
+  summary: The official `sliding_mesh/axial_comp.msh` source is a 3D mesh; running it under `2ddp` fails with a wrong-dimensions error.
+  owner_next_action: Keep dimension precision declared per runtime config and use `3ddp` for axial compressor mesh-read smoke.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke/
+  closure_criteria:
+  - C06 mesh-read smoke uses `3ddp`.
+  - Fluent reads the mesh and completes mesh/check without errors.
+  do_not_claim:
+  - Moving-zone setup.
+  - Sliding interface or transient periodicity validation.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C07-F002-case-data-read-cell-count-optional
+  cxx_group: C07
+  capability_id: cfd.fluent.heat_transfer_energy_balance
+  asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  state: resolved
+  failure_class: parser_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_case_data_read_smoke
+  benchmark_status_effect: case_data_read_smoke_passed_thermal_reports_open
+  summary: Reading an existing heat-exchanger case/data pair completed `mesh/check` but did not emit mesh-import cell-count lines, so cell count must be optional for case/data read smoke.
+  owner_next_action: Require case/data readability, mesh/check completion, and zero Fluent errors before adding thermal report extraction.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke/
+  closure_criteria:
+  - Case/data-read smoke passes with mesh/check completion.
+  - Missing cell-count text does not fail the gate when no Fluent error occurs.
+  do_not_claim:
+  - Heat-rate balance.
+  - Temperature extrema or CHT interface validation.
   confidence: high
   last_reviewed: '2026-07-02'
 work_queue:

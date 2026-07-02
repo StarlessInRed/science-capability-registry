@@ -7,6 +7,13 @@ import os
 from pathlib import Path
 from typing import Any
 
+from science_capability_registry.fluent.batch_smoke import (
+    collect_mesh_metrics,
+    execute_fluent,
+    extract_zip_entries,
+    fluent_path,
+    write_journal,
+)
 from science_capability_registry.fluent.official_replay_manifest.zip_catalog import inspect_zip_archive, summarize_entries
 
 from .config import load_case_config, repo_relative_path, validate_case_config
@@ -90,8 +97,37 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, source_root: Path)
         "mesh_format_counts": _mesh_format_counts(mesh_entries),
         "validation_targets": config["validation"],
         "no_claims": config["validation"]["no_claims"],
-        "scope": "read-only Fluent C06 sliding/rotating mesh source manifest; no archive extraction or solver execution",
+        "runtime_smoke": config.get("runtime_smoke", {}),
+        "scope": "read-only Fluent C06 sliding/rotating mesh source manifest; no archive extraction or solver execution"
+        if config["backend"]["type"] == "mesh_setup_manifest"
+        else "Fluent C06 sliding/rotating source mesh-read smoke; no moving-zone solver execution",
     }
+
+
+def _runtime_source_package(config: dict[str, Any]) -> dict[str, Any]:
+    source_id = config["runtime_smoke"]["source_id"]
+    for source in config["source_packages"]:
+        if source["source_id"] == source_id:
+            return source
+    raise ValueError(f"Runtime source_id is not declared in source_packages: {source_id}")
+
+
+def _write_runtime_journal(config: dict[str, Any], output_dir: Path, mesh_path: Path, dry_run: bool) -> Path:
+    mesh_text = mesh_path.as_posix() if dry_run else fluent_path(mesh_path)
+    return write_journal(
+        output_dir / config["runtime_smoke"]["journal_file"],
+        [
+            f'/file/read-case "{mesh_text}"',
+            "/mesh/check",
+            "/exit yes",
+        ],
+    )
+
+
+def _write_dry_run_placeholders(output_dir: Path) -> None:
+    placeholder = "dry-run placeholder; Fluent was not executed for this artifact.\n"
+    for name in ["stdout.txt", "stderr.txt", "transcript.txt"]:
+        (output_dir / name).write_text(placeholder, encoding="utf-8")
 
 
 def run(
@@ -110,9 +146,10 @@ def run(
     if backend is not None:
         config = {**config, "backend": {**config["backend"], "type": backend}}
         config = validate_case_config(config)
-    if not dry_run:
-        raise ValueError("Fluent C06 source setup is read-only and uses dry_run=True.")
-    if config["backend"]["type"] != "mesh_setup_manifest":
+    backend_type = config["backend"]["type"]
+    if not dry_run and backend_type == "mesh_setup_manifest":
+        raise ValueError("Fluent C06 source setup manifest is read-only and uses dry_run=True.")
+    if backend_type not in {"mesh_setup_manifest", "fluent_mesh_read_smoke"}:
         raise NotImplementedError(f"Fluent C06 backend {config['backend']['type']!r} is not implemented.")
 
     resolved_output_dir = Path(output_dir) if output_dir is not None else repo_relative_path(config["outputs"]["output_dir"])
@@ -127,6 +164,29 @@ def run(
         "validation_report.md",
         "manifest.json",
     ]
+    if backend_type == "fluent_mesh_read_smoke":
+        runtime_source = _runtime_source_package(config)
+        archive_path = source_root / runtime_source["rel_path"]
+        extracted = extract_zip_entries(archive_path, [config["runtime_smoke"]["mesh_entry"]], resolved_output_dir)
+        journal_path = _write_runtime_journal(config, resolved_output_dir, extracted[0], dry_run)
+        generated_files.extend([extracted[0].name, journal_path.name, "stdout.txt", "stderr.txt", "transcript.txt"])
+        if dry_run:
+            _write_dry_run_placeholders(resolved_output_dir)
+            runtime_metrics = {
+                "fluent_return_code": None,
+                "mesh_cell_count": None,
+                "mesh_face_counts": {},
+                "mesh_check_completed": False,
+                "fluent_warning_count": 0,
+                "fluent_error_count": 0,
+                "runtime_status": "dry_run_not_executed",
+            }
+        else:
+            runtime_metrics = collect_mesh_metrics(
+                resolved_output_dir,
+                execute_fluent(config, resolved_output_dir, journal_path),
+            )
+        setup_manifest["runtime_metrics"] = runtime_metrics
     setup_manifest["generated_files"] = generated_files
     (resolved_output_dir / "rotating_mesh_setup_manifest.json").write_text(json.dumps(setup_manifest, indent=2), encoding="utf-8")
     (resolved_output_dir / "mesh_entries.json").write_text(json.dumps(setup_manifest["mesh_entries"], indent=2), encoding="utf-8")

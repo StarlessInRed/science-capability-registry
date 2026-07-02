@@ -44,6 +44,18 @@ def _fixture_config() -> dict:
     return validate_case_config(result)
 
 
+def _fixture_runtime_config() -> dict:
+    config = yaml.safe_load(
+        Path("configs/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    result = deepcopy(config)
+    for reference in result["reference_csvs"]:
+        reference["min_rows"] = 2
+    return validate_case_config(result)
+
+
 def test_fluent_c04_runner_writes_reference_manifest(tmp_path: Path, monkeypatch) -> None:
     source_root = tmp_path / "sources"
     _write_fixture_zip(source_root)
@@ -65,6 +77,20 @@ def test_fluent_c04_runner_writes_reference_manifest(tmp_path: Path, monkeypatch
         "manifest.json",
     ]:
         assert (tmp_path / "out" / rel_path).exists()
+
+
+def test_fluent_c04_runner_writes_case_read_smoke_journal(tmp_path: Path, monkeypatch) -> None:
+    source_root = tmp_path / "sources"
+    _write_fixture_zip(source_root)
+    monkeypatch.setenv("FLUENT_TUTORIAL_ROOT", str(source_root))
+
+    result = run(config=_fixture_runtime_config(), output_dir=tmp_path / "out", dry_run=True)
+
+    assert result["validation"]["passed"] is False
+    assert (tmp_path / "out" / "IRT-Swept-Tail-Wing.cas.h5").exists()
+    journal_text = (tmp_path / "out" / "journal.jou").read_text(encoding="ascii")
+    assert "/file/read-case" in journal_text
+    assert "/mesh/check" in journal_text
 
 
 def test_fluent_c04_runner_rejects_non_dry_run(tmp_path: Path, monkeypatch) -> None:

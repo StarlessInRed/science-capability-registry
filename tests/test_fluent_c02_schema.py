@@ -35,6 +35,20 @@ def test_fluent_c02_mesh_smoke_config_matches_schema() -> None:
     assert config["mesh_generation"]["zone_names"]["axis"] == "axis"
 
 
+def test_fluent_c02_pressure_solve_smoke_config_matches_schema() -> None:
+    schema = json.loads(Path("schemas/fluent_C02_verification_reference_validation.schema.json").read_text(encoding="utf-8"))
+    config = yaml.safe_load(
+        Path(
+            "configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml"
+        ).read_text(encoding="utf-8")
+    )
+
+    errors = sorted(Draft202012Validator(schema).iter_errors(config), key=lambda error: error.path)
+    assert errors == []
+    assert config["backend"]["type"] == "fluent_pressure_solve_smoke"
+    assert config["solver_setup"]["pressure_report_status"] == "report_command_not_closed"
+
+
 def test_fluent_c02_schema_rejects_unknown_key() -> None:
     schema = json.loads(Path("schemas/fluent_C02_verification_reference_validation.schema.json").read_text(encoding="utf-8"))
     config = yaml.safe_load(

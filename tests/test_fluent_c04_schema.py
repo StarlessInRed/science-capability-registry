@@ -29,6 +29,19 @@ def test_fluent_c04_reference_config_matches_schema() -> None:
     assert config["validation"]["gate"] == "static-readiness"
 
 
+def test_fluent_c04_case_read_smoke_config_matches_schema() -> None:
+    schema = _load_schema()
+    config = yaml.safe_load(
+        Path("configs/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    errors = sorted(Draft202012Validator(schema).iter_errors(config), key=lambda error: error.path)
+    assert errors == []
+    assert config["backend"]["type"] == "fluent_case_read_smoke"
+
+
 def test_fluent_c04_schema_rejects_unknown_key() -> None:
     schema = _load_schema()
     config = _load_config()

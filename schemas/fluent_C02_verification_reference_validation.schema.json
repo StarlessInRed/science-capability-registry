@@ -53,7 +53,7 @@
       "additionalProperties": false,
       "required": ["type", "timeout_s"],
       "properties": {
-        "type": {"enum": ["dry_run_only", "fluent_mesh_check"]},
+        "type": {"enum": ["dry_run_only", "fluent_mesh_check", "fluent_pressure_solve_smoke"]},
         "timeout_s": {"type": "number", "exclusiveMinimum": 0}
       }
     },
@@ -242,6 +242,26 @@
         "scope": {"type": "string", "minLength": 1}
       }
     },
+    "solver_setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_state",
+        "viscous_model",
+        "max_iterations",
+        "max_final_continuity_residual",
+        "max_final_velocity_residual",
+        "pressure_report_status"
+      ],
+      "properties": {
+        "model_state": {"const": "axisymmetric"},
+        "viscous_model": {"const": "laminar"},
+        "max_iterations": {"type": "integer", "minimum": 1},
+        "max_final_continuity_residual": {"type": "number", "exclusiveMinimum": 0},
+        "max_final_velocity_residual": {"type": "number", "exclusiveMinimum": 0},
+        "pressure_report_status": {"const": "report_command_not_closed"}
+      }
+    },
     "validation": {
       "type": "object",
       "additionalProperties": false,
@@ -269,7 +289,8 @@
               "sampling_policy",
               "validation_targets",
               "mesh_generation",
-              "runtime_smoke"
+              "runtime_smoke",
+              "solver_setup"
             ]
           },
           "minItems": 9,
@@ -304,6 +325,33 @@
       "if": {"properties": {"backend": {"properties": {"type": {"const": "fluent_mesh_check"}}}}},
       "then": {
         "required": ["mesh_generation", "runtime_smoke"],
+        "properties": {
+          "fluent": {
+            "required": [
+              "runtime_profile",
+              "runtime_profile_config",
+              "vendor",
+              "product",
+              "version_family",
+              "executable_env",
+              "dimension_precision",
+              "headless_flags",
+              "processor_count",
+              "journal_argument"
+            ]
+          },
+          "validation": {
+            "properties": {
+              "gate": {"const": "smoke"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "fluent_pressure_solve_smoke"}}}}},
+      "then": {
+        "required": ["mesh_generation", "runtime_smoke", "solver_setup"],
         "properties": {
           "fluent": {
             "required": [

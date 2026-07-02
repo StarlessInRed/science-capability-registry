@@ -26,6 +26,10 @@ def summarize_metrics(manifest: dict[str, Any], validation: dict[str, Any] | Non
         "heat_rate_runtime_status": "not_extracted_in_source_manifest",
         "temperature_runtime_status": "not_extracted_in_source_manifest",
     }
+    if "runtime_metrics" in manifest:
+        result.update(manifest["runtime_metrics"])
+        result["heat_rate_runtime_status"] = "case_data_read_only_no_heat_rate_extraction"
+        result["temperature_runtime_status"] = "case_data_read_only_no_temperature_report"
     if validation is not None:
         result["validation"] = {"passed": bool(validation["passed"]), "gate": validation["gate"]}
     return result
@@ -49,6 +53,23 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         len(manifest["case_data_pairs"]) >= config["validation"]["min_case_data_pairs"],
         str(len(manifest["case_data_pairs"])),
     )
+    if config["backend"]["type"] == "fluent_case_data_read_smoke":
+        runtime_metrics = manifest.get("runtime_metrics", {})
+        _check(checks, "runtime.return_code_zero", runtime_metrics.get("fluent_return_code") == 0, str(runtime_metrics.get("fluent_return_code")))
+        _check(checks, "runtime.mesh_check_completed", bool(runtime_metrics.get("mesh_check_completed")), str(runtime_metrics.get("mesh_check_completed")))
+        _check(checks, "runtime.no_fluent_errors", runtime_metrics.get("fluent_error_count") == 0, str(runtime_metrics.get("fluent_error_count")))
+        _check(
+            checks,
+            "runtime.warning_budget",
+            runtime_metrics.get("fluent_warning_count", 999999) <= config["runtime_smoke"]["max_warning_count"],
+            f"{runtime_metrics.get('fluent_warning_count')} <= {config['runtime_smoke']['max_warning_count']}",
+        )
+        _check(
+            checks,
+            "runtime.case_cell_count_optional",
+            runtime_metrics.get("mesh_cell_count") is None or runtime_metrics["mesh_cell_count"] > 0,
+            str(runtime_metrics.get("mesh_cell_count")),
+        )
 
     generated_files = set(manifest.get("generated_files", []))
     for rel_path in config["validation"]["required_artifacts"]:
@@ -57,12 +78,16 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
         root = Path(output_dir)
         for rel_path in config["validation"]["required_artifacts"]:
             path = root / rel_path
-            _check(checks, f"artifact.exists.{rel_path}", path.exists() and path.stat().st_size > 0, str(path))
+            if rel_path == "stderr.txt":
+                passed = path.exists()
+            else:
+                passed = path.exists() and path.stat().st_size > 0
+            _check(checks, f"artifact.exists.{rel_path}", passed, str(path))
 
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
-        "scope": "Fluent C07 heat-transfer case/data source manifest; no Fluent thermal solve or energy-balance extraction",
+        "scope": "Fluent C07 heat-transfer case/data source manifest/read smoke; no energy-balance extraction",
         "checks": checks,
         "details": {
             "case_data_pairs": manifest["case_data_pairs"],

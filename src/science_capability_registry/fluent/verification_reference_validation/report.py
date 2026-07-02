@@ -33,6 +33,17 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
                 f"- pressure-drop runtime status: {metrics['pressure_drop_runtime_status']}",
             ]
         )
+    if "solution_converged" in metrics:
+        final_residuals = metrics.get("final_residuals", {})
+        lines.extend(
+            [
+                f"- solution converged: {metrics['solution_converged']}",
+                f"- iteration count: {metrics['iteration_count']}",
+                f"- final continuity residual: {final_residuals.get('continuity')}",
+                f"- final x-velocity residual: {final_residuals.get('x_velocity')}",
+                f"- final y-velocity residual: {final_residuals.get('y_velocity')}",
+            ]
+        )
     lines.extend(["", "## Checks", ""])
     for item in validation["checks"]:
         mark = "PASS" if item["passed"] else "FAIL"

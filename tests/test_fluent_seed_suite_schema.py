@@ -57,5 +57,6 @@ def test_fluent_seed_suite_declares_exact_c01_c08_seed_set() -> None:
     assert seed_ids == ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]
     assert statuses["C01"] == "package_skeleton_created"
     assert statuses["C02"] == "package_skeleton_created"
-    assert all(statuses[seed_id] == "benchmark_candidate" for seed_id in seed_ids[2:])
+    assert statuses["C03"] == "package_skeleton_created"
+    assert all(statuses[seed_id] == "benchmark_candidate" for seed_id in seed_ids[3:])
     assert set(config["learning_loop"]["required_modes"]) == {"self_generated", "official_replay", "comparison"}

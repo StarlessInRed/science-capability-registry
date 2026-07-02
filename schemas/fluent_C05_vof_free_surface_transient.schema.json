@@ -34,8 +34,42 @@
       "additionalProperties": false,
       "required": ["type", "archive_access"],
       "properties": {
-        "type": {"const": "mesh_setup_manifest"},
-        "archive_access": {"const": "read_only_zip"}
+        "type": {"enum": ["mesh_setup_manifest", "fluent_mesh_read_smoke"]},
+        "archive_access": {"const": "read_only_zip"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "fluent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "vendor", "product", "version_family", "executable_env", "dimension_precision", "headless_flags", "processor_count", "journal_argument"],
+      "properties": {
+        "runtime_profile": {"const": "local_fluent_preflight"},
+        "runtime_profile_config": {"type": "string", "minLength": 1},
+        "vendor": {"const": "Ansys"},
+        "product": {"const": "Fluent"},
+        "version_family": {"type": "string", "minLength": 1},
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "dimension_precision": {"enum": ["2ddp", "3ddp"]},
+        "headless_flags": {
+          "type": "array",
+          "items": {"enum": ["-g"]},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "processor_count": {"type": "integer", "minimum": 1},
+        "journal_argument": {"const": "-i"}
+      }
+    },
+    "runtime_smoke": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mesh_entry", "journal_file", "max_warning_count", "scope"],
+      "properties": {
+        "mesh_entry": {"type": "string", "pattern": "^[A-Za-z0-9_./+-]+\\.msh$"},
+        "journal_file": {"const": "journal.jou"},
+        "max_warning_count": {"type": "integer", "minimum": 0},
+        "scope": {"type": "string", "minLength": 1}
       }
     },
     "source_package": {
@@ -78,7 +112,7 @@
       "additionalProperties": false,
       "required": ["gate", "required_entry_classes", "min_mesh_entries", "required_artifacts", "no_claims"],
       "properties": {
-        "gate": {"const": "static-readiness"},
+        "gate": {"enum": ["static-readiness", "smoke"]},
         "required_entry_classes": {
           "type": "array",
           "items": {"enum": ["mesh"]},
@@ -101,6 +135,11 @@
       "enum": [
         "vof_setup_manifest.json",
         "mesh_entries.json",
+        "inkjet.msh",
+        "journal.jou",
+        "stdout.txt",
+        "stderr.txt",
+        "transcript.txt",
         "metrics.json",
         "validation.json",
         "validation_report.md",
@@ -112,5 +151,32 @@
       "items": {"type": "string", "minLength": 1},
       "minItems": 1
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "fluent_mesh_read_smoke"}}}}},
+      "then": {
+        "required": ["fluent", "runtime_smoke"],
+        "properties": {
+          "validation": {
+            "properties": {
+              "gate": {"const": "smoke"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "mesh_setup_manifest"}}}}},
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "gate": {"const": "static-readiness"}
+            }
+          }
+        }
+      }
+    }
+  ]
 }
