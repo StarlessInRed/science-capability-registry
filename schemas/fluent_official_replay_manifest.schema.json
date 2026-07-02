@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_official_replay_manifest.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: read-only Fluent official/legacy source package manifest extraction.",
+  "title": "Fluent Official Replay Manifest Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "source_root",
+    "backend",
+    "source_packages",
+    "capability_bindings",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.official_replay_manifest"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "source_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logical_path", "source_root_env"],
+      "properties": {
+        "logical_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"},
+        "source_root_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "archive_manifest"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "source_packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/source_package"}
+    },
+    "capability_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/capability_binding"}
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "official_replay_manifest.json",
+              "source_entries.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 6,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_seed_ids",
+        "required_entry_classes",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "required_seed_ids": {
+          "type": "array",
+          "items": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]},
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "required_entry_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "case",
+              "data",
+              "mesh",
+              "journal",
+              "workbench_archive",
+              "reference_csv",
+              "reference_document",
+              "auxiliary_design_package"
+            ]
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "official_replay_manifest.json",
+              "source_entries.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    },
+    "source_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "seed_id",
+        "source_kind",
+        "source_role",
+        "rel_path",
+        "expected_entry_classes"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "seed_id": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]},
+        "source_kind": {"enum": ["zip_archive", "legacy_directory", "reference_file"]},
+        "source_role": {"type": "string", "minLength": 1},
+        "rel_path": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"},
+        "expected_entry_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "case",
+              "data",
+              "mesh",
+              "journal",
+              "workbench_archive",
+              "reference_csv",
+              "reference_document",
+              "auxiliary_design_package"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "capability_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed_id",
+        "asset_path",
+        "source_ids",
+        "replay_stage",
+        "first_runtime_action",
+        "blockers",
+        "no_claims"
+      ],
+      "properties": {
+        "seed_id": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]},
+        "asset_path": {"type": "string", "pattern": "^software/fluent/assets/[A-Za-z0-9_/-]+\\.yaml$"},
+        "source_ids": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "replay_stage": {"enum": ["legacy_runtime_seed", "verification_reference", "official_replay", "workbench_project"]},
+        "first_runtime_action": {"type": "string", "minLength": 1},
+        "blockers": {"$ref": "#/$defs/non_empty_string_array"},
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  }
+}

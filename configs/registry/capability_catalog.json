@@ -466,6 +466,35 @@
       "primary_evidence_id": "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02"
     },
     {
+      "capability_id": "cfd.fluent.verification_reference_validation",
+      "asset_id": "C02_verification_reference_validation",
+      "software": "Fluent",
+      "domain": "CFD",
+      "asset_path": "software/fluent/assets/C02_verification_reference_validation.yaml",
+      "run_schema_path": "schemas/fluent_C02_verification_reference_validation.schema.json",
+      "default_config_path": "configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_static_reference.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.verification_reference_validation:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "fluent_C02_verification_reference_validation_static_readiness_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/fluent/runtime_profiles/local_fluent_preflight.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "fluent_C02_verification_reference_validation_static_readiness_2026-07-02"
+    },
+    {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
       "asset_id": "C01_parametric_geometry_mesh_generation",
       "software": "Gmsh",

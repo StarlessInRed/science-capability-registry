@@ -17,7 +17,7 @@
 | 编号 | capability slug | 首批角色 | 首选来源 | 验证重点 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
 | C01 | `steady_internal_flow_runtime` | 最小 Fluent batch/runtime 基线 | `Fluent_tutorial_case/ch07/elbow` 或 `nozzle` | case/data 读取、残差、质量守恒、压降、report export | `runtime_smoke_passed` |
-| C02 | `verification_reference_validation` | verification/manual reference gate | `ansys_fluid_dynamics_verification_manual.pdf` | 解析/实验/reference 误差、量纲一致性、同构性声明 | `benchmark_candidate` |
+| C02 | `verification_reference_validation` | verification/manual reference gate | `ansys_fluid_dynamics_verification_manual.pdf` VMFL005 | 解析式压降、量纲一致性、同构性声明 | `package_skeleton_created` |
 | C03 | `mesh_convergence_trend` | 网格/迭代/参数扰动趋势 | `fluent_adaptation.zip` 或 C01 派生网格扰动 | residual trend、mesh adaptation、网格敏感性 | `benchmark_candidate` |
 | C04 | `external_aero_force_coefficients` | 外流气动和力系数 | `fluent_aero_tutorial.zip`，含 reference CSV | Cd/Cl/Cp、AoA 或截面压力趋势、reference-data 对齐 | `benchmark_candidate` |
 | C05 | `vof_free_surface_transient` | VOF/free surface 瞬态 | `vof.zip`、legacy `ch10/dambreak` 或 tank flush | 体积分数有界性、界面位置、质量守恒、时间步/Courant | `benchmark_candidate` |
@@ -45,6 +45,18 @@ C01 已新增 `configs/fluent/steady_internal_flow_runtime/local_v251_elbow_smok
 - 写出 case/data runtime artifact 到 `_results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/`。
 
 该证据只证明 C01 runtime envelope 和 transcript parser；不声明 pressure-drop validation、verification-manual benchmark validation 或 mesh/refinement benchmark。
+
+## C02 reference contract
+
+C02 已选择 `VMFL005: Poiseuille Flow in a Pipe` 作为第一道 verification reference gate。当前配置复算 Hagen-Poiseuille 压降 `10.24 Pa`，记录手册 Fluent 表格值 `10.22 Pa`，并明确当前本地 source library 未发现 `poiseuille-flow.cas` runnable payload。
+
+该证据只证明 reference 已经进入 config/schema/package/report 闭环；不声明 Fluent 已运行 VMFL005，也不声明 C02 已 benchmark validated。下一步应生成轴对称管流 Fluent case，并用三档网格验证压降误差趋势。
+
+## Official replay manifest
+
+新增 `configs/fluent/official_replay_manifest/c01_c08_sources.yaml`，用于统一登记 C01-C08 的官方/legacy/Workbench/reference 来源绑定。一次本地只读扫描结果为 9 个来源包、24 个 source entries、8 个 capability bindings，且 expected entry classes 无缺失。
+
+该 manifest 把 C05/C06 明确标记为 mesh-only setup seed，把 C08 标记为 Workbench project seed，防止后续误把 mesh 或 `.wbpz` 当成 standalone Fluent batch 输入。
 
 ## 自生成 vs 官方 replay 学习闭环
 

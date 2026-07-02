@@ -85,9 +85,9 @@ seed_cases:
 - seed_id: C02
   asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
   capability_slug: verification_reference_validation
-  benchmark_status: benchmark_candidate
-  problem_definition: Bind a runnable Fluent case to a verification-manual reference before benchmark promotion.
-  governing_model: Analytical, experimental, or documented CFD verification case selected from the verification manual.
+  benchmark_status: package_skeleton_created
+  problem_definition: Bind a runnable Fluent case to the VMFL005 Poiseuille pressure-drop reference before benchmark promotion.
+  governing_model: Steady laminar incompressible pipe flow with Hagen-Poiseuille analytical pressure-drop reference.
   boundary_conditions:
   - reference-specific inlet, outlet, wall, or far-field boundaries
   initial_conditions:
@@ -110,7 +110,7 @@ seed_cases:
   benchmark_source:
     source_role: verification_reference
     primary_candidates:
-    - ansys_fluid_dynamics_verification_manual.pdf
+    - ansys_fluid_dynamics_verification_manual.pdf VMFL005
   validation_criteria:
   - geometry, boundary conditions, units, and sampling are declared before thresholds
   - tutorial replay is not promoted without reference homology

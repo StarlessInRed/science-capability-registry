@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_C02_verification_reference_validation.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C02 verification-manual reference mapping config.",
+  "title": "Fluent C02 Verification Reference Validation Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "fluent",
+    "backend",
+    "reference_source",
+    "governing_model",
+    "geometry",
+    "material_properties",
+    "boundary_conditions",
+    "reference_formula",
+    "reference_values",
+    "sampling_policy",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.verification_reference_validation"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "fluent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "vendor", "product", "version_family"],
+      "properties": {
+        "runtime_profile": {"const": "local_fluent_preflight"},
+        "runtime_profile_config": {"type": "string", "minLength": 1},
+        "vendor": {"const": "Ansys"},
+        "product": {"const": "Fluent"},
+        "version_family": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"const": "dry_run_only"},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "reference_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_role",
+        "source_root",
+        "document",
+        "manual_release",
+        "manual_case_id",
+        "manual_case_title",
+        "input_file_hint",
+        "runnable_payload_status",
+        "reference_scope"
+      ],
+      "properties": {
+        "source_role": {"const": "verification_manual_reference"},
+        "source_root": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+$"},
+        "document": {"type": "string", "pattern": "^[A-Za-z0-9_./-]+\\.pdf$"},
+        "manual_release": {"type": "string", "minLength": 1},
+        "manual_case_id": {"const": "VMFL005"},
+        "manual_case_title": {"type": "string", "minLength": 1},
+        "input_file_hint": {"type": "string", "minLength": 1},
+        "runnable_payload_status": {"enum": ["not_found_in_current_library", "mapped_to_runnable_payload"]},
+        "reference_scope": {"type": "string", "minLength": 1}
+      }
+    },
+    "governing_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_class", "flow_regime", "equation_family", "assumptions"],
+      "properties": {
+        "model_class": {"type": "string", "minLength": 1},
+        "flow_regime": {"type": "string", "minLength": 1},
+        "equation_family": {"type": "string", "minLength": 1},
+        "assumptions": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["length_m", "radius_m", "domain_assumption"],
+      "properties": {
+        "length_m": {"type": "number", "exclusiveMinimum": 0},
+        "radius_m": {"type": "number", "exclusiveMinimum": 0},
+        "domain_assumption": {"type": "string", "minLength": 1}
+      }
+    },
+    "material_properties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["density_kg_m3", "dynamic_viscosity_kg_m_s"],
+      "properties": {
+        "density_kg_m3": {"type": "number", "exclusiveMinimum": 0},
+        "dynamic_viscosity_kg_m_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "boundary_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inlet_profile", "inlet_average_velocity_m_s", "wall", "axis", "outlet_closure"],
+      "properties": {
+        "inlet_profile": {"type": "string", "minLength": 1},
+        "inlet_average_velocity_m_s": {"type": "number", "exclusiveMinimum": 0},
+        "wall": {"type": "string", "minLength": 1},
+        "axis": {"type": "string", "minLength": 1},
+        "outlet_closure": {"type": "string", "minLength": 1}
+      }
+    },
+    "reference_formula": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formula_id", "formula", "pressure_drop_inputs"],
+      "properties": {
+        "formula_id": {"const": "hagen_poiseuille_pressure_drop"},
+        "formula": {"type": "string", "minLength": 1},
+        "pressure_drop_inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dynamic_viscosity_kg_m_s", "length_m", "mean_velocity_m_s", "diameter_m"],
+          "properties": {
+            "dynamic_viscosity_kg_m_s": {"type": "number", "exclusiveMinimum": 0},
+            "length_m": {"type": "number", "exclusiveMinimum": 0},
+            "mean_velocity_m_s": {"type": "number", "exclusiveMinimum": 0},
+            "diameter_m": {"type": "number", "exclusiveMinimum": 0}
+          }
+        }
+      }
+    },
+    "reference_values": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quantity", "unit", "target_pressure_drop_pa", "manual_fluent_pressure_drop_pa", "manual_fluent_ratio"],
+      "properties": {
+        "quantity": {"const": "pressure_drop"},
+        "unit": {"const": "Pa"},
+        "target_pressure_drop_pa": {"type": "number", "exclusiveMinimum": 0},
+        "manual_fluent_pressure_drop_pa": {"type": "number", "exclusiveMinimum": 0},
+        "manual_fluent_ratio": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "sampling_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric_location", "homology_policy", "future_mesh_levels"],
+      "properties": {
+        "metric_location": {"type": "string", "minLength": 1},
+        "homology_policy": {"type": "string", "minLength": 1},
+        "future_mesh_levels": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "reference_manifest.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "max_manual_relative_error",
+        "required_manifest_sections",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "max_manual_relative_error": {"type": "number", "exclusiveMinimum": 0},
+        "required_manifest_sections": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "reference_source",
+              "governing_model",
+              "geometry",
+              "material_properties",
+              "boundary_conditions",
+              "reference_formula",
+              "reference_values",
+              "sampling_policy",
+              "validation_targets"
+            ]
+          },
+          "minItems": 9,
+          "uniqueItems": true
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "reference_manifest.json",
+              "manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        },
+        "no_claims": {"$ref": "#/$defs/non_empty_string_array"}
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    }
+  }
+}

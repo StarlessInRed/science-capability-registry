@@ -1,0 +1,198 @@
+capability_id: cfd.fluent.official_replay_manifest
+case_id: c01_c08_sources
+description: Read-only manifest for Fluent C01-C08 official, legacy, Workbench, and verification-manual source packages.
+source_root:
+  logical_path: AgentKnowledge/case_library/fluent/cases/official_tutorials
+  source_root_env: FLUENT_TUTORIAL_ROOT
+backend:
+  type: archive_manifest
+  timeout_s: 60
+source_packages:
+- source_id: C01_legacy_elbow
+  seed_id: C01
+  source_kind: legacy_directory
+  source_role: legacy standalone runtime seed
+  rel_path: Fluent_tutorial_case/ch07/elbow
+  expected_entry_classes:
+  - case
+  - data
+- source_id: C02_verification_manual
+  seed_id: C02
+  source_kind: reference_file
+  source_role: verification manual reference source
+  rel_path: ansys_fluid_dynamics_verification_manual.pdf
+  expected_entry_classes:
+  - reference_document
+- source_id: C03_adaptation
+  seed_id: C03
+  source_kind: zip_archive
+  source_role: official tutorial adaptation seed
+  rel_path: Fluent_Tutorial_Package/fluent_adaptation.zip
+  expected_entry_classes:
+  - case
+- source_id: C04_aero_tutorial
+  seed_id: C04
+  source_kind: zip_archive
+  source_role: official aero tutorial with reference CSV
+  rel_path: Fluent_Tutorial_Package/fluent_aero_tutorial.zip
+  expected_entry_classes:
+  - case
+  - mesh
+  - reference_csv
+- source_id: C05_vof_mesh
+  seed_id: C05
+  source_kind: zip_archive
+  source_role: official VOF mesh/setup seed
+  rel_path: Fluent_Tutorial_Package/vof.zip
+  expected_entry_classes:
+  - mesh
+- source_id: C06_sliding_mesh
+  seed_id: C06
+  source_kind: zip_archive
+  source_role: official sliding mesh/setup seed
+  rel_path: Fluent_Tutorial_Package/sliding_mesh.zip
+  expected_entry_classes:
+  - mesh
+- source_id: C06_single_rotating_legacy
+  seed_id: C06
+  source_kind: zip_archive
+  source_role: legacy rotating mesh supplement
+  rel_path: legacy_2020_r2_unique/single_rotating.zip
+  expected_entry_classes:
+  - mesh
+- source_id: C07_heat_exchanger
+  seed_id: C07
+  source_kind: zip_archive
+  source_role: official heat-transfer case/data replay seed
+  rel_path: Fluent_Tutorial_Package/2d_heat_exchanger_optimizer.zip
+  expected_entry_classes:
+  - case
+  - data
+- source_id: C08_workbench_parameter
+  seed_id: C08
+  source_kind: zip_archive
+  source_role: official Workbench parameter handoff project seed
+  rel_path: Fluent_Workbench_Tutorial_Package/workbench_parameter.zip
+  expected_entry_classes:
+  - workbench_archive
+capability_bindings:
+- seed_id: C01
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  source_ids:
+  - C01_legacy_elbow
+  replay_stage: legacy_runtime_seed
+  first_runtime_action: continue C01 batch smoke and add pressure-drop report only after a Fluent transcript supports it
+  blockers:
+  - official 2025 R1 introduction package is DSCO only and not a standalone Fluent batch replay
+  no_claims:
+  - no pressure-drop validation is claimed by this manifest
+- seed_id: C02
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  source_ids:
+  - C02_verification_manual
+  replay_stage: verification_reference
+  first_runtime_action: self-generate VMFL005 axisymmetric pipe case before claiming benchmark validation
+  blockers:
+  - local verification-manual runnable project payload is not present in the current library
+  no_claims:
+  - no Fluent VMFL005 runtime is claimed by this manifest
+- seed_id: C03
+  asset_path: software/fluent/assets/C03_mesh_convergence_trend.yaml
+  source_ids:
+  - C03_adaptation
+  replay_stage: official_replay
+  first_runtime_action: inspect adaptation case and define at least three refinement or adaptation levels
+  blockers:
+  - adaptation tutorial case is not yet tied to a self-generated refinement matrix
+  no_claims:
+  - no mesh convergence trend is claimed by this manifest
+- seed_id: C04
+  asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  source_ids:
+  - C04_aero_tutorial
+  replay_stage: official_replay
+  first_runtime_action: parse reference CSV, then run a short case replay that extracts force/Cp canonical metrics
+  blockers:
+  - reference area and sampling section homology must be declared before thresholds
+  no_claims:
+  - no mesh-independent aero benchmark is claimed by this manifest
+- seed_id: C05
+  asset_path: software/fluent/assets/C05_vof_free_surface_transient.yaml
+  source_ids:
+  - C05_vof_mesh
+  replay_stage: official_replay
+  first_runtime_action: create setup manifest for inkjet mesh, then use legacy case/data for first transient smoke if needed
+  blockers:
+  - official VOF source is mesh-only and needs setup before solver replay
+  no_claims:
+  - no free-surface transient runtime is claimed by this manifest
+- seed_id: C06
+  asset_path: software/fluent/assets/C06_sliding_rotating_mesh.yaml
+  source_ids:
+  - C06_sliding_mesh
+  - C06_single_rotating_legacy
+  replay_stage: official_replay
+  first_runtime_action: inspect moving-zone candidates before any rotating/sliding solver smoke
+  blockers:
+  - available sources are mesh-only and may require license-gated moving mesh setup
+  no_claims:
+  - no sliding mesh physics validation is claimed by this manifest
+- seed_id: C07
+  asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  source_ids:
+  - C07_heat_exchanger
+  replay_stage: official_replay
+  first_runtime_action: replay 2D heat exchanger case/data and extract temperature and heat-rate balance
+  blockers:
+  - heat-transfer replay does not by itself validate CHT or battery thermal workflows
+  no_claims:
+  - no CHT benchmark validation is claimed by this manifest
+- seed_id: C08
+  asset_path: software/fluent/assets/C08_workbench_parameter_integration.yaml
+  source_ids:
+  - C08_workbench_parameter
+  replay_stage: workbench_project
+  first_runtime_action: inspect WBPZ project parameters before any headless Workbench run
+  blockers:
+  - Workbench headless profile and project-state automation are separate from Fluent batch
+  no_claims:
+  - no Workbench headless execution is claimed by this manifest
+outputs:
+  output_dir: _results/fluent/official_replay_manifest/c01_c08_sources
+  expected_outputs:
+  - official_replay_manifest.json
+  - source_entries.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_seed_ids:
+  - C01
+  - C02
+  - C03
+  - C04
+  - C05
+  - C06
+  - C07
+  - C08
+  required_entry_classes:
+  - case
+  - data
+  - mesh
+  - workbench_archive
+  - reference_csv
+  - reference_document
+  required_artifacts:
+  - official_replay_manifest.json
+  - source_entries.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - this manifest reads archive directories only and never launches Fluent or Workbench
+  - mesh-only sources are not direct solver replays
+  - Workbench archives are not standalone Fluent batch inputs
+  - reference CSV files are not promoted to benchmark truth without homology checks

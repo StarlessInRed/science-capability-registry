@@ -18,6 +18,7 @@ from science_capability_registry.gmsh.mesh_refinement_quality_trend import run a
 from science_capability_registry.gmsh.multi_solver_mesh_export_contract import run as run_gmsh_c06
 from science_capability_registry.gmsh.parametric_geometry_mesh_generation import run as run_gmsh_c01
 from science_capability_registry.fluent.steady_internal_flow_runtime import run as run_fluent_c01
+from science_capability_registry.fluent.verification_reference_validation import run as run_fluent_c02
 from science_capability_registry.openfoam.potential_flow_cylinder_analytical_validation import run as run_openfoam_c02
 from science_capability_registry.openfoam.backward_facing_step_rans_internal_flow import run as run_openfoam_c03
 from science_capability_registry.openfoam.compressible_shock_capturing_forward_step import run as run_openfoam_c08
@@ -47,6 +48,7 @@ RUNNERS: dict[str, Runner] = {
     "cfd.openfoam.conjugate_heat_transfer_cooling": run_openfoam_c07,
     "cfd.openfoam.compressible_shock_capturing_forward_step": run_openfoam_c08,
     "cfd.fluent.steady_internal_flow_runtime": run_fluent_c01,
+    "cfd.fluent.verification_reference_validation": run_fluent_c02,
     "meshing.gmsh.parametric_geometry_mesh_generation": run_gmsh_c01,
     "meshing.gmsh.boundary_physical_group_contract": run_gmsh_c02,
     "meshing.gmsh.mesh_refinement_quality_trend": run_gmsh_c03,

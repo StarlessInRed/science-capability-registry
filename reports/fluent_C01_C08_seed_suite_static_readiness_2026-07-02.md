@@ -9,7 +9,7 @@
 ## 覆盖范围
 
 - exactly 8 个 seed：C01-C08。
-- C01 已提升为 `package_skeleton_created` 并另有 runtime smoke evidence；C02-C08 仍为 `benchmark_candidate`。
+- C01 已提升为 `package_skeleton_created` 并另有 runtime smoke evidence；C02 已新增 VMFL005 reference package skeleton；C03-C08 仍为 `benchmark_candidate`。
 - 每个 seed 均声明 problem definition、governing model、BC/IC、mesh/discretization、solver setup、input/output、benchmark source、validation criteria、perturbation axes、risks。
 - 学习闭环固定为 `self_generated`、`official_replay`、`comparison`。
 - dry-run 生成 `seed_suite_manifest.json`、`seed_cases.json`、`metrics.json`、`validation.json`、`validation_report.md`。
@@ -27,4 +27,4 @@
 
 ## 下一道门
 
-下一道门是 C01 `smoke`：用本机 Fluent 执行一个最小 standalone batch journal，产出 transcript、metrics、validation 和 report。C01 smoke 通过后，再按 C02 reference mapping、C03 mesh trend、C04 force/Cp、C05 transient VOF、C06 rotating/sliding、C07 thermal balance、C08 Workbench parameter 的顺序推进。
+下一道门是 C02 `smoke`：从 VMFL005 contract 自生成轴对称管流 Fluent case，提取压降并与 `10.24 Pa` 解析目标比较。并行支撑层是 official replay manifest：先把 C04/C07 这种已有 case 或 case/data 的来源接 runtime，把 C05/C06 的 mesh-only setup 与 C08 Workbench archive 保持隔离。

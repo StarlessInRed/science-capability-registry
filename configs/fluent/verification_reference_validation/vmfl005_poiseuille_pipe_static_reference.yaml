@@ -1,0 +1,96 @@
+capability_id: cfd.fluent.verification_reference_validation
+case_id: vmfl005_poiseuille_pipe_static_reference
+description: Static C02 reference mapping for VMFL005 Poiseuille pipe flow from the Ansys Fluid Dynamics Verification Manual.
+fluent:
+  runtime_profile: local_fluent_preflight
+  runtime_profile_config: configs/fluent/runtime_profiles/local_fluent_preflight.yaml
+  vendor: Ansys
+  product: Fluent
+  version_family: 2025_R1
+backend:
+  type: dry_run_only
+  timeout_s: 60
+reference_source:
+  source_role: verification_manual_reference
+  source_root: AgentKnowledge/case_library/fluent/cases/official_tutorials
+  document: ansys_fluid_dynamics_verification_manual.pdf
+  manual_release: 2021_R1
+  manual_case_id: VMFL005
+  manual_case_title: Poiseuille Flow in a Pipe
+  input_file_hint: poiseuille-flow.cas
+  runnable_payload_status: not_found_in_current_library
+  reference_scope: Analytical pressure-drop comparison for steady laminar axisymmetric pipe flow; no local runnable VMFL005 project file is currently paired with this manual case.
+governing_model:
+  model_class: analytical formula with verification-manual table
+  flow_regime: steady laminar incompressible pipe flow
+  equation_family: incompressible Navier-Stokes with Hagen-Poiseuille pressure-drop reference
+  assumptions:
+  - steady flow
+  - constant density and viscosity
+  - fully developed laminar velocity profile at inlet
+  - half of the axisymmetric domain represents the circular tube
+geometry:
+  length_m: 0.1
+  radius_m: 0.00125
+  domain_assumption: half axisymmetric domain
+material_properties:
+  density_kg_m3: 1.0
+  dynamic_viscosity_kg_m_s: 1.0e-5
+boundary_conditions:
+  inlet_profile: fully developed laminar velocity profile
+  inlet_average_velocity_m_s: 2.0
+  wall: no-slip pipe wall
+  axis: axisymmetric centerline
+  outlet_closure: pressure outlet or equivalent pressure-reference closure must be declared in the runnable case
+reference_formula:
+  formula_id: hagen_poiseuille_pressure_drop
+  formula: delta_p = 32 * mu * L * U_mean / D^2
+  pressure_drop_inputs:
+    dynamic_viscosity_kg_m_s: 1.0e-5
+    length_m: 0.1
+    mean_velocity_m_s: 2.0
+    diameter_m: 0.0025
+reference_values:
+  quantity: pressure_drop
+  unit: Pa
+  target_pressure_drop_pa: 10.24
+  manual_fluent_pressure_drop_pa: 10.22
+  manual_fluent_ratio: 0.998
+sampling_policy:
+  metric_location: pressure difference between inlet and outlet
+  homology_policy: geometry, fully developed inlet profile, material properties, and pressure-drop sampling must match VMFL005 before benchmark promotion
+  future_mesh_levels:
+  - coarse
+  - baseline
+  - refined
+outputs:
+  output_dir: _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_static_reference
+  expected_outputs:
+  - reference_manifest.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  max_manual_relative_error: 0.03
+  required_manifest_sections:
+  - reference_source
+  - governing_model
+  - geometry
+  - material_properties
+  - boundary_conditions
+  - reference_formula
+  - reference_values
+  - sampling_policy
+  - validation_targets
+  required_artifacts:
+  - reference_manifest.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no Fluent solver execution is claimed by this static reference mapping
+  - no local runnable VMFL005 project payload is claimed in the current source library
+  - tutorial replay is not promoted to benchmark validation without geometry and sampling homology

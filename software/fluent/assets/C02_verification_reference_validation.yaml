@@ -17,6 +17,7 @@ physics:
 inputs:
   source_candidates:
   - ansys_fluid_dynamics_verification_manual.pdf
+  selected_reference_case: VMFL005
   run_schema_targets:
   - reference_source
   - geometry_homology_policy
@@ -29,24 +30,27 @@ outputs:
   - validation.json
   - validation_report.md
   scalar_metrics:
-  - reference_error_l2
-  - reference_error_linf
-  - convergence_rate
+  - computed_formula_pressure_drop_pa
+  - target_pressure_drop_pa
+  - manual_fluent_pressure_drop_pa
+  - manual_relative_error
 benchmark:
   source_name: Ansys Fluid Dynamics Verification Manual
   source_type: verification manual
-  benchmark_role: Candidate source for benchmark promotion once a runnable Fluent case is matched.
-  status_rationale: Verification source identified, but runnable case mapping has not yet been selected.
+  benchmark_role: VMFL005 Poiseuille pipe pressure-drop reference for future self-generated Fluent benchmark promotion.
+  status_rationale: Verification source and formula target are mapped; runnable Fluent VMFL005 payload is not present in the current local library.
 validation_criteria:
 - Reference geometry, boundary conditions, units, and sampling must be declared before numeric thresholds are applied.
 - Tutorial replay must not be promoted to benchmark without reference homology.
 - Validation must record error norms and unverified risks.
 integration_targets:
   workflow_stage: cfd.fluent.verification_reference_validation
+  input_schema: schemas/fluent_C02_verification_reference_validation.schema.json
+  package_entrypoint: science_capability_registry.fluent.verification_reference_validation:run
   runtime_target: _results/fluent/verification_reference_validation/
 intern_deliverables:
-- Extract one simple verification target from the manual.
-- Map it to a self-generated Fluent case or official runnable case.
-- Add reference error and convergence validation.
+- Generate a self-contained VMFL005 axisymmetric pipe case from config.
+- Extract pressure drop from Fluent and compare it with the Hagen-Poiseuille target.
+- Add three mesh levels before benchmark validation.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

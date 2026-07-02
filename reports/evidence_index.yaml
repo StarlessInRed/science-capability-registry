@@ -1302,3 +1302,47 @@ evidence:
   limitations:
   - Runtime smoke only; pressure-drop validation, verification-manual benchmark validation, and official 2025 R1 tutorial replay remain future work.
   - Executable and tutorial source paths are injected through local environment variables and are not committed as portable config values.
+- evidence_id: fluent_C02_verification_reference_validation_static_readiness_2026-07-02
+  capability_id: cfd.fluent.verification_reference_validation
+  asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C02_verification_reference_validation_static_readiness_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_static_reference.yaml
+  - schemas/fluent_C02_verification_reference_validation.schema.json
+  - src/science_capability_registry/fluent/verification_reference_validation/runner.py
+  - src/science_capability_registry/fluent/verification_reference_validation/validation.py
+  - tests/test_fluent_c02_schema.py
+  - tests/test_fluent_c02_runner.py
+  - tests/test_fluent_c02_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_static_reference/
+  scope: Fluent C02 static reference contract maps VMFL005 Poiseuille pipe pressure-drop target, formula, geometry, material properties, and no-claim boundaries.
+  limitations:
+  - Static-readiness evidence only; Fluent is not launched for VMFL005.
+  - The local verification-manual runnable project payload is not present in the current source library.
+  - Benchmark validation still requires a self-generated Fluent case and mesh/refinement evidence.
+- evidence_id: fluent_C01_C08_official_replay_manifest_2026-07-02
+  capability_id: cfd.fluent.official_replay_manifest
+  asset_path: software/fluent/capability_map.md
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/fluent_C01_C08_official_replay_manifest_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/official_replay_manifest/c01_c08_sources.yaml
+  - schemas/fluent_official_replay_manifest.schema.json
+  - src/science_capability_registry/fluent/official_replay_manifest/runner.py
+  - src/science_capability_registry/fluent/official_replay_manifest/zip_catalog.py
+  - src/science_capability_registry/fluent/official_replay_manifest/validation.py
+  - tests/test_fluent_replay_manifest_schema.py
+  - tests/test_fluent_replay_manifest_runner.py
+  - tests/test_fluent_replay_manifest_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/official_replay_manifest/c01_c08_sources/
+  scope: Fluent C01-C08 read-only source manifest classifies official zip, legacy, Workbench, and verification manual sources without extraction or solver execution.
+  limitations:
+  - Source-manifest evidence only; C04-C08 runtime smoke and benchmark validation remain separate capability work.
+  - Mesh-only and Workbench archives are explicitly not standalone Fluent batch solver inputs.
