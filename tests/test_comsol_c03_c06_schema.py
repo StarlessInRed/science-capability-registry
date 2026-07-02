@@ -15,7 +15,9 @@ CASES = [
     ),
     (
         Path("schemas/comsol_C04_physics_boundary_assignment_contract.schema.json"),
-        Path("configs/comsol/physics_boundary_assignment_contract/static_contract.yaml"),
+        Path(
+            "configs/comsol/physics_boundary_assignment_contract/static_contract.yaml"
+        ),
     ),
     (
         Path("schemas/comsol_C05_study_run_solver_smoke.schema.json"),
@@ -23,7 +25,36 @@ CASES = [
     ),
     (
         Path("schemas/comsol_C06_result_extraction_postprocess_validation.schema.json"),
-        Path("configs/comsol/result_extraction_postprocess_validation/static_contract.yaml"),
+        Path(
+            "configs/comsol/result_extraction_postprocess_validation/static_contract.yaml"
+        ),
+    ),
+]
+
+RUNTIME_CASES = [
+    (
+        Path("schemas/comsol_C03_geometry_mesh_import_contract.schema.json"),
+        Path(
+            "configs/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle.yaml"
+        ),
+    ),
+    (
+        Path("schemas/comsol_C04_physics_boundary_assignment_contract.schema.json"),
+        Path(
+            "configs/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle.yaml"
+        ),
+    ),
+    (
+        Path("schemas/comsol_C05_study_run_solver_smoke.schema.json"),
+        Path(
+            "configs/comsol/study_run_solver_smoke/local_livelink_heat_rectangle.yaml"
+        ),
+    ),
+    (
+        Path("schemas/comsol_C06_result_extraction_postprocess_validation.schema.json"),
+        Path(
+            "configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml"
+        ),
     ),
 ]
 
@@ -40,7 +71,24 @@ def test_comsol_c03_c06_static_configs_match_schema() -> None:
     failures = {}
     for schema_path, config_path in CASES:
         errors = sorted(
-            Draft202012Validator(_read_json(schema_path)).iter_errors(_read_yaml(config_path)),
+            Draft202012Validator(_read_json(schema_path)).iter_errors(
+                _read_yaml(config_path)
+            ),
+            key=lambda error: list(error.path),
+        )
+        if errors:
+            failures[config_path.as_posix()] = [error.message for error in errors]
+
+    assert not failures
+
+
+def test_comsol_c03_c06_runtime_configs_match_schema() -> None:
+    failures = {}
+    for schema_path, config_path in RUNTIME_CASES:
+        errors = sorted(
+            Draft202012Validator(_read_json(schema_path)).iter_errors(
+                _read_yaml(config_path)
+            ),
             key=lambda error: list(error.path),
         )
         if errors:

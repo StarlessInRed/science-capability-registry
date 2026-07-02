@@ -1,0 +1,147 @@
+capability_id: multiphysics.comsol.result_extraction_postprocess_validation
+asset_id: C06_result_extraction_postprocess_validation
+case_id: local_livelink_heat_rectangle
+description: COMSOL C06 local MATLAB/LiveLink generated heat-rectangle result extraction, units, and probe export smoke.
+depends_on:
+- multiphysics.comsol.study_run_solver_smoke
+comsol:
+  runtime_profile: local_matlab_comsol_preflight
+  runtime_profile_config: configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  command_env: COMSOL_BIN
+  mphserver_env: COMSOL_MPHSERVER_BIN
+  version_family: env_configured
+matlab:
+  executable_env: MATLAB_EXE
+  batch_argument: -batch
+livelink:
+  mli_dir_env: COMSOL_MLI_DIR
+  required_matlab_functions:
+  - mphstart
+  - mphinterp
+server:
+  host_env: COMSOL_SERVER_HOST
+  port_env: COMSOL_SERVER_PORT
+  connection_mode: local_or_server
+backend:
+  type: matlab_livelink_heat_rectangle_smoke
+  timeout_s: 360
+contract:
+  stage: result_extraction_postprocess_validation
+  scope: COMSOL C06 smoke creates and solves a generated heat rectangle, extracts one finite temperature probe, exports units, and writes canonical CSV/JSON handoff artifacts; no official replay, double-v, or benchmark validation is claimed.
+  source_boundary: Consumes generated C05 solution state within one self-contained smoke.
+  declared_objects:
+  - name: export_manifest
+    role: export_manifest
+    required: true
+    description: Declares exported expression, probe count, unit, and finite-value fraction.
+  - name: probes
+    role: probe_table
+    required: true
+    description: Canonical CSV probe table consumed by downstream registry workflows.
+  - name: units
+    role: unit_manifest
+    required: true
+    description: Canonical result unit mapping for exported quantities.
+  artifacts:
+  - path: export_manifest.json
+    role: result export smoke
+    required: true
+  - path: probes.csv
+    role: canonical probe table smoke
+    required: true
+  - path: units.json
+    role: units handoff smoke
+    required: true
+  handoff_contract:
+  - every exported quantity must have expression and unit metadata
+  - finite result values must be validated before downstream consumption
+  - result extraction must stay separate from benchmark correctness
+heat_rectangle:
+  script_filename: matlab_c06_heat_rectangle_smoke.m
+  tags:
+    model_tag: c06_heat_rectangle
+    component_tag: comp1
+    geometry_tag: geom1
+    rectangle_tag: rect1
+    mesh_tag: mesh1
+    material_tag: mat1
+    physics_tag: ht
+    temperature_boundary_tag: temp1
+    study_tag: std1
+    study_feature_tag: stat
+  geometry:
+    width: 1.0
+    height: 0.5
+    width_parameter: c06_width
+    height_parameter: c06_height
+  mesh:
+    auto_mesh_size: 5
+  physics:
+    interface_type: HeatTransfer
+    material_type: Common
+    boundary_condition_type: TemperatureBoundary
+    boundary_temperature: 300[K]
+  study:
+    study_type: Stationary
+  probes:
+  - name: center
+    expression: T
+    x: 0.5
+    y: 0.25
+    unit: K
+    expected_value: 300.0
+    tolerance: 1.0e-6
+outputs:
+  output_dir: _results/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle
+  expected_outputs:
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - matlab_c06_heat_rectangle_smoke.m
+  - stdout.txt
+  - stderr.txt
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  required_environment:
+  - MATLAB_EXE
+  - COMSOL_BIN
+  - COMSOL_MLI_DIR
+  optional_environment:
+  - COMSOL_MPHSERVER_BIN
+  - COMSOL_SERVER_HOST
+  - COMSOL_SERVER_PORT
+  require_path_exists: true
+  require_matlab_execution: true
+  required_object_roles:
+  - export_manifest
+  - probe_table
+  - unit_manifest
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - contract
+  - heat_rectangle
+  - generated_files
+  - expected_outputs
+  - metrics
+  - validation
+  required_artifacts:
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - matlab_c06_heat_rectangle_smoke.m
+  - stdout.txt
+  - stderr.txt
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - C06 proves generated rectangle finite temperature probe extraction and unit export smoke only
+  - C06 does not claim official replay, double-v, broader multiphysics correctness, or benchmark validation
+  - local executable, license, server, and Application Library paths must remain environment-injected

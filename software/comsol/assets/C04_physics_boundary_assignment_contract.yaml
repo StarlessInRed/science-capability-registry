@@ -37,15 +37,16 @@ benchmark:
   source_name: C02/C03 generated model with explicit physics assignment
   source_type: generated contract source
   benchmark_role: Static gate before study execution.
-  status_rationale: Static package skeleton exists for assignment completeness semantics; no COMSOL physics assignment runtime, solver convergence, or benchmark validation is claimed.
+  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for material, physics, boundary, and unit assignment; solver convergence, official replay, double-v, and benchmark validation are not claimed.
 validation_criteria:
 - Every solver-facing boundary role must have a declared assignment or an explicit out-of-scope reason.
 - Validation must reject missing units, missing material assignments, and unknown physics tags.
+- Runtime smoke must prove generated rectangle assignment artifacts while keeping solver execution in C05.
 - Assignment completeness must be separated from solver convergence.
 integration_targets:
   workflow_stage: multiphysics.comsol.physics_boundary_assignment_contract
   input_schema: schemas/comsol_C04_physics_boundary_assignment_contract.schema.json
-  default_config: configs/comsol/physics_boundary_assignment_contract/static_contract.yaml
+  default_config: configs/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle.yaml
   runtime_target: _results/comsol/physics_boundary_assignment_contract/
   package_entrypoint: science_capability_registry.comsol.physics_boundary_assignment_contract:run
   depends_on: C03_geometry_mesh_import_contract

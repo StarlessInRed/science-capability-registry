@@ -36,15 +36,16 @@ benchmark:
   source_name: Complete C04 model or small official Application Library model
   source_type: generated or official example source
   benchmark_role: First solver smoke gate after model construction and assignment contracts.
-  status_rationale: Static package skeleton exists for the future study-run smoke contract; no COMSOL study runtime, convergence, or benchmark validation is claimed.
+  status_rationale: Local MATLAB LiveLink generated-rectangle stationary solver smoke passed and emitted solver/dataset artifacts; analytical field validation, official replay, double-v, and benchmark validation are not claimed.
 validation_criteria:
 - Study must reach configured completion status and produce expected result datasets.
 - Solver failure must be separated from model-construction and postprocess failure.
+- Runtime smoke must prove generated rectangle study completion and dataset presence without promoting to benchmark validation.
 - Solver success must not be treated as analytical benchmark validation.
 integration_targets:
   workflow_stage: multiphysics.comsol.study_run_solver_smoke
   input_schema: schemas/comsol_C05_study_run_solver_smoke.schema.json
-  default_config: configs/comsol/study_run_solver_smoke/static_contract.yaml
+  default_config: configs/comsol/study_run_solver_smoke/local_livelink_heat_rectangle.yaml
   runtime_target: _results/comsol/study_run_solver_smoke/
   package_entrypoint: science_capability_registry.comsol.study_run_solver_smoke:run
   depends_on: C04_physics_boundary_assignment_contract

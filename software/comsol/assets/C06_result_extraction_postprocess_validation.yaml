@@ -36,15 +36,16 @@ benchmark:
   source_name: Solved C05 model result export
   source_type: downstream consumability benchmark
   benchmark_role: Candidate benchmark for registry-facing COMSOL result handoff.
-  status_rationale: Static package skeleton exists for the future result-export handoff contract; no COMSOL result extraction runtime, finite probe validation, or benchmark validation is claimed.
+  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for finite temperature probe export and units handoff; official replay, double-v, broader multiphysics correctness, and benchmark validation are not claimed.
 validation_criteria:
 - Every exported quantity must include expression, unit, location or dataset, and physical meaning.
 - Validation must reject NaN-only outputs, missing units, and mismatched probe counts.
+- Runtime smoke must prove finite generated-rectangle probe export and units without claiming broader physical correctness.
 - Result export must be separate from solver success and benchmark correctness.
 integration_targets:
   workflow_stage: multiphysics.comsol.result_extraction_postprocess_validation
   input_schema: schemas/comsol_C06_result_extraction_postprocess_validation.schema.json
-  default_config: configs/comsol/result_extraction_postprocess_validation/static_contract.yaml
+  default_config: configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml
   runtime_target: _results/comsol/result_extraction_postprocess_validation/
   package_entrypoint: science_capability_registry.comsol.result_extraction_postprocess_validation:run
   depends_on: C05_study_run_solver_smoke

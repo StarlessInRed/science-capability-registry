@@ -15,7 +15,11 @@ from science_capability_registry.registry.catalog import (
     repo_path,
     resolve_capability,
 )
-from science_capability_registry.registry.dispatcher import RUNNERS, build_dispatch_plan, run_capability
+from science_capability_registry.registry.dispatcher import (
+    RUNNERS,
+    build_dispatch_plan,
+    run_capability,
+)
 
 
 FORBIDDEN_CATALOG_FIELDS = {
@@ -42,7 +46,10 @@ def _validate_json(data: dict[str, Any], schema_path: Path) -> None:
     schema = _read_json(schema_path)
     validator = Draft202012Validator(schema)
     errors = sorted(validator.iter_errors(data), key=lambda error: list(error.path))
-    assert not errors, "\n".join(f"{'.'.join(str(part) for part in error.path)}: {error.message}" for error in errors)
+    assert not errors, "\n".join(
+        f"{'.'.join(str(part) for part in error.path)}: {error.message}"
+        for error in errors
+    )
 
 
 def _repo_relative(path_value: str) -> bool:
@@ -60,26 +67,84 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
         assert repo_path(entry["asset_path"]).exists()
 
     catalog_asset_paths = {entry["asset_path"] for entry in catalog["capabilities"]}
-    assert "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml" in catalog_asset_paths
-    assert "software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml" in catalog_asset_paths
-    assert "software/gmsh/assets/C02_boundary_physical_group_contract.yaml" in catalog_asset_paths
-    assert "software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml" in catalog_asset_paths
-    assert "software/gmsh/assets/C04_cad_import_geometry_healing.yaml" in catalog_asset_paths
-    assert "software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml" in catalog_asset_paths
-    assert "software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C01_steady_internal_flow_runtime.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C02_verification_reference_validation.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C04_external_aero_force_coefficients.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C05_vof_free_surface_transient.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C06_sliding_rotating_mesh.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C07_heat_transfer_energy_balance.yaml" in catalog_asset_paths
-    assert "software/fluent/assets/C08_workbench_parameter_integration.yaml" in catalog_asset_paths
-    assert "software/comsol/assets/C01_matlab_server_bridge_runtime.yaml" in catalog_asset_paths
-    assert "software/comsol/assets/C02_model_construction_api_contract.yaml" in catalog_asset_paths
-    assert "software/comsol/assets/C03_geometry_mesh_import_contract.yaml" in catalog_asset_paths
-    assert "software/comsol/assets/C04_physics_boundary_assignment_contract.yaml" in catalog_asset_paths
-    assert "software/comsol/assets/C05_study_run_solver_smoke.yaml" in catalog_asset_paths
-    assert "software/comsol/assets/C06_result_extraction_postprocess_validation.yaml" in catalog_asset_paths
+    assert (
+        "software/openfoam/assets/C05_transient_cylinder_vortex_shedding.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/gmsh/assets/C01_parametric_geometry_mesh_generation.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/gmsh/assets/C02_boundary_physical_group_contract.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/gmsh/assets/C03_mesh_refinement_quality_trend.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/gmsh/assets/C04_cad_import_geometry_healing.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C01_steady_internal_flow_runtime.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C02_verification_reference_validation.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C04_external_aero_force_coefficients.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C05_vof_free_surface_transient.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C06_sliding_rotating_mesh.yaml" in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C07_heat_transfer_energy_balance.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/fluent/assets/C08_workbench_parameter_integration.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/comsol/assets/C01_matlab_server_bridge_runtime.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/comsol/assets/C02_model_construction_api_contract.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/comsol/assets/C03_geometry_mesh_import_contract.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/comsol/assets/C04_physics_boundary_assignment_contract.yaml"
+        in catalog_asset_paths
+    )
+    assert (
+        "software/comsol/assets/C05_study_run_solver_smoke.yaml" in catalog_asset_paths
+    )
+    assert (
+        "software/comsol/assets/C06_result_extraction_postprocess_validation.yaml"
+        in catalog_asset_paths
+    )
 
 
 def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:
@@ -87,12 +152,20 @@ def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:
     for entry in catalog["capabilities"]:
         assert not (FORBIDDEN_CATALOG_FIELDS & set(entry))
         for key in ["asset_path", "run_schema_path", "default_config_path"]:
-            assert _repo_relative(entry[key]), f"{entry['capability_id']} has non-repo-relative {key}: {entry[key]}"
-            assert repo_path(entry[key]).exists(), f"{entry['capability_id']} missing {key}: {entry[key]}"
+            assert _repo_relative(
+                entry[key]
+            ), f"{entry['capability_id']} has non-repo-relative {key}: {entry[key]}"
+            assert repo_path(
+                entry[key]
+            ).exists(), f"{entry['capability_id']} missing {key}: {entry[key]}"
         for key in ["runtime_profile_path", "benchmark_manifest_path"]:
             if key in entry:
-                assert _repo_relative(entry[key]), f"{entry['capability_id']} has non-repo-relative {key}: {entry[key]}"
-                assert repo_path(entry[key]).exists(), f"{entry['capability_id']} missing {key}: {entry[key]}"
+                assert _repo_relative(
+                    entry[key]
+                ), f"{entry['capability_id']} has non-repo-relative {key}: {entry[key]}"
+                assert repo_path(
+                    entry[key]
+                ).exists(), f"{entry['capability_id']} missing {key}: {entry[key]}"
         assert entry["primary_evidence_id"] in entry["evidence_ids"]
         assert entry["result_contract"]["required_files"] == [
             "manifest.json",
@@ -100,7 +173,10 @@ def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:
             "validation.json",
             "validation_report.md",
         ]
-        assert entry["result_contract"]["runtime_evidence_index"] == "reports/evidence_index.yaml"
+        assert (
+            entry["result_contract"]["runtime_evidence_index"]
+            == "reports/evidence_index.yaml"
+        )
 
         asset = _read_yaml(repo_path(entry["asset_path"]))
         assert entry["asset_id"] == asset["asset_id"]
@@ -109,7 +185,10 @@ def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:
         assert entry["card_status"] == asset["card_status"]
         assert entry["benchmark_status"] == asset["benchmark_status"]
         assert entry["run_schema_path"] == asset["integration_targets"]["input_schema"]
-        assert entry["package_entrypoint"] == asset["integration_targets"]["package_entrypoint"]
+        assert (
+            entry["package_entrypoint"]
+            == asset["integration_targets"]["package_entrypoint"]
+        )
         assert entry["capability_id"] == asset["integration_targets"]["workflow_stage"]
 
         config = _read_yaml(repo_path(entry["default_config_path"]))
@@ -132,13 +211,20 @@ def test_evidence_index_resolves_catalog_evidence_ids() -> None:
             assert evidence_entry["asset_path"] == entry["asset_path"]
             assert repo_path(evidence_entry["primary_evidence_path"]).exists()
             for path in evidence_entry.get("supporting_paths", []):
-                assert repo_path(path).exists(), f"{evidence_id} missing supporting path: {path}"
+                assert repo_path(
+                    path
+                ).exists(), f"{evidence_id} missing supporting path: {path}"
 
         if entry["benchmark_status"] == "benchmark_validated":
-            assert any(evidence[evidence_id]["status"] == "passed" for evidence_id in entry["evidence_ids"])
+            assert any(
+                evidence[evidence_id]["status"] == "passed"
+                for evidence_id in entry["evidence_ids"]
+            )
 
 
-def test_dispatcher_runner_keys_match_catalog_and_can_dry_run_cantera_c01(tmp_path: Path) -> None:
+def test_dispatcher_runner_keys_match_catalog_and_can_dry_run_cantera_c01(
+    tmp_path: Path,
+) -> None:
     catalog_ids = set(catalog_entries_by_id(load_catalog()))
     assert set(RUNNERS) == catalog_ids
 
@@ -148,12 +234,19 @@ def test_dispatcher_runner_keys_match_catalog_and_can_dry_run_cantera_c01(tmp_pa
     openfoam_c08 = next(
         entry
         for entry in plan["entries"]
-        if entry["capability_id"] == "cfd.openfoam.compressible_shock_capturing_forward_step"
+        if entry["capability_id"]
+        == "cfd.openfoam.compressible_shock_capturing_forward_step"
     )
     assert openfoam_c08["dispatch_status"] == "replay_ready"
     assert openfoam_c08["current_gate"] == "smoke"
-    assert openfoam_c08["primary_evidence_id"] == "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
-    assert openfoam_c08["runtime_profile_path"] == "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml"
+    assert (
+        openfoam_c08["primary_evidence_id"]
+        == "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
+    )
+    assert (
+        openfoam_c08["runtime_profile_path"]
+        == "configs/openfoam/runtime_profiles/openfoam_com_v2112.yaml"
+    )
 
     result = run_capability(
         "combustion.cantera.constant_pressure_ignition",
@@ -162,6 +255,24 @@ def test_dispatcher_runner_keys_match_catalog_and_can_dry_run_cantera_c01(tmp_pa
     )
     assert result["validated_config"] is True
     assert result["capability_id"] == "combustion.cantera.constant_pressure_ignition"
+
+
+def test_comsol_c03_c06_runtime_smoke_catalog_boundary() -> None:
+    catalog_by_id = catalog_entries_by_id(load_catalog())
+    expected = {
+        "multiphysics.comsol.geometry_mesh_import_contract": "configs/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle.yaml",
+        "multiphysics.comsol.physics_boundary_assignment_contract": "configs/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle.yaml",
+        "multiphysics.comsol.study_run_solver_smoke": "configs/comsol/study_run_solver_smoke/local_livelink_heat_rectangle.yaml",
+        "multiphysics.comsol.result_extraction_postprocess_validation": "configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml",
+    }
+
+    for capability_id, config_path in expected.items():
+        entry = catalog_by_id[capability_id]
+        assert entry["default_config_path"] == config_path
+        assert entry["benchmark_status"] == "package_skeleton_created"
+        assert entry["dispatch_status"] == "runtime_smoke_passed"
+        assert entry["current_gate"] == "smoke"
+        assert entry["primary_evidence_id"] in entry["evidence_ids"]
 
 
 def test_resolve_capability_rejects_unknown_id() -> None:

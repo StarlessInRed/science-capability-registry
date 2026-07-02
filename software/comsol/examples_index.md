@@ -17,10 +17,10 @@
 | --- | --- | --- | --- | --- |
 | C01 | `software/comsol/assets/C01_matlab_server_bridge_runtime.yaml` | LiveLink API, self-generated minimal model | MATLAB starts or connects to COMSOL and extracts one finite scalar | runtime smoke passed |
 | C02 | `software/comsol/assets/C02_model_construction_api_contract.yaml` | LiveLink model tree/API commands | build model tree, parameters, material, geometry, mesh, study | runtime smoke passed |
-| C03 | `software/comsol/assets/C03_geometry_mesh_import_contract.yaml` | generated geometry, later official Application Library model | emit geometry/mesh/selection manifest | package skeleton static-readiness |
-| C04 | `software/comsol/assets/C04_physics_boundary_assignment_contract.yaml` | C02/C03 generated model | assign physics, materials, BC/IC and validate completeness | package skeleton static-readiness |
-| C05 | `software/comsol/assets/C05_study_run_solver_smoke.yaml` | C04 complete model | run study, check solver status, keep result dataset | package skeleton static-readiness |
-| C06 | `software/comsol/assets/C06_result_extraction_postprocess_validation.yaml` | solved C05 model | export canonical probes/tables/units for downstream use | package skeleton static-readiness |
+| C03 | `software/comsol/assets/C03_geometry_mesh_import_contract.yaml` | generated geometry, later official Application Library model | emit geometry/mesh/selection manifest | runtime smoke passed |
+| C04 | `software/comsol/assets/C04_physics_boundary_assignment_contract.yaml` | C02/C03 generated model | assign physics, materials, BC/IC and validate completeness | runtime smoke passed |
+| C05 | `software/comsol/assets/C05_study_run_solver_smoke.yaml` | C04 complete model | run study, check solver status, keep result dataset | runtime smoke passed |
+| C06 | `software/comsol/assets/C06_result_extraction_postprocess_validation.yaml` | solved C05 model | export canonical probes/tables/units for downstream use | runtime smoke passed |
 
 ## Runtime Prohibition
 
@@ -42,9 +42,9 @@ The current C01 runner separates `dry_run_only`, `preflight_only`, and `matlab_l
 ## 2026-07-03 C02-C06 Package Boundary
 
 - C02 package config: `configs/comsol/model_construction_api_contract/local_livelink_model_tree_smoke.yaml`
-- C03 package config: `configs/comsol/geometry_mesh_import_contract/static_contract.yaml`
-- C04 package config: `configs/comsol/physics_boundary_assignment_contract/static_contract.yaml`
-- C05 package config: `configs/comsol/study_run_solver_smoke/static_contract.yaml`
-- C06 package config: `configs/comsol/result_extraction_postprocess_validation/static_contract.yaml`
+- C03 package config: `configs/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle.yaml`
+- C04 package config: `configs/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle.yaml`
+- C05 package config: `configs/comsol/study_run_solver_smoke/local_livelink_heat_rectangle.yaml`
+- C06 package config: `configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml`
 
-C02 has local LiveLink model-tree smoke evidence. C03-C06 are static package skeletons only. Do not interpret C03-C06 package artifacts as COMSOL runtime, official `.mph` replay, solver convergence, field extraction, or benchmark validation.
+C02 has local LiveLink model-tree smoke evidence. C03-C06 now have generated heat-rectangle LiveLink runtime smoke evidence. Do not interpret these generated-case artifacts as official `.mph` replay, double-v, analytical benchmark validation, or broad multiphysics correctness.

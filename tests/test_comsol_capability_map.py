@@ -51,7 +51,9 @@ def test_comsol_c01_c06_capability_map_links_assets_and_tasks() -> None:
 
     for c_id, asset_path in COMSOL_ASSETS.items():
         asset = _read_yaml(ROOT / asset_path)
-        errors = sorted(validator.iter_errors(asset), key=lambda error: list(error.path))
+        errors = sorted(
+            validator.iter_errors(asset), key=lambda error: list(error.path)
+        )
 
         assert not errors, [error.message for error in errors]
         assert asset["software"] == "COMSOL"
@@ -68,7 +70,9 @@ def test_comsol_c01_c06_capability_map_links_assets_and_tasks() -> None:
 
 def test_comsol_capability_map_evidence_entry_resolves() -> None:
     evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
-    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
+    evidence_by_id = {
+        entry["evidence_id"]: entry for entry in evidence_index["evidence"]
+    }
     evidence = evidence_by_id[COMSOL_EVIDENCE_ID]
 
     assert evidence["asset_path"] == MAP_PATH.as_posix()
@@ -83,8 +87,12 @@ def test_comsol_capability_map_evidence_entry_resolves() -> None:
 
 def test_comsol_c01_package_skeleton_evidence_entry_resolves() -> None:
     evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
-    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
-    evidence = evidence_by_id["comsol_C01_matlab_server_bridge_runtime_preflight_skeleton_2026-07-03"]
+    evidence_by_id = {
+        entry["evidence_id"]: entry for entry in evidence_index["evidence"]
+    }
+    evidence = evidence_by_id[
+        "comsol_C01_matlab_server_bridge_runtime_preflight_skeleton_2026-07-03"
+    ]
 
     assert evidence["asset_path"] == COMSOL_ASSETS["C01"]
     assert evidence["gate"] == "static-readiness"
@@ -97,13 +105,19 @@ def test_comsol_c01_package_skeleton_evidence_entry_resolves() -> None:
 
 def test_comsol_c01_livelink_smoke_evidence_entry_resolves() -> None:
     evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
-    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
-    evidence = evidence_by_id["comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03"]
+    evidence_by_id = {
+        entry["evidence_id"]: entry for entry in evidence_index["evidence"]
+    }
+    evidence = evidence_by_id[
+        "comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03"
+    ]
 
     assert evidence["asset_path"] == COMSOL_ASSETS["C01"]
     assert evidence["gate"] == "smoke"
     assert evidence["status"] == "passed"
-    assert evidence["runtime_evidence_paths"] == ["_results/comsol/matlab_server_bridge_runtime/local_livelink_smoke/"]
+    assert evidence["runtime_evidence_paths"] == [
+        "_results/comsol/matlab_server_bridge_runtime/local_livelink_smoke/"
+    ]
     assert Path(evidence["primary_evidence_path"]).exists()
     for path in evidence["supporting_paths"]:
         assert Path(path).exists(), path
@@ -111,13 +125,55 @@ def test_comsol_c01_livelink_smoke_evidence_entry_resolves() -> None:
 
 def test_comsol_c02_c06_package_evidence_entries_resolve() -> None:
     evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
-    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
+    evidence_by_id = {
+        entry["evidence_id"]: entry for entry in evidence_index["evidence"]
+    }
     expected = {
-        "comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03": ("C02", "smoke", "passed"),
-        "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03": ("C03", "static-readiness", "passed"),
-        "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03": ("C04", "static-readiness", "passed"),
-        "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03": ("C05", "static-readiness", "passed"),
-        "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03": ("C06", "static-readiness", "passed"),
+        "comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03": (
+            "C02",
+            "smoke",
+            "passed",
+        ),
+        "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03": (
+            "C03",
+            "static-readiness",
+            "passed",
+        ),
+        "comsol_C03_geometry_mesh_import_contract_livelink_heat_rectangle_smoke_2026-07-03": (
+            "C03",
+            "smoke",
+            "passed",
+        ),
+        "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03": (
+            "C04",
+            "static-readiness",
+            "passed",
+        ),
+        "comsol_C04_physics_boundary_assignment_contract_livelink_heat_rectangle_smoke_2026-07-03": (
+            "C04",
+            "smoke",
+            "passed",
+        ),
+        "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03": (
+            "C05",
+            "static-readiness",
+            "passed",
+        ),
+        "comsol_C05_study_run_solver_smoke_livelink_heat_rectangle_smoke_2026-07-03": (
+            "C05",
+            "smoke",
+            "passed",
+        ),
+        "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03": (
+            "C06",
+            "static-readiness",
+            "passed",
+        ),
+        "comsol_C06_result_extraction_postprocess_validation_livelink_heat_rectangle_smoke_2026-07-03": (
+            "C06",
+            "smoke",
+            "passed",
+        ),
     }
 
     for evidence_id, (c_id, gate, status) in expected.items():
@@ -125,16 +181,21 @@ def test_comsol_c02_c06_package_evidence_entries_resolve() -> None:
         assert evidence["asset_path"] == COMSOL_ASSETS[c_id]
         assert evidence["gate"] == gate
         assert evidence["status"] == status
+        if gate == "smoke":
+            assert evidence["runtime_evidence_paths"]
+            assert evidence["evidence_kind"] == "runtime_smoke_report"
         assert Path(evidence["primary_evidence_path"]).exists()
         for path in evidence["supporting_paths"]:
             assert Path(path).exists(), path
 
 
-def test_comsol_first_gate_does_not_claim_runtime() -> None:
-    report_text = Path("reports/comsol_C01_C06_matlab_driver_capability_map_2026-07-02.md").read_text(
-        encoding="utf-8"
-    )
+def test_comsol_runtime_smoke_does_not_claim_benchmark_validation() -> None:
+    report_text = Path(
+        "reports/comsol_C01_C06_matlab_driver_capability_map_2026-07-02.md"
+    ).read_text(encoding="utf-8")
     index_text = INDEX_PATH.read_text(encoding="utf-8")
+    map_text = MAP_PATH.read_text(encoding="utf-8")
 
     assert "No MATLAB/COMSOL runtime execution is claimed" in report_text
-    assert "Do not claim COMSOL runtime without a recorded MATLAB/COMSOL executable profile" in index_text
+    assert "benchmark validation" in index_text
+    assert "benchmark validation" in map_text

@@ -1743,3 +1743,103 @@ evidence:
   scope: COMSOL C06 static package skeleton validates export, probe-table, and unit handoff artifacts for future result extraction.
   limitations:
   - Static contract only; no COMSOL result extraction runtime, finite-value validation, field export, downstream analysis result, official replay, or benchmark validation is claimed.
+- evidence_id: comsol_C03_geometry_mesh_import_contract_livelink_heat_rectangle_smoke_2026-07-03
+  capability_id: multiphysics.comsol.geometry_mesh_import_contract
+  asset_path: software/comsol/assets/C03_geometry_mesh_import_contract.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C03_geometry_mesh_import_contract_livelink_heat_rectangle_smoke_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C03_geometry_mesh_import_contract.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle.yaml
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  - schemas/comsol_C03_geometry_mesh_import_contract.schema.json
+  - src/science_capability_registry/comsol/geometry_mesh_import_contract/runner.py
+  - src/science_capability_registry/comsol/heat_rectangle_livelink.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle/
+  scope: Local COMSOL 6.3 MATLAB LiveLink smoke creates a generated 2D rectangle, runs geometry and mesh generation, and emits geometry/mesh/selection handoff artifacts.
+  limitations:
+  - Generated-rectangle geometry and mesh smoke only; no CAD import robustness, mesh-quality validation, physics assignment, solver execution, official replay, double-v, or benchmark validation is claimed.
+  - Local executable paths and server details remain environment-injected and are not committed in configs.
+- evidence_id: comsol_C04_physics_boundary_assignment_contract_livelink_heat_rectangle_smoke_2026-07-03
+  capability_id: multiphysics.comsol.physics_boundary_assignment_contract
+  asset_path: software/comsol/assets/C04_physics_boundary_assignment_contract.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C04_physics_boundary_assignment_contract_livelink_heat_rectangle_smoke_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C04_physics_boundary_assignment_contract.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle.yaml
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  - schemas/comsol_C04_physics_boundary_assignment_contract.schema.json
+  - src/science_capability_registry/comsol/physics_boundary_assignment_contract/runner.py
+  - src/science_capability_registry/comsol/heat_rectangle_livelink.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle/
+  scope: Local COMSOL 6.3 MATLAB LiveLink smoke creates a generated heat rectangle, assigns material, HeatTransfer physics, fixed-temperature boundaries, and unit policy artifacts without running a solver.
+  limitations:
+  - Generated-rectangle assignment smoke only; no solver convergence, field correctness, official replay, double-v, or benchmark validation is claimed.
+  - Local executable paths and server details remain environment-injected and are not committed in configs.
+- evidence_id: comsol_C05_study_run_solver_smoke_livelink_heat_rectangle_smoke_2026-07-03
+  capability_id: multiphysics.comsol.study_run_solver_smoke
+  asset_path: software/comsol/assets/C05_study_run_solver_smoke.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C05_study_run_solver_smoke_livelink_heat_rectangle_smoke_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C05_study_run_solver_smoke.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/study_run_solver_smoke/local_livelink_heat_rectangle.yaml
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  - schemas/comsol_C05_study_run_solver_smoke.schema.json
+  - src/science_capability_registry/comsol/study_run_solver_smoke/runner.py
+  - src/science_capability_registry/comsol/heat_rectangle_livelink.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/study_run_solver_smoke/local_livelink_heat_rectangle/
+  scope: Local COMSOL 6.3 MATLAB LiveLink smoke runs a stationary study for the generated heat rectangle and emits solver/dataset artifacts.
+  limitations:
+  - Generated-rectangle solver smoke only; no analytical field validation, official replay, double-v, or benchmark validation is claimed.
+  - Local executable paths and server details remain environment-injected and are not committed in configs.
+- evidence_id: comsol_C06_result_extraction_postprocess_validation_livelink_heat_rectangle_smoke_2026-07-03
+  capability_id: multiphysics.comsol.result_extraction_postprocess_validation
+  asset_path: software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C06_result_extraction_postprocess_validation_livelink_heat_rectangle_smoke_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  - schemas/comsol_C06_result_extraction_postprocess_validation.schema.json
+  - src/science_capability_registry/comsol/result_extraction_postprocess_validation/runner.py
+  - src/science_capability_registry/comsol/heat_rectangle_livelink.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle/
+  scope: Local COMSOL 6.3 MATLAB LiveLink smoke solves the generated heat rectangle, exports one finite temperature probe, and writes unit handoff artifacts.
+  limitations:
+  - Generated-rectangle result extraction smoke only; no official replay, double-v, broader multiphysics correctness, or benchmark validation is claimed.
+  - Local executable paths and server details remain environment-injected and are not committed in configs.

@@ -38,15 +38,16 @@ benchmark:
   source_name: Generated geometry first, official Application Library model later
   source_type: generated or official example source
   benchmark_role: Candidate benchmark for robust geometry/mesh/source-readiness.
-  status_rationale: Static package skeleton exists for the geometry/mesh/selection contract; CAD import, mesh generation runtime, and physics validation are not claimed.
+  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for geometry, mesh, and selection artifacts; CAD import robustness, official replay, double-v, and benchmark validation are not claimed.
 validation_criteria:
 - Geometry, mesh, and named selection roles must be visible in config/schema.
 - Validation must reject missing required selections and boundary-role mismatches.
+- Runtime smoke must prove generated rectangle geometry and mesh artifacts without claiming mesh-quality or benchmark validation.
 - CAD/import success must not be treated as physics validation.
 integration_targets:
   workflow_stage: multiphysics.comsol.geometry_mesh_import_contract
   input_schema: schemas/comsol_C03_geometry_mesh_import_contract.schema.json
-  default_config: configs/comsol/geometry_mesh_import_contract/static_contract.yaml
+  default_config: configs/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle.yaml
   runtime_target: _results/comsol/geometry_mesh_import_contract/
   package_entrypoint: science_capability_registry.comsol.geometry_mesh_import_contract:run
   depends_on: C02_model_construction_api_contract

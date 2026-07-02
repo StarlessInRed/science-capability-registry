@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://science-capability-registry.local/schemas/comsol_C03_geometry_mesh_import_contract.schema.json",
-  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL C03 static geometry, mesh, import, and selection-map contract.",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL C03 geometry, mesh, import, and selection-map contract with optional MATLAB LiveLink generated-rectangle smoke.",
   "title": "COMSOL C03 Geometry Mesh Import Contract Config",
   "type": "object",
   "additionalProperties": false,
@@ -12,25 +12,71 @@
     "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
     "description": {"type": "string", "minLength": 1},
     "depends_on": {"type": "array", "items": {"const": "multiphysics.comsol.model_construction_api_contract"}, "maxItems": 1},
+    "comsol": {"$ref": "#/$defs/comsol"},
+    "matlab": {"$ref": "#/$defs/matlab"},
+    "livelink": {"$ref": "#/$defs/livelink"},
+    "server": {"$ref": "#/$defs/server"},
     "backend": {"$ref": "#/$defs/backend"},
     "contract": {"$ref": "#/$defs/contract"},
-    "outputs": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["output_dir", "expected_outputs"],
-      "properties": {
-        "output_dir": {"type": "string", "pattern": "^_results/comsol/geometry_mesh_import_contract/[A-Za-z0-9_./-]+$"},
-        "expected_outputs": {"$ref": "#/$defs/expected_outputs"}
-      }
-    },
+    "heat_rectangle": {"$ref": "#/$defs/heat_rectangle"},
+    "outputs": {"$ref": "#/$defs/outputs"},
     "validation": {"$ref": "#/$defs/validation"}
   },
+  "allOf": [
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "matlab_livelink_heat_rectangle_smoke"}}}}},
+      "then": {"required": ["comsol", "matlab", "livelink", "server", "heat_rectangle"]}
+    }
+  ],
   "$defs": {
+    "comsol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "command_env", "mphserver_env", "version_family"],
+      "properties": {
+        "runtime_profile": {"type": "string", "minLength": 1},
+        "runtime_profile_config": {"type": "string", "pattern": "^configs/comsol/runtime_profiles/[A-Za-z0-9_./-]+\\.yaml$"},
+        "command_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "mphserver_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "version_family": {"type": "string", "minLength": 1}
+      }
+    },
+    "matlab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable_env", "batch_argument"],
+      "properties": {
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "batch_argument": {"enum": ["-batch"]}
+      }
+    },
+    "livelink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mli_dir_env", "required_matlab_functions"],
+      "properties": {
+        "mli_dir_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "required_matlab_functions": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"}, "minItems": 1, "uniqueItems": true}
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host_env", "port_env", "connection_mode"],
+      "properties": {
+        "host_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "port_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "connection_mode": {"enum": ["local_or_server"]}
+      }
+    },
     "backend": {
       "type": "object",
       "additionalProperties": false,
       "required": ["type", "timeout_s"],
-      "properties": {"type": {"const": "dry_run_only"}, "timeout_s": {"type": "number", "exclusiveMinimum": 0}}
+      "properties": {
+        "type": {"enum": ["dry_run_only", "matlab_livelink_heat_rectangle_smoke"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
     },
     "contract": {
       "type": "object",
@@ -75,9 +121,97 @@
       "minItems": 3,
       "uniqueItems": true
     },
+    "heat_rectangle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script_filename", "tags", "geometry", "mesh", "physics", "study", "probes"],
+      "properties": {
+        "script_filename": {"type": "string", "pattern": "^matlab_c0[3-6]_[A-Za-z0-9_]+\\.m$"},
+        "tags": {"$ref": "#/$defs/tags"},
+        "geometry": {"$ref": "#/$defs/geometry"},
+        "mesh": {"$ref": "#/$defs/mesh"},
+        "physics": {"$ref": "#/$defs/physics"},
+        "study": {"$ref": "#/$defs/study"},
+        "probes": {"type": "array", "items": {"$ref": "#/$defs/probe"}, "minItems": 1}
+      }
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_tag", "component_tag", "geometry_tag", "rectangle_tag", "mesh_tag", "material_tag", "physics_tag", "temperature_boundary_tag", "study_tag", "study_feature_tag"],
+      "properties": {
+        "model_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "component_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "geometry_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "rectangle_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "mesh_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "material_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "physics_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "temperature_boundary_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "study_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "study_feature_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "width_parameter", "height_parameter"],
+      "properties": {
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0},
+        "width_parameter": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "height_parameter": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"}
+      }
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["auto_mesh_size"],
+      "properties": {"auto_mesh_size": {"type": "integer", "minimum": 1, "maximum": 9}}
+    },
+    "physics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interface_type", "material_type", "boundary_condition_type", "boundary_temperature"],
+      "properties": {
+        "interface_type": {"const": "HeatTransfer"},
+        "material_type": {"const": "Common"},
+        "boundary_condition_type": {"const": "TemperatureBoundary"},
+        "boundary_temperature": {"type": "string", "minLength": 1}
+      }
+    },
+    "study": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["study_type"],
+      "properties": {"study_type": {"const": "Stationary"}}
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "expression", "x", "y", "unit", "expected_value", "tolerance"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "expression": {"const": "T"},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "unit": {"const": "K"},
+        "expected_value": {"type": "number"},
+        "tolerance": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "pattern": "^_results/comsol/geometry_mesh_import_contract/[A-Za-z0-9_./-]+$"},
+        "expected_outputs": {"$ref": "#/$defs/expected_outputs"}
+      }
+    },
     "expected_outputs": {
       "type": "array",
-      "items": {"enum": ["geometry_manifest.json", "mesh_manifest.json", "selection_map.json", "manifest.json", "metrics.json", "validation.json", "validation_report.md"]},
+      "items": {"enum": ["geometry_manifest.json", "mesh_manifest.json", "selection_map.json", "matlab_c03_heat_rectangle_smoke.m", "stdout.txt", "stderr.txt", "manifest.json", "metrics.json", "validation.json", "validation_report.md"]},
       "minItems": 7,
       "uniqueItems": true
     },
@@ -86,7 +220,11 @@
       "additionalProperties": false,
       "required": ["gate", "required_object_roles", "required_manifest_sections", "required_artifacts", "no_claims"],
       "properties": {
-        "gate": {"const": "static-readiness"},
+        "gate": {"enum": ["static-readiness", "smoke"]},
+        "required_environment": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z0-9_]+$"}, "uniqueItems": true},
+        "optional_environment": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z0-9_]+$"}, "uniqueItems": true},
+        "require_path_exists": {"type": "boolean"},
+        "require_matlab_execution": {"type": "boolean"},
         "required_object_roles": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9_-]+$"}, "minItems": 1, "uniqueItems": true},
         "required_manifest_sections": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
         "required_artifacts": {"$ref": "#/$defs/expected_outputs"},

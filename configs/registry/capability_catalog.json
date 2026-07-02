@@ -701,12 +701,13 @@
       "domain": "multiphysics",
       "asset_path": "software/comsol/assets/C03_geometry_mesh_import_contract.yaml",
       "run_schema_path": "schemas/comsol_C03_geometry_mesh_import_contract.schema.json",
-      "default_config_path": "configs/comsol/geometry_mesh_import_contract/static_contract.yaml",
+      "default_config_path": "configs/comsol/geometry_mesh_import_contract/local_livelink_heat_rectangle.yaml",
       "package_entrypoint": "science_capability_registry.comsol.geometry_mesh_import_contract:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03"
+        "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03",
+        "comsol_C03_geometry_mesh_import_contract_livelink_heat_rectangle_smoke_2026-07-03"
       ],
       "result_contract": {
         "required_files": [
@@ -719,9 +720,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "comsol_C03_geometry_mesh_import_contract_livelink_heat_rectangle_smoke_2026-07-03"
     },
     {
       "capability_id": "multiphysics.comsol.physics_boundary_assignment_contract",
@@ -730,12 +731,13 @@
       "domain": "multiphysics",
       "asset_path": "software/comsol/assets/C04_physics_boundary_assignment_contract.yaml",
       "run_schema_path": "schemas/comsol_C04_physics_boundary_assignment_contract.schema.json",
-      "default_config_path": "configs/comsol/physics_boundary_assignment_contract/static_contract.yaml",
+      "default_config_path": "configs/comsol/physics_boundary_assignment_contract/local_livelink_heat_rectangle.yaml",
       "package_entrypoint": "science_capability_registry.comsol.physics_boundary_assignment_contract:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03"
+        "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03",
+        "comsol_C04_physics_boundary_assignment_contract_livelink_heat_rectangle_smoke_2026-07-03"
       ],
       "result_contract": {
         "required_files": [
@@ -748,9 +750,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "comsol_C04_physics_boundary_assignment_contract_livelink_heat_rectangle_smoke_2026-07-03"
     },
     {
       "capability_id": "multiphysics.comsol.study_run_solver_smoke",
@@ -759,12 +761,13 @@
       "domain": "multiphysics",
       "asset_path": "software/comsol/assets/C05_study_run_solver_smoke.yaml",
       "run_schema_path": "schemas/comsol_C05_study_run_solver_smoke.schema.json",
-      "default_config_path": "configs/comsol/study_run_solver_smoke/static_contract.yaml",
+      "default_config_path": "configs/comsol/study_run_solver_smoke/local_livelink_heat_rectangle.yaml",
       "package_entrypoint": "science_capability_registry.comsol.study_run_solver_smoke:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03"
+        "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03",
+        "comsol_C05_study_run_solver_smoke_livelink_heat_rectangle_smoke_2026-07-03"
       ],
       "result_contract": {
         "required_files": [
@@ -777,9 +780,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "comsol_C05_study_run_solver_smoke_livelink_heat_rectangle_smoke_2026-07-03"
     },
     {
       "capability_id": "multiphysics.comsol.result_extraction_postprocess_validation",
@@ -788,12 +791,13 @@
       "domain": "multiphysics",
       "asset_path": "software/comsol/assets/C06_result_extraction_postprocess_validation.yaml",
       "run_schema_path": "schemas/comsol_C06_result_extraction_postprocess_validation.schema.json",
-      "default_config_path": "configs/comsol/result_extraction_postprocess_validation/static_contract.yaml",
+      "default_config_path": "configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml",
       "package_entrypoint": "science_capability_registry.comsol.result_extraction_postprocess_validation:run",
       "card_status": "review",
       "benchmark_status": "package_skeleton_created",
       "evidence_ids": [
-        "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03"
+        "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03",
+        "comsol_C06_result_extraction_postprocess_validation_livelink_heat_rectangle_smoke_2026-07-03"
       ],
       "result_contract": {
         "required_files": [
@@ -806,9 +810,9 @@
         "runtime_evidence_index": "reports/evidence_index.yaml"
       },
       "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
-      "dispatch_status": "static_ready",
-      "current_gate": "static-readiness",
-      "primary_evidence_id": "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03"
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "comsol_C06_result_extraction_postprocess_validation_livelink_heat_rectangle_smoke_2026-07-03"
     },
     {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
