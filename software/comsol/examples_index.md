@@ -15,7 +15,7 @@
 
 | C | asset path | source candidates | first runtime action | current gate |
 | --- | --- | --- | --- | --- |
-| C01 | `software/comsol/assets/C01_matlab_server_bridge_runtime.yaml` | LiveLink API, self-generated minimal model | MATLAB starts or connects to COMSOL and extracts one finite scalar | static-readiness |
+| C01 | `software/comsol/assets/C01_matlab_server_bridge_runtime.yaml` | LiveLink API, self-generated minimal model | MATLAB starts or connects to COMSOL and extracts one finite scalar | package skeleton + preflight runner; runtime smoke pending |
 | C02 | `software/comsol/assets/C02_model_construction_api_contract.yaml` | LiveLink model tree/API commands | build model tree, parameters, material, geometry, mesh, study | static-readiness |
 | C03 | `software/comsol/assets/C03_geometry_mesh_import_contract.yaml` | generated geometry, later official Application Library model | emit geometry/mesh/selection manifest | static-readiness |
 | C04 | `software/comsol/assets/C04_physics_boundary_assignment_contract.yaml` | C02/C03 generated model | assign physics, materials, BC/IC and validate completeness | static-readiness |
@@ -28,3 +28,13 @@
 - Do not treat a `.mph` file opening as benchmark validation.
 - Do not store local executable paths, license paths, or server secrets in committed configs.
 - Do not commit large `.mph` or generated result files unless an explicit small fixture policy is created.
+
+## 2026-07-03 C01 Runtime Boundary
+
+C01 package skeleton paths:
+
+- `configs/comsol/matlab_server_bridge_runtime/local_preflight.yaml`
+- `schemas/comsol_C01_matlab_server_bridge_runtime.schema.json`
+- `src/science_capability_registry/comsol/matlab_server_bridge_runtime/`
+
+The current C01 runner separates `dry_run_only`, `preflight_only`, and `matlab_livelink_smoke`. The committed config stays on `preflight_only`; `matlab_livelink_smoke` requires local environment variables and a stable runtime evidence summary before it can be claimed.

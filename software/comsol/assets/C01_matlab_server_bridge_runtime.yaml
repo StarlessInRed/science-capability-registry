@@ -44,12 +44,14 @@ validation_criteria:
 - Missing LiveLink/API setup must fail as runtime-profile failure, not as model-physics failure.
 integration_targets:
   workflow_stage: multiphysics.comsol.matlab_server_bridge_runtime
+  input_schema: schemas/comsol_C01_matlab_server_bridge_runtime.schema.json
+  default_config: configs/comsol/matlab_server_bridge_runtime/local_preflight.yaml
   runtime_target: _results/comsol/matlab_server_bridge_runtime/
-  future_package_entrypoint: science_capability_registry.comsol.matlab_server_bridge_runtime:run
+  package_entrypoint: science_capability_registry.comsol.matlab_server_bridge_runtime:run
   runtime_profile: local_matlab_comsol
 intern_deliverables:
 - Implement environment preflight for MATLAB, COMSOL, and LiveLink API path.
 - Add a minimal generated model script and dry-run manifest.
 - Add one smoke run that emits canonical metrics once runtime is configured.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

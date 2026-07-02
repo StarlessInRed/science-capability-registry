@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/comsol_C01_matlab_server_bridge_runtime.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL C01 MATLAB LiveLink runtime preflight config.",
+  "title": "COMSOL C01 MATLAB Server Bridge Runtime Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "comsol",
+    "matlab",
+    "livelink",
+    "server",
+    "backend",
+    "smoke_script",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "multiphysics.comsol.matlab_server_bridge_runtime"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "comsol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "command_env", "mphserver_env", "version_family"],
+      "properties": {
+        "runtime_profile": {"const": "local_matlab_comsol_preflight"},
+        "runtime_profile_config": {"type": "string", "pattern": "^configs/comsol/runtime_profiles/[A-Za-z0-9_./-]+\\.yaml$"},
+        "command_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "mphserver_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "version_family": {"type": "string", "minLength": 1}
+      }
+    },
+    "matlab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable_env", "batch_argument"],
+      "properties": {
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "batch_argument": {"const": "-batch"}
+      }
+    },
+    "livelink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mli_dir_env", "required_matlab_functions"],
+      "properties": {
+        "mli_dir_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "required_matlab_functions": {
+          "type": "array",
+          "items": {"enum": ["mphstart", "mphglobal", "mphinterp"]},
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host_env", "port_env", "connection_mode"],
+      "properties": {
+        "host_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "port_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "connection_mode": {"enum": ["local_or_server"]}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "preflight_only", "matlab_livelink_smoke"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "smoke_script": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filename", "model_tag", "expected_scalar_name"],
+      "properties": {
+        "filename": {"const": "matlab_bridge_smoke.m"},
+        "model_tag": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "expected_scalar_name": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "pattern": "^_results/comsol/matlab_server_bridge_runtime/[A-Za-z0-9_./-]+$"},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "manifest.json",
+              "matlab_bridge_smoke.m",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md",
+              "stdout.txt",
+              "stderr.txt"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_environment",
+        "optional_environment",
+        "require_path_exists",
+        "require_matlab_execution",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke"]},
+        "required_environment": {
+          "type": "array",
+          "items": {"enum": ["MATLAB_EXE", "COMSOL_BIN", "COMSOL_MLI_DIR"]},
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "optional_environment": {
+          "type": "array",
+          "items": {"enum": ["COMSOL_MPHSERVER_BIN", "COMSOL_SERVER_HOST", "COMSOL_SERVER_PORT"]},
+          "uniqueItems": true
+        },
+        "require_path_exists": {"type": "boolean"},
+        "require_matlab_execution": {"type": "boolean"},
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "manifest.json",
+              "matlab_bridge_smoke.m",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md",
+              "stdout.txt",
+              "stderr.txt"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        },
+        "no_claims": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

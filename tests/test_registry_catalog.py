@@ -54,8 +54,8 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     catalog = load_catalog()
     _validate_json(catalog, Path("schemas/capability_registry.schema.json"))
 
-    assert len(catalog["capabilities"]) == 27
-    assert len(catalog_entries_by_id(catalog)) == 27
+    assert len(catalog["capabilities"]) == 28
+    assert len(catalog_entries_by_id(catalog)) == 28
     for entry in catalog["capabilities"]:
         assert repo_path(entry["asset_path"]).exists()
 
@@ -74,6 +74,7 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     assert "software/fluent/assets/C06_sliding_rotating_mesh.yaml" in catalog_asset_paths
     assert "software/fluent/assets/C07_heat_transfer_energy_balance.yaml" in catalog_asset_paths
     assert "software/fluent/assets/C08_workbench_parameter_integration.yaml" in catalog_asset_paths
+    assert "software/comsol/assets/C01_matlab_server_bridge_runtime.yaml" in catalog_asset_paths
 
 
 def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:

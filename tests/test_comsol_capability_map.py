@@ -57,7 +57,8 @@ def test_comsol_c01_c06_capability_map_links_assets_and_tasks() -> None:
         assert asset["software"] == "COMSOL"
         assert asset["domain"] == "multiphysics"
         assert asset["card_status"] == "review"
-        assert asset["benchmark_status"] == "benchmark_candidate"
+        expected_status = "package_skeleton_created" if c_id == "C01" else "benchmark_candidate"
+        assert asset["benchmark_status"] == expected_status
         assert asset_path in index_text
         assert c_id in map_text
 
@@ -77,6 +78,20 @@ def test_comsol_capability_map_evidence_entry_resolves() -> None:
     assert evidence["runtime_evidence_paths"] == []
     assert Path(evidence["primary_evidence_path"]).exists()
 
+    for path in evidence["supporting_paths"]:
+        assert Path(path).exists(), path
+
+
+def test_comsol_c01_package_skeleton_evidence_entry_resolves() -> None:
+    evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
+    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
+    evidence = evidence_by_id["comsol_C01_matlab_server_bridge_runtime_preflight_skeleton_2026-07-03"]
+
+    assert evidence["asset_path"] == COMSOL_ASSETS["C01"]
+    assert evidence["gate"] == "static-readiness"
+    assert evidence["status"] == "indexed"
+    assert evidence["runtime_evidence_paths"] == []
+    assert Path(evidence["primary_evidence_path"]).exists()
     for path in evidence["supporting_paths"]:
         assert Path(path).exists(), path
 

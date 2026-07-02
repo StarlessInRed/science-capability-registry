@@ -1,0 +1,21 @@
+profile_id: local_matlab_comsol_preflight
+software: COMSOL
+driver: MATLAB LiveLink
+role: runtime_profile_boundary
+description: Local MATLAB-to-COMSOL runtime profile boundary for COMSOL C01 preflight; real paths are injected through environment variables.
+required_env:
+- MATLAB_EXE
+- COMSOL_BIN
+- COMSOL_MLI_DIR
+optional_env:
+- COMSOL_MPHSERVER_BIN
+- COMSOL_SERVER_HOST
+- COMSOL_SERVER_PORT
+- COMSOL_APPLICATION_LIBRARY_ROOT
+path_policy:
+  committed_paths: none
+  local_values_source: environment
+  runtime_evidence_root: _results/comsol/matlab_server_bridge_runtime/
+claim_boundary:
+- This profile only defines how local paths enter the runner.
+- Presence of this profile does not prove MATLAB startup, COMSOL server connectivity, LiveLink import, solver execution, or benchmark validation.

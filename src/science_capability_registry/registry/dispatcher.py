@@ -11,6 +11,7 @@ from science_capability_registry.cantera.c03_counterflow_diffusion_flame import 
 from science_capability_registry.cantera.c04_extinction_strain_rate import run as run_cantera_c04
 from science_capability_registry.cantera.c05_reaction_path_analysis import run as run_cantera_c05
 from science_capability_registry.cantera.c06_mechanism_reduction import run as run_cantera_c06
+from science_capability_registry.comsol.matlab_server_bridge_runtime import run as run_comsol_c01
 from science_capability_registry.gmsh.boundary_layer_size_field_meshing import run as run_gmsh_c05
 from science_capability_registry.gmsh.boundary_physical_group_contract import run as run_gmsh_c02
 from science_capability_registry.gmsh.cad_import_geometry_healing import run as run_gmsh_c04
@@ -59,6 +60,7 @@ RUNNERS: dict[str, Runner] = {
     "cfd.fluent.sliding_rotating_mesh": run_fluent_c06,
     "cfd.fluent.heat_transfer_energy_balance": run_fluent_c07,
     "cfd.fluent.workbench_parameter_integration": run_fluent_c08,
+    "multiphysics.comsol.matlab_server_bridge_runtime": run_comsol_c01,
     "meshing.gmsh.parametric_geometry_mesh_generation": run_gmsh_c01,
     "meshing.gmsh.boundary_physical_group_contract": run_gmsh_c02,
     "meshing.gmsh.mesh_refinement_quality_trend": run_gmsh_c03,

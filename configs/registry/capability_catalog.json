@@ -636,6 +636,35 @@
       "primary_evidence_id": "fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02"
     },
     {
+      "capability_id": "multiphysics.comsol.matlab_server_bridge_runtime",
+      "asset_id": "C01_matlab_server_bridge_runtime",
+      "software": "COMSOL",
+      "domain": "multiphysics",
+      "asset_path": "software/comsol/assets/C01_matlab_server_bridge_runtime.yaml",
+      "run_schema_path": "schemas/comsol_C01_matlab_server_bridge_runtime.schema.json",
+      "default_config_path": "configs/comsol/matlab_server_bridge_runtime/local_preflight.yaml",
+      "package_entrypoint": "science_capability_registry.comsol.matlab_server_bridge_runtime:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "comsol_C01_matlab_server_bridge_runtime_preflight_skeleton_2026-07-03"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "comsol_C01_matlab_server_bridge_runtime_preflight_skeleton_2026-07-03"
+    },
+    {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
       "asset_id": "C01_parametric_geometry_mesh_generation",
       "software": "Gmsh",
