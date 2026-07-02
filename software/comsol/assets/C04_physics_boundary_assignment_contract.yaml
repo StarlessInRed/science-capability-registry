@@ -42,6 +42,7 @@ validation_criteria:
 - Every solver-facing boundary role must have a declared assignment or an explicit out-of-scope reason.
 - Validation must reject missing units, missing material assignments, and unknown physics tags.
 - Runtime smoke must prove generated rectangle assignment artifacts while keeping solver execution in C05.
+- Targeted negative validation must reject incomplete boundary assignment and missing unit metrics.
 - Assignment completeness must be separated from solver convergence.
 integration_targets:
   workflow_stage: multiphysics.comsol.physics_boundary_assignment_contract
@@ -54,5 +55,6 @@ intern_deliverables:
 - Define material, physics, BC, and IC manifest schemas.
 - Add negative tests for missing assignments and unknown units.
 - Keep solver execution in C05, not in this contract.
+- Map official replay assignment checks from `livelink_domain_activation` or `livelink_pseudoperiodicity` after C03 candidate open succeeds.
 card_status: review
 benchmark_status: package_skeleton_created

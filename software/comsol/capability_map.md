@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | COMSOL LiveLink for MATLAB product page | Product capability evidence | Confirms MATLAB can drive COMSOL modeling, meshing, solving, parametric studies, and result extraction through the COMSOL API. |
 | LiveLink for MATLAB User's Guide | API and command-line evidence | Candidate source for `mphstart`, `mphopen`, `mphsave`, `mphinterp`, solver execution, and client/server startup contracts. |
-| COMSOL Application Libraries | Benchmark/source candidate | Future source for official `.mph` examples once a local COMSOL installation and library root are configured. |
+| COMSOL Application Libraries | Benchmark/source candidate | C03-C06 official replay candidates are selected in `configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml`; execution still requires `COMSOL_APPLICATION_LIBRARY_ROOT`. |
 | Self-generated MATLAB scripts | Reproducible driver source | First local static/preflight route before any official model replay is claimed. |
 
 ## C01-C06 Capability Split
@@ -51,11 +51,10 @@ C01-C06 已通过本机 MATLAB LiveLink smoke：C01 建立 MATLAB/COMSOL server 
 
 ## Next Gates
 
-1. C02 model construction API contract.
-3. C03-C06 official Application Library replay candidate selection.
-4. C03-C06 negative validation for missing selections, missing assignment, solver failure, and NaN/missing units.
-5. C05-C06 analytical or manufactured-solution heat-transfer benchmark candidate.
-6. C01-C06 cross-machine/runtime-profile regression after another COMSOL host is available.
+1. C03-C06 official Application Library replay smoke using `livelink_domain_activation`, with `livelink_pseudoperiodicity` as fallback.
+2. C05-C06 analytical or manufactured-solution heat-transfer benchmark candidate after official replay smoke is stable.
+3. C01-C06 cross-machine/runtime-profile regression after another COMSOL host is available.
+4. C03-C06 promotion review only after official replay, negative validation, result units, and numerical reference policy are all present.
 
 ## 2026-07-03 C01 Package Skeleton
 
@@ -125,3 +124,19 @@ Runtime evidence roots:
 - `_results/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle/`
 
 The smoke proves local generated-rectangle runtime closure only. It does not claim official model replay, double-v, analytical benchmark validation, or broad multiphysics correctness.
+
+## 2026-07-03 C03-C06 Candidate And Negative Closure
+
+C03-C06 official Application Library replay candidates are now selected and recorded:
+
+- `configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml`
+- `reports/comsol_C03_C06_application_library_replay_candidates_2026-07-03.md`
+
+The preferred replay candidate is `livelink_domain_activation` because the official MATLAB script opens an official model, updates domain selection, runs a study loop, creates result datasets/plots, and extracts a scalar through `mphglobal`. `livelink_pseudoperiodicity` is the fallback/second candidate because it exercises repeated study execution plus `mphinterp` / `mpheval` table export.
+
+C03-C06 negative validation is also covered by targeted tests:
+
+- `reports/comsol_C03_C06_negative_validation_2026-07-03.md`
+- `tests/test_comsol_c03_c06_validation.py`
+
+This closes the immediate candidate-selection and bad-artifact rejection gates. It still does not claim official `.mph` replay, analytical benchmark validation, double-v, or broader multiphysics correctness.

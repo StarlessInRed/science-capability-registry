@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | `comsol_livelink_for_matlab_product` | `https://www.comsol.com/livelink-for-matlab` | Product capability evidence for MATLAB-driven COMSOL modeling and result extraction. | indexed source |
 | `comsol_livelink_for_matlab_users_guide` | `https://doc.comsol.com/6.3/doc/com.comsol.help.llmatlab/LiveLinkForMATLABUsersGuide.pdf` | API and command-line reference candidate. | indexed source |
-| `comsol_application_libraries` | local COMSOL Application Libraries, path to be configured by environment | Official example/model source candidate. | not configured on this host |
+| `comsol_application_libraries` | local COMSOL Application Libraries, path to be configured by environment | Official example/model source candidate. | C03-C06 candidate set selected; execution still env-rooted |
 | `self_generated_matlab_driver_scripts` | repo configs/scripts generated from capability contracts | First reproducible runtime route. | package-backed C01-C06 |
 
 ## Seed Mapping
@@ -48,3 +48,23 @@ The current C01 runner separates `dry_run_only`, `preflight_only`, and `matlab_l
 - C06 package config: `configs/comsol/result_extraction_postprocess_validation/local_livelink_heat_rectangle.yaml`
 
 C02 has local LiveLink model-tree smoke evidence. C03-C06 now have generated heat-rectangle LiveLink runtime smoke evidence. Do not interpret these generated-case artifacts as official `.mph` replay, double-v, analytical benchmark validation, or broad multiphysics correctness.
+
+## 2026-07-03 C03-C06 Official Replay Candidate Set
+
+Candidate config:
+
+- `configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml`
+
+Primary candidates:
+
+- `LiveLink_for_MATLAB/Tutorials/domain_activation_llmatlab.m` plus `.mph`
+- `LiveLink_for_MATLAB/Tutorials/pseudoperiodicity_llmatlab.m` plus `.mph`
+
+Secondary Heat Transfer candidates:
+
+- `Heat_Transfer_Module/Verification_Examples/thin_plate.mph`
+- `Heat_Transfer_Module/Tutorials,_Conduction/cylinder_conduction.mph`
+- `Heat_Transfer_Module/Verification_Examples/localized_heat_source.mph`
+- `Heat_Transfer_Module/Verification_Examples/semi_infinite_wall.mph`
+
+All paths are relative to `COMSOL_APPLICATION_LIBRARY_ROOT`. This index records candidate selection only; it does not claim official replay execution.

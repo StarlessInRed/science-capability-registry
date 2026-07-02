@@ -32,6 +32,9 @@ COMSOL_TASKS = {
 }
 
 COMSOL_EVIDENCE_ID = "comsol_C01_C06_matlab_driver_capability_map_2026-07-02"
+COMSOL_C03_C06_CANDIDATE_EVIDENCE_ID = "comsol_C03_C06_application_library_replay_candidates_2026-07-03"
+COMSOL_C03_C06_NEGATIVE_EVIDENCE_ID = "comsol_C03_C06_negative_validation_2026-07-03"
+CANDIDATE_CONFIG_PATH = ROOT / "configs" / "comsol" / "application_library_replay_candidates" / "c03_c06_official_candidates.yaml"
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -199,3 +202,44 @@ def test_comsol_runtime_smoke_does_not_claim_benchmark_validation() -> None:
     assert "No MATLAB/COMSOL runtime execution is claimed" in report_text
     assert "benchmark validation" in index_text
     assert "benchmark validation" in map_text
+
+
+def test_comsol_c03_c06_candidate_config_preserves_env_root_boundary() -> None:
+    config = _read_yaml(CANDIDATE_CONFIG_PATH)
+    serialized = yaml.safe_dump(config, sort_keys=True)
+
+    assert config["selection_status"] == "candidate_selected_not_executed"
+    assert config["root_policy"]["application_library_root_env"] == "COMSOL_APPLICATION_LIBRARY_ROOT"
+    assert config["root_policy"]["committed_absolute_paths"] is False
+    assert config["primary_replay_candidates"][0]["candidate_id"] == "livelink_domain_activation"
+    assert config["primary_replay_candidates"][1]["candidate_id"] == "livelink_pseudoperiodicity"
+    for drive_letter in "CDEFG":
+        assert f"{drive_letter}:{chr(92)}" not in serialized
+    assert "official replay runner has executed" in "\n".join(config["not_validated_yet"])
+    assert "benchmark validation is claimed" in "\n".join(config["not_validated_yet"])
+
+
+def test_comsol_c03_c06_candidate_and_negative_evidence_entries_resolve() -> None:
+    evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
+    evidence_by_id = {
+        entry["evidence_id"]: entry for entry in evidence_index["evidence"]
+    }
+
+    candidate = evidence_by_id[COMSOL_C03_C06_CANDIDATE_EVIDENCE_ID]
+    assert candidate["asset_path"] == MAP_PATH.as_posix()
+    assert candidate["gate"] == "static-readiness"
+    assert candidate["status"] == "indexed"
+    assert candidate["runtime_evidence_paths"] == []
+    assert "official .mph replay" in "\n".join(candidate["limitations"])
+
+    negative = evidence_by_id[COMSOL_C03_C06_NEGATIVE_EVIDENCE_ID]
+    assert negative["asset_path"] == MAP_PATH.as_posix()
+    assert negative["gate"] == "targeted-regression"
+    assert negative["status"] == "passed"
+    assert negative["runtime_evidence_paths"] == []
+    assert "Failure-localization tests only" in "\n".join(negative["limitations"])
+
+    for evidence in (candidate, negative):
+        assert Path(evidence["primary_evidence_path"]).exists()
+        for path in evidence["supporting_paths"]:
+            assert Path(path).exists(), path

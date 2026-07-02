@@ -1843,3 +1843,39 @@ evidence:
   limitations:
   - Generated-rectangle result extraction smoke only; no official replay, double-v, broader multiphysics correctness, or benchmark validation is claimed.
   - Local executable paths and server details remain environment-injected and are not committed in configs.
+- evidence_id: comsol_C03_C06_application_library_replay_candidates_2026-07-03
+  capability_id: multiphysics.comsol.application_library_replay_candidates
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: source_candidate_selection
+  gate: static-readiness
+  status: indexed
+  primary_evidence_path: reports/comsol_C03_C06_application_library_replay_candidates_2026-07-03.md
+  supporting_paths:
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml
+  - tests/test_comsol_capability_map.py
+  runtime_evidence_paths: []
+  scope: COMSOL C03-C06 official Application Library replay candidates are selected with env-rooted relative paths after generated heat-rectangle smoke passed.
+  limitations:
+  - Candidate selection only; no official .mph replay, license/server behavior, numerical parity, analytical benchmark, double-v, or benchmark validation is claimed.
+  - Local executable paths, Application Library roots, .mph binaries, and runtime outputs are not committed.
+- evidence_id: comsol_C03_C06_negative_validation_2026-07-03
+  capability_id: multiphysics.comsol.c03_c06_negative_validation
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: targeted_regression_report
+  gate: targeted-regression
+  status: passed
+  primary_evidence_path: reports/comsol_C03_C06_negative_validation_2026-07-03.md
+  supporting_paths:
+  - software/comsol/capability_map.md
+  - software/comsol/assets/C03_geometry_mesh_import_contract.yaml
+  - software/comsol/assets/C04_physics_boundary_assignment_contract.yaml
+  - software/comsol/assets/C05_study_run_solver_smoke.yaml
+  - software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  - src/science_capability_registry/comsol/heat_rectangle_livelink.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths: []
+  scope: Targeted negative regression proves C03-C06 validators reject missing selections, incomplete assignment, solver failure, nonfinite probes, and missing units without launching MATLAB/COMSOL.
+  limitations:
+  - Failure-localization tests only; no official replay, solver convergence, mesh quality, analytical field correctness, double-v, or benchmark validation is claimed.

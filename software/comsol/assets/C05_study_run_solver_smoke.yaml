@@ -41,6 +41,7 @@ validation_criteria:
 - Study must reach configured completion status and produce expected result datasets.
 - Solver failure must be separated from model-construction and postprocess failure.
 - Runtime smoke must prove generated rectangle study completion and dataset presence without promoting to benchmark validation.
+- Targeted negative validation must reject solver failure, missing dataset, and nonzero MATLAB return code.
 - Solver success must not be treated as analytical benchmark validation.
 integration_targets:
   workflow_stage: multiphysics.comsol.study_run_solver_smoke
@@ -53,5 +54,6 @@ intern_deliverables:
 - Implement one minimal solver smoke after C01-C04 pass.
 - Emit solver status and dataset manifest.
 - Add timeout and convergence-status validation.
+- Add official replay smoke for the selected Application Library candidate before any benchmark promotion review.
 card_status: review
 benchmark_status: package_skeleton_created

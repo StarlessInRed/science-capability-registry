@@ -43,6 +43,7 @@ validation_criteria:
 - Geometry, mesh, and named selection roles must be visible in config/schema.
 - Validation must reject missing required selections and boundary-role mismatches.
 - Runtime smoke must prove generated rectangle geometry and mesh artifacts without claiming mesh-quality or benchmark validation.
+- Targeted negative validation must reject missing selection-role metrics before any official replay promotion.
 - CAD/import success must not be treated as physics validation.
 integration_targets:
   workflow_stage: multiphysics.comsol.geometry_mesh_import_contract
@@ -55,5 +56,6 @@ intern_deliverables:
 - Start with generated geometry before large CAD import.
 - Emit geometry, mesh, and selection manifests.
 - Add negative validation for renamed, missing, or dimension-mismatched selections.
+- Implement official replay first against the env-rooted `livelink_domain_activation` candidate without committing `.mph` binaries.
 card_status: review
 benchmark_status: package_skeleton_created

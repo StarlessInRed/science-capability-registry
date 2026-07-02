@@ -41,6 +41,7 @@ validation_criteria:
 - Every exported quantity must include expression, unit, location or dataset, and physical meaning.
 - Validation must reject NaN-only outputs, missing units, and mismatched probe counts.
 - Runtime smoke must prove finite generated-rectangle probe export and units without claiming broader physical correctness.
+- Targeted negative validation must reject nonfinite probe values and missing unit metrics.
 - Result export must be separate from solver success and benchmark correctness.
 integration_targets:
   workflow_stage: multiphysics.comsol.result_extraction_postprocess_validation
@@ -53,5 +54,6 @@ intern_deliverables:
 - Define canonical export manifest and probe table.
 - Prove downstream Python can read the exported files.
 - Add validation for finite values, units, and expected row/column counts.
+- Use `livelink_pseudoperiodicity` as the richer official replay candidate for table/export consumability after the first official replay smoke passes.
 card_status: review
 benchmark_status: package_skeleton_created

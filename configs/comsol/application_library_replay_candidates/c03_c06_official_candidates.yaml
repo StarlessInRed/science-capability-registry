@@ -1,0 +1,132 @@
+candidate_set_id: comsol_C03_C06_application_library_replay_candidates_2026-07-03
+schema_version: 0.1.0
+software: COMSOL
+comsol_version_observed: "6.3"
+root_policy:
+  application_library_root_env: COMSOL_APPLICATION_LIBRARY_ROOT
+  committed_absolute_paths: false
+  repository_policy: Store Application Library paths relative to the environment-injected root only.
+purpose: Select official COMSOL Application Library replay candidates for C03-C06 after generated heat-rectangle runtime smoke passed.
+selection_status: candidate_selected_not_executed
+primary_replay_candidates:
+- candidate_id: livelink_domain_activation
+  source_name: Domain activation and deactivation
+  source_type: official_application_library_livelink_matlab_tutorial
+  application_library_paths:
+  - LiveLink_for_MATLAB/Tutorials/domain_activation_llmatlab.m
+  - LiveLink_for_MATLAB/Tutorials/domain_activation_llmatlab.mph
+  required_products:
+  - COMSOL Multiphysics
+  - LiveLink for MATLAB
+  replay_entrypoint: domain_activation_llmatlab.m
+  priority: 1
+  rationale: Official MATLAB script opens an official model, updates a domain selection, runs the study loop, creates result datasets and plots, and extracts time with mphglobal.
+  candidate_scope_by_capability:
+    C03_geometry_mesh_import_contract:
+    - Verify official model open and selection mutation are observable in handoff artifacts.
+    C04_physics_boundary_assignment_contract:
+    - Verify Heat Transfer physics and updated selection/initial-condition assignment remain complete after script mutation.
+    C05_study_run_solver_smoke:
+    - Verify repeated study execution reaches completion and records solver/dataset artifacts.
+    C06_result_extraction_postprocess_validation:
+    - Verify mphglobal-derived scalar results and dataset metadata can be exported with units.
+  expected_outputs:
+  - selection_map.json
+  - physics_assignment_manifest.json
+  - boundary_assignment_manifest.json
+  - solver_manifest.json
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - metrics.json
+- candidate_id: livelink_pseudoperiodicity
+  source_name: Pseudo-periodic convective heat transport in channel
+  source_type: official_application_library_livelink_matlab_tutorial
+  application_library_paths:
+  - LiveLink_for_MATLAB/Tutorials/pseudoperiodicity_llmatlab.m
+  - LiveLink_for_MATLAB/Tutorials/pseudoperiodicity_llmatlab.mph
+  required_products:
+  - COMSOL Multiphysics
+  - LiveLink for MATLAB
+  replay_entrypoint: pseudoperiodicity_llmatlab.m
+  priority: 2
+  rationale: Official MATLAB script loops study runs, maps outlet temperature to inlet data, writes a table file, and exports temperature with mphinterp/mpheval.
+  candidate_scope_by_capability:
+    C03_geometry_mesh_import_contract:
+    - Verify official model open, boundary selections, and result dataset metadata are captured.
+    C04_physics_boundary_assignment_contract:
+    - Verify temperature boundary reassignment and interpolation function input are visible in assignment artifacts.
+    C05_study_run_solver_smoke:
+    - Verify repeated solver execution and dataset refresh are captured.
+    C06_result_extraction_postprocess_validation:
+    - Verify exported temperature table is finite, unit-bearing, and downstream-readable.
+  expected_outputs:
+  - boundary_assignment_manifest.json
+  - solver_manifest.json
+  - export_manifest.json
+  - pseudoperiodic_data.txt
+  - probes.csv
+  - units.json
+  - metrics.json
+secondary_heat_transfer_candidates:
+- candidate_id: heat_thin_plate_verification
+  source_name: Out-of-Plane Heat Transfer for a Thin Plate
+  source_type: official_application_library_heat_transfer_verification
+  application_library_paths:
+  - Heat_Transfer_Module/Verification_Examples/thin_plate.mph
+  required_products:
+  - COMSOL Multiphysics
+  - Heat Transfer Module
+  replay_entrypoint: thin_plate.mph
+  priority: 3
+  rationale: Small official verification model suited for low-cost geometry, assignment, solver, and result-export replay once internal tags are inspected.
+- candidate_id: heat_cylinder_conduction_tutorial
+  source_name: Steady-State 2D Axisymmetric Heat Transfer with Conduction
+  source_type: official_application_library_heat_transfer_tutorial
+  application_library_paths:
+  - Heat_Transfer_Module/Tutorials,_Conduction/cylinder_conduction.mph
+  required_products:
+  - COMSOL Multiphysics
+  - Heat Transfer Module
+  replay_entrypoint: cylinder_conduction.mph
+  priority: 4
+  rationale: Simple conduction tutorial suited for C04/C05 replay and later analytical or manufactured-solution comparison planning.
+- candidate_id: heat_localized_heat_source_verification
+  source_name: Heat Conduction with a Localized Heat Source on a Disk
+  source_type: official_application_library_heat_transfer_verification
+  application_library_paths:
+  - Heat_Transfer_Module/Verification_Examples/localized_heat_source.mph
+  required_products:
+  - COMSOL Multiphysics
+  - Heat Transfer Module
+  replay_entrypoint: localized_heat_source.mph
+  priority: 5
+  rationale: Official verification source with localized heat-source physics for future field/probe extraction checks.
+- candidate_id: heat_semi_infinite_wall_verification
+  source_name: Heat and Moisture Transport in a Semi-Infinite Wall
+  source_type: official_application_library_heat_transfer_verification
+  application_library_paths:
+  - Heat_Transfer_Module/Verification_Examples/semi_infinite_wall.mph
+  companion_files:
+  - Heat_Transfer_Module/Verification_Examples/semi_infinite_wall_temperature.txt
+  - Heat_Transfer_Module/Verification_Examples/semi_infinite_wall_moisture_storage_function.txt
+  required_products:
+  - COMSOL Multiphysics
+  - Heat Transfer Module
+  replay_entrypoint: semi_infinite_wall.mph
+  priority: 6
+  rationale: Official verification source with companion tabular inputs, useful later for external-file and unit-handoff validation after simpler candidates pass.
+not_validated_yet:
+- Candidate files were discovered and scripts were inspected, but no official replay runner has executed them in this evidence.
+- Binary .mph internals, feature tags, selection names, mesh tags, study tags, and dataset tags still require COMSOL-side inspection.
+- License availability, server state, and current-working-directory behavior are not validated by this candidate selection.
+- No numerical parity, analytical benchmark, double-v, or benchmark validation is claimed.
+next_runtime_gate:
+  gate: official-replay-smoke
+  first_candidate: livelink_domain_activation
+  fallback_candidate: livelink_pseudoperiodicity
+  required_runner_behavior:
+  - Resolve COMSOL_APPLICATION_LIBRARY_ROOT at runtime.
+  - Copy or open official candidate files without committing .mph binaries.
+  - Capture selection, assignment, solver, dataset, export, units, and failure artifacts per C03-C06 contract.
+  - Preserve generated heat-rectangle smoke as primary smoke evidence until official replay passes.

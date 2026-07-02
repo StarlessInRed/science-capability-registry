@@ -661,6 +661,24 @@ def _validate_metrics(
     }
 
 
+def validate_heat_rectangle_metrics(
+    metrics: dict[str, Any],
+    config: dict[str, Any],
+    output_dir: str | Path,
+    stage: str,
+    check_artifacts: bool = True,
+) -> dict[str, Any]:
+    if stage not in STAGE_SPECS:
+        raise ValueError(f"Unknown COMSOL heat-rectangle stage: {stage}")
+    return _validate_metrics(
+        metrics,
+        config,
+        Path(output_dir),
+        STAGE_SPECS[stage],
+        check_artifacts=check_artifacts,
+    )
+
+
 def _validation_scope(spec: StageSpec, dry_run: bool) -> str:
     if dry_run:
         return f"COMSOL {spec.stage} generated-script dry run; MATLAB and COMSOL were not executed"
