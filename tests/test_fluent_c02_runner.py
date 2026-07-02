@@ -73,7 +73,8 @@ def test_fluent_c02_runner_writes_pressure_solve_journal_contract(tmp_path: Path
     assert "/define/boundary-conditions/velocity-inlet inlet" in journal_text
     assert "/solve/initialize/hyb-initialization" in journal_text
     assert "/solve/iterate 50" in journal_text
-    assert "area-weighted" not in journal_text
+    assert journal_text.count("/report/surface-integrals/area-weighted-avg") == 2
+    assert "pressure\nno" in journal_text
 
 
 def test_fluent_c02_runner_rejects_non_dry_run(tmp_path: Path) -> None:

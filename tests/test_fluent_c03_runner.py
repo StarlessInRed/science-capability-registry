@@ -46,3 +46,34 @@ def test_fluent_c03_runner_rejects_non_dry_run(tmp_path: Path) -> None:
     else:
         raise AssertionError("expected C03 non-dry-run rejection")
 
+
+def test_fluent_c03_runner_writes_runtime_trend(monkeypatch, tmp_path: Path) -> None:
+    def fake_run_c02(config: dict, dry_run: bool) -> dict:
+        cells = config["mesh_generation"]["axial_cells"] * config["mesh_generation"]["radial_cells"]
+        pressure = 12.0 + cells / 100000.0
+        return {
+            "validation": {"passed": True},
+            "metrics": {
+                "runtime_pressure_drop_pa": pressure,
+                "pressure_drop_relative_error": 0.24,
+                "iteration_count": 50,
+                "pressure_drop_runtime_status": "surface_integral_area_weighted_pressure_sampled",
+                "final_residuals": {"continuity": 8.0e-4},
+            },
+        }
+
+    monkeypatch.setattr(
+        "science_capability_registry.fluent.mesh_convergence_trend.runner.run_c02",
+        fake_run_c02,
+    )
+    result = run(
+        config_path=Path("configs/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke.yaml"),
+        output_dir=tmp_path,
+        dry_run=False,
+    )
+
+    assert result["validation"]["passed"] is True
+    assert result["metrics"]["runtime_status"] == "executed_c02_pressure_drop_refinement_smoke"
+    assert (tmp_path / "runtime_levels.json").exists()
+    rows = list(csv.DictReader((tmp_path / "refinement_matrix.csv").read_text(encoding="utf-8").splitlines()))
+    assert rows[0]["runtime_pressure_drop_pa"]

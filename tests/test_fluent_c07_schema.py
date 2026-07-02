@@ -31,6 +31,7 @@ def test_fluent_c07_runtime_smoke_config_matches_schema() -> None:
     errors = sorted(Draft202012Validator(schema).iter_errors(config), key=lambda error: error.path)
     assert errors == []
     assert config["backend"]["type"] == "fluent_case_data_read_smoke"
+    assert config["runtime_smoke"]["thermal_reports"]["temperature_surfaces"] == ["inlet", "outlet"]
 
 
 def test_fluent_c07_schema_rejects_unknown_key() -> None:

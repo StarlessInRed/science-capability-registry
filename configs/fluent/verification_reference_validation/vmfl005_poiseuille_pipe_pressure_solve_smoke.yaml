@@ -1,6 +1,6 @@
 capability_id: cfd.fluent.verification_reference_validation
 case_id: vmfl005_poiseuille_pipe_pressure_solve_smoke
-description: Self-generated VMFL005 Poiseuille pipe axisymmetric laminar solve smoke for Fluent C02, with pressure-drop extraction intentionally unclaimed.
+description: Self-generated VMFL005 Poiseuille pipe axisymmetric laminar solve smoke for Fluent C02, with inlet/outlet pressure surface-integral sampling and an explicit uniform-inlet homology gap.
 fluent:
   runtime_profile: local_fluent_preflight
   runtime_profile_config: configs/fluent/runtime_profiles/local_fluent_preflight.yaml
@@ -47,7 +47,7 @@ boundary_conditions:
   inlet_average_velocity_m_s: 2.0
   wall: no-slip pipe wall
   axis: Fluent axisymmetric centerline
-  outlet_closure: pressure outlet from generated mesh zone; pressure-drop surface integral command remains unresolved
+  outlet_closure: pressure outlet from generated mesh zone; inlet/outlet pressure is sampled with surface-integral area-weighted averages
 reference_formula:
   formula_id: hagen_poiseuille_pressure_drop
   formula: delta_p = 32 * mu * L * U_mean / D^2
@@ -63,7 +63,7 @@ reference_values:
   manual_fluent_pressure_drop_pa: 10.22
   manual_fluent_ratio: 0.998
 sampling_policy:
-  metric_location: pressure difference between inlet and outlet after surface-integral prompt contract closure
+  metric_location: pressure difference between inlet and outlet area-weighted average static pressure reports
   homology_policy: geometry, material, axisymmetric model state, inlet profile, and pressure-drop sampling must match VMFL005 before benchmark promotion
   future_mesh_levels:
   - coarse
@@ -87,14 +87,14 @@ runtime_smoke:
   max_warning_count: 4
   allowed_warning_fragments:
   - axis boundary conditions is not appropriate for planar solver state before axisymmetric setup is applied
-  scope: Read the self-generated Fluent mesh, apply axisymmetric laminar setup, run bounded iterations, and do not claim pressure-drop extraction.
+  scope: Read the self-generated Fluent mesh, apply axisymmetric laminar setup, run bounded iterations, and sample inlet/outlet pressure without claiming fully developed inlet homology.
 solver_setup:
   model_state: axisymmetric
   viscous_model: laminar
   max_iterations: 50
   max_final_continuity_residual: 0.001
   max_final_velocity_residual: 0.0001
-  pressure_report_status: report_command_not_closed
+  pressure_report_status: surface_integral_area_weighted_pressure_sampled
 outputs:
   output_dir: _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke
   expected_outputs:
@@ -112,6 +112,7 @@ outputs:
 validation:
   gate: smoke
   max_manual_relative_error: 0.03
+  max_pressure_drop_relative_error: 0.3
   required_manifest_sections:
   - reference_source
   - governing_model
@@ -139,5 +140,6 @@ validation:
   - validation_report.md
   no_claims:
   - no official local VMFL005 poiseuille-flow.cas payload is claimed
-  - no pressure-drop value extraction is claimed by this solve smoke
-  - no benchmark validation promotion is claimed until pressure sampling, fully developed inlet homology, and mesh trend closure pass
+  - pressure-drop sampling is claimed only for this uniform-inlet solve smoke
+  - no VMFL005 benchmark validation promotion is claimed because the fully developed inlet profile is not yet reproduced
+  - no benchmark validation promotion is claimed until fully developed inlet homology or an accepted reference-policy replacement is configured

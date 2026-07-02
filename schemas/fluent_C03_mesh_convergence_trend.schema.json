@@ -26,8 +26,19 @@
       "additionalProperties": false,
       "required": ["type", "execution_mode"],
       "properties": {
-        "type": {"const": "mesh_trend_static"},
-        "execution_mode": {"const": "no_solver_execution"}
+        "type": {"enum": ["mesh_trend_static", "c02_pressure_drop_refinement_runtime_smoke"]},
+        "execution_mode": {"enum": ["no_solver_execution", "local_fluent_batch"]}
+      }
+    },
+    "runtime_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template_config", "fluent_executable_env", "level_output_prefix", "max_iterations"],
+      "properties": {
+        "template_config": {"type": "string", "pattern": "^(?!/)(?!.*:)(?!.*\\\\)[A-Za-z0-9_./+-]+\\.yaml$"},
+        "fluent_executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "level_output_prefix": {"type": "string", "minLength": 1},
+        "max_iterations": {"type": "integer", "minimum": 1}
       }
     },
     "source_basis": {
@@ -56,7 +67,9 @@
           "nominal_cell_count",
           "relative_cell_size",
           "input_role",
-          "runtime_status"
+          "runtime_status",
+          "axial_cells",
+          "radial_cells"
         ],
         "properties": {
           "level_id": {"enum": ["coarse", "baseline", "refined"]},
@@ -64,7 +77,9 @@
           "nominal_cell_count": {"type": "integer", "minimum": 1},
           "relative_cell_size": {"type": "number", "exclusiveMinimum": 0},
           "input_role": {"enum": ["generated_perturbation", "adaptation_candidate"]},
-          "runtime_status": {"const": "pending_fluent_runtime"}
+          "runtime_status": {"enum": ["pending_fluent_runtime", "configured_for_runtime_smoke"]},
+          "axial_cells": {"type": "integer", "minimum": 1},
+          "radial_cells": {"type": "integer", "minimum": 1}
         }
       },
       "minItems": 3,
@@ -134,8 +149,11 @@
         "no_claims"
       ],
       "properties": {
-        "gate": {"const": "static-readiness"},
+        "gate": {"enum": ["static-readiness", "smoke"]},
         "min_mesh_levels": {"type": "integer", "minimum": 3},
+        "require_all_level_validations_pass": {"type": "boolean"},
+        "max_pressure_drop_relative_error": {"type": "number", "exclusiveMinimum": 0},
+        "max_adjacent_pressure_drop_change": {"type": "number", "exclusiveMinimum": 0},
         "required_source_roles": {
           "type": "array",
           "items": {"enum": ["self_generated_mesh_family", "official_adaptation_candidate", "runtime_reference_seed"]},
@@ -176,6 +194,7 @@
       "enum": [
         "trend_contract.json",
         "refinement_matrix.csv",
+        "runtime_levels.json",
         "metrics.json",
         "validation.json",
         "validation_report.md",
@@ -187,6 +206,47 @@
       "items": {"type": "string", "minLength": 1},
       "minItems": 1
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "mesh_trend_static"}}}}},
+      "then": {
+        "properties": {
+          "backend": {
+            "properties": {
+              "execution_mode": {"const": "no_solver_execution"}
+            }
+          },
+          "validation": {
+            "properties": {
+              "gate": {"const": "static-readiness"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"backend": {"properties": {"type": {"const": "c02_pressure_drop_refinement_runtime_smoke"}}}}},
+      "then": {
+        "required": ["runtime_basis"],
+        "properties": {
+          "backend": {
+            "properties": {
+              "execution_mode": {"const": "local_fluent_batch"}
+            }
+          },
+          "validation": {
+            "required": [
+              "require_all_level_validations_pass",
+              "max_pressure_drop_relative_error",
+              "max_adjacent_pressure_drop_change"
+            ],
+            "properties": {
+              "gate": {"const": "smoke"}
+            }
+          }
+        }
+      }
+    }
+  ]
 }
-

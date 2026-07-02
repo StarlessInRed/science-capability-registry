@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 
 from science_capability_registry.fluent.heat_transfer_energy_balance.config import validate_case_config
-from science_capability_registry.fluent.heat_transfer_energy_balance.runner import run
+from science_capability_registry.fluent.heat_transfer_energy_balance.runner import _heat_transfer_rates, run
 
 
 def _write_fixture_zip(root: Path) -> None:
@@ -63,6 +63,10 @@ def test_fluent_c07_runner_writes_case_data_read_smoke_journal(tmp_path: Path, m
     journal_text = (tmp_path / "out" / "journal.jou").read_text(encoding="ascii")
     assert "/file/read-case-data" in journal_text
     assert "/mesh/check" in journal_text
+    assert "/report/volume-integrals/minimum" in journal_text
+    assert "/report/volume-integrals/maximum" in journal_text
+    assert journal_text.count("/report/surface-integrals/area-weighted-avg") == 2
+    assert "/report/fluxes/heat-transfer" in journal_text
 
 
 def test_fluent_c07_runner_rejects_non_dry_run(tmp_path: Path, monkeypatch) -> None:
@@ -76,3 +80,23 @@ def test_fluent_c07_runner_rejects_non_dry_run(tmp_path: Path, monkeypatch) -> N
         assert "dry_run" in str(exc)
     else:
         raise AssertionError("expected C07 non-dry-run rejection")
+
+
+def test_fluent_c07_heat_transfer_parser_ignores_table_dividers() -> None:
+    text = """
+        Total Heat Transfer Rate                  [W]
+-------------------------------- --------------------
+                           inlet            285.10275
+                          outlet           -1380.4602
+                          wall-1            537.98133
+                          wall-2            557.73616
+                ---------------- --------------------
+                             Net           0.36006308
+
+> /exit yes
+"""
+
+    rates = _heat_transfer_rates(text)
+
+    assert rates["Net"] == 0.36006308
+    assert "----------------" not in rates

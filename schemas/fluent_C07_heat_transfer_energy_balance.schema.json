@@ -70,6 +70,27 @@
         "data_entry": {"type": "string", "pattern": "^[A-Za-z0-9_./+-]+\\.dat\\.h5$"},
         "journal_file": {"const": "journal.jou"},
         "max_warning_count": {"type": "integer", "minimum": 0},
+        "thermal_reports": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cell_zone",
+            "temperature_surfaces",
+            "heat_transfer_flux_all_boundaries",
+            "max_energy_balance_relative_error"
+          ],
+          "properties": {
+            "cell_zone": {"type": "string", "minLength": 1},
+            "temperature_surfaces": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "minItems": 2,
+              "uniqueItems": true
+            },
+            "heat_transfer_flux_all_boundaries": {"type": "boolean"},
+            "max_energy_balance_relative_error": {"type": "number", "minimum": 0}
+          }
+        },
         "scope": {"type": "string", "minLength": 1}
       }
     },

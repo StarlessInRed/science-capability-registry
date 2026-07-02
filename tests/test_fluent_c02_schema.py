@@ -46,7 +46,7 @@ def test_fluent_c02_pressure_solve_smoke_config_matches_schema() -> None:
     errors = sorted(Draft202012Validator(schema).iter_errors(config), key=lambda error: error.path)
     assert errors == []
     assert config["backend"]["type"] == "fluent_pressure_solve_smoke"
-    assert config["solver_setup"]["pressure_report_status"] == "report_command_not_closed"
+    assert config["solver_setup"]["pressure_report_status"] == "surface_integral_area_weighted_pressure_sampled"
 
 
 def test_fluent_c02_schema_rejects_unknown_key() -> None:

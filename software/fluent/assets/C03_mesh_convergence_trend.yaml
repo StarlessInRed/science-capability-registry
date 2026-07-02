@@ -32,7 +32,7 @@ benchmark:
   source_name: Fluent adaptation tutorial and self-generated mesh perturbations
   source_type: tutorial and generated regression source
   benchmark_role: Targeted-regression seed for mesh/adaptation robustness.
-  status_rationale: Candidate seed selected; no Fluent runtime has been executed in this package yet.
+  status_rationale: Benchmark candidate retained; a self-generated three-level pressure-drop runtime smoke now exists, while official adaptation replay and analytical convergence are still separate promotion gates.
 validation_criteria:
 - At least three mesh/adaptation levels must be represented before targeted-regression promotion.
 - Reports must explain expected physical or numerical trend.
@@ -41,11 +41,11 @@ integration_targets:
   workflow_stage: cfd.fluent.mesh_convergence_trend
   runtime_target: _results/fluent/mesh_convergence_trend/
   package_entrypoint: science_capability_registry.fluent.mesh_convergence_trend.cli:main
-  default_config: configs/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static.yaml
+  default_config: configs/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke.yaml
   input_schema: schemas/fluent_C03_mesh_convergence_trend.schema.json
 intern_deliverables:
 - Define refinement/adaptation config matrix.
 - Parse monitored quantities across levels.
 - Compare self-generated and tutorial replay trends.
 card_status: review
-benchmark_status: package_skeleton_created
+benchmark_status: benchmark_candidate

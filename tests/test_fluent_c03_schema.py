@@ -22,6 +22,21 @@ def test_fluent_c03_config_matches_schema() -> None:
     assert len(config["mesh_levels"]) == 3
 
 
+def test_fluent_c03_runtime_config_matches_schema() -> None:
+    schema = json.loads(Path("schemas/fluent_C03_mesh_convergence_trend.schema.json").read_text(encoding="utf-8"))
+    config = yaml.safe_load(
+        Path("configs/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    errors = sorted(Draft202012Validator(schema).iter_errors(config), key=lambda error: error.path)
+
+    assert errors == []
+    assert config["backend"]["type"] == "c02_pressure_drop_refinement_runtime_smoke"
+    assert config["validation"]["gate"] == "smoke"
+
+
 def test_fluent_c03_schema_rejects_unknown_key() -> None:
     schema = json.loads(Path("schemas/fluent_C03_mesh_convergence_trend.schema.json").read_text(encoding="utf-8"))
     config = yaml.safe_load(
@@ -34,4 +49,3 @@ def test_fluent_c03_schema_rejects_unknown_key() -> None:
     errors = list(Draft202012Validator(schema).iter_errors(config))
 
     assert errors
-

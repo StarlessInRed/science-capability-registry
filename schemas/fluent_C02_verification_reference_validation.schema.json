@@ -259,7 +259,9 @@
         "max_iterations": {"type": "integer", "minimum": 1},
         "max_final_continuity_residual": {"type": "number", "exclusiveMinimum": 0},
         "max_final_velocity_residual": {"type": "number", "exclusiveMinimum": 0},
-        "pressure_report_status": {"const": "report_command_not_closed"}
+        "pressure_report_status": {
+          "enum": ["report_command_not_closed", "surface_integral_area_weighted_pressure_sampled"]
+        }
       }
     },
     "validation": {
@@ -275,6 +277,7 @@
       "properties": {
         "gate": {"enum": ["static-readiness", "smoke"]},
         "max_manual_relative_error": {"type": "number", "exclusiveMinimum": 0},
+        "max_pressure_drop_relative_error": {"type": "number", "exclusiveMinimum": 0},
         "required_manifest_sections": {
           "type": "array",
           "items": {
@@ -368,6 +371,7 @@
             ]
           },
           "validation": {
+            "required": ["max_pressure_drop_relative_error"],
             "properties": {
               "gate": {"const": "smoke"}
             }

@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -46,11 +47,24 @@ def write_journal(path: Path, commands: list[str]) -> Path:
     return path
 
 
+def move_with_retry(source: Path, target: Path, attempts: int = 12, delay_s: float = 0.25) -> None:
+    last_error: PermissionError | None = None
+    for _ in range(attempts):
+        try:
+            shutil.move(str(source), str(target))
+            return
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(delay_s)
+    if last_error is not None:
+        raise last_error
+
+
 def collect_root_fluent_artifacts(before: set[Path], output_dir: Path) -> None:
     after = set(REPO_ROOT.glob("fluent-*.trn")) | set(REPO_ROOT.glob("cleanup-fluent-*.bat"))
     for path in sorted(after - before):
         target = output_dir / path.name
-        shutil.move(str(path), str(target))
+        move_with_retry(path, target)
         if path.suffix.lower() == ".trn":
             shutil.copyfile(target, output_dir / "transcript.txt")
 
@@ -111,4 +125,3 @@ def collect_mesh_metrics(output_dir: Path, return_code: int) -> dict[str, Any]:
         "fluent_error_count": text.count("Error:"),
         "runtime_status": "fluent_batch_smoke_completed" if return_code == 0 else "fluent_batch_smoke_failed",
     }
-

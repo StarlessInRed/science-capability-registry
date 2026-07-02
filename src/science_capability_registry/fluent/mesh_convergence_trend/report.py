@@ -18,6 +18,8 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
         f"- monitored quantity count: {metrics['monitored_quantity_count']}",
         f"- cell counts: {metrics['cell_counts']}",
         f"- runtime status: {metrics['runtime_status']}",
+        f"- pressure drops Pa: {metrics.get('pressure_drops_pa', 'not executed')}",
+        f"- adjacent pressure-drop changes: {metrics.get('adjacent_pressure_drop_relative_changes', 'not executed')}",
         "",
         "## Checks",
         "",
@@ -32,8 +34,7 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
             "",
             validation["scope"],
             "",
-            "No mesh-convergence benchmark validation is claimed until all configured levels have Fluent runtime metrics.",
+            "No analytical mesh-convergence benchmark validation is claimed until inlet-profile homology and reference parity are closed.",
         ]
     )
     Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")
-

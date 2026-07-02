@@ -27,9 +27,16 @@ def summarize_metrics(manifest: dict[str, Any], validation: dict[str, Any] | Non
         "temperature_runtime_status": "not_extracted_in_source_manifest",
     }
     if "runtime_metrics" in manifest:
-        result.update(manifest["runtime_metrics"])
-        result["heat_rate_runtime_status"] = "case_data_read_only_no_heat_rate_extraction"
-        result["temperature_runtime_status"] = "case_data_read_only_no_temperature_report"
+        runtime_metrics = manifest["runtime_metrics"]
+        result.update(runtime_metrics)
+        result["heat_rate_runtime_status"] = runtime_metrics.get(
+            "heat_rate_runtime_status",
+            "case_data_read_only_no_heat_rate_extraction",
+        )
+        result["temperature_runtime_status"] = runtime_metrics.get(
+            "temperature_runtime_status",
+            "case_data_read_only_no_temperature_report",
+        )
     if validation is not None:
         result["validation"] = {"passed": bool(validation["passed"]), "gate": validation["gate"]}
     return result
@@ -70,6 +77,56 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
             runtime_metrics.get("mesh_cell_count") is None or runtime_metrics["mesh_cell_count"] > 0,
             str(runtime_metrics.get("mesh_cell_count")),
         )
+        reports = config["runtime_smoke"].get("thermal_reports")
+        if reports is not None:
+            temperature_min = runtime_metrics.get("temperature_min_k")
+            temperature_max = runtime_metrics.get("temperature_max_k")
+            surface_temperatures = runtime_metrics.get("surface_area_weighted_temperature_k", {})
+            _check(
+                checks,
+                "runtime.temperature_min_present",
+                isinstance(temperature_min, (int, float)),
+                str(temperature_min),
+            )
+            _check(
+                checks,
+                "runtime.temperature_max_present",
+                isinstance(temperature_max, (int, float)),
+                str(temperature_max),
+            )
+            _check(
+                checks,
+                "runtime.temperature_range_ordered",
+                isinstance(temperature_min, (int, float))
+                and isinstance(temperature_max, (int, float))
+                and temperature_min <= temperature_max,
+                f"min={temperature_min}, max={temperature_max}",
+            )
+            for surface in reports["temperature_surfaces"]:
+                _check(
+                    checks,
+                    f"runtime.surface_temperature.{surface}",
+                    isinstance(surface_temperatures.get(surface), (int, float)),
+                    str(surface_temperatures.get(surface)),
+                )
+            heat_rates = runtime_metrics.get("heat_transfer_rates_w", {})
+            heat_balance_error = runtime_metrics.get("heat_transfer_balance_relative_error")
+            _check(
+                checks,
+                "runtime.heat_transfer_rates_present",
+                reports["heat_transfer_flux_all_boundaries"] is False or (isinstance(heat_rates, dict) and "Net" in heat_rates and len(heat_rates) > 1),
+                json.dumps(heat_rates, sort_keys=True),
+            )
+            _check(
+                checks,
+                "runtime.heat_transfer_balance_error",
+                reports["heat_transfer_flux_all_boundaries"] is False
+                or (
+                    isinstance(heat_balance_error, (int, float))
+                    and heat_balance_error <= reports["max_energy_balance_relative_error"]
+                ),
+                f"{heat_balance_error} <= {reports['max_energy_balance_relative_error']}",
+            )
 
     generated_files = set(manifest.get("generated_files", []))
     for rel_path in config["validation"]["required_artifacts"]:
@@ -87,7 +144,7 @@ def validate_manifest(manifest: dict[str, Any], config: dict[str, Any], output_d
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
-        "scope": "Fluent C07 heat-transfer case/data source manifest/read smoke; no energy-balance extraction",
+        "scope": "Fluent C07 heat-transfer case/data source manifest/read smoke; thermal reports are bounded to this case/data pair and do not claim CHT interface validation",
         "checks": checks,
         "details": {
             "case_data_pairs": manifest["case_data_pairs"],

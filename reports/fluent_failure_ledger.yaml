@@ -139,12 +139,12 @@ entries:
   cxx_group: C02
   capability_id: cfd.fluent.verification_reference_validation
   asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
-  state: active_gap
+  state: official_payload_gap_self_generated_smoke_passed
   failure_class: evidence_gap
   priority: P1
   work_queue_status: gap
   gate_blocked: benchmark_runtime_promotion
-  benchmark_status_effect: static_and_mesh_smoke_only
+  benchmark_status_effect: self_generated_pressure_smoke_passed_official_payload_gap
   summary: VMFL005 Poiseuille reference values are mapped, but no official local poiseuille-flow.cas runnable payload exists in the current tutorial library.
   owner_next_action: Continue the self-generated VMFL005 path and keep official-payload absence explicit in config/report evidence.
   blocked_by:
@@ -158,7 +158,7 @@ entries:
   - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke/
   closure_criteria:
   - Either locate an official VMFL005 payload or keep the self-generated source explicitly labeled.
-  - Do not promote C02 until pressure-drop solve and mesh trend pass.
+  - Do not promote C02 until fully developed inlet homology or an accepted reference-policy replacement is configured.
   do_not_claim:
   - Official local poiseuille-flow.cas payload exists.
   - C02 benchmark_validated.
@@ -168,18 +168,18 @@ entries:
   cxx_group: C02
   capability_id: cfd.fluent.verification_reference_validation
   asset_path: software/fluent/assets/C02_verification_reference_validation.yaml
-  state: active_gap
+  state: pressure_sampling_smoke_passed_inlet_homology_gap
   failure_class: setup_evidence_gap
   priority: P1
-  work_queue_status: active
+  work_queue_status: gap
   gate_blocked: pressure_drop_benchmark
-  benchmark_status_effect: mesh_smoke_passed_benchmark_open
-  summary: The self-generated VMFL005 mesh and axisymmetric laminar solve smoke now pass, but fully developed inlet homology, pressure sampling, and solved mesh trend are not yet closed.
-  owner_next_action: Add pressure-report extraction, parabolic inlet/profile homology, and at least three solved mesh levels before benchmark promotion.
+  benchmark_status_effect: pressure_sampling_smoke_passed_benchmark_open
+  summary: The self-generated VMFL005 mesh and axisymmetric laminar solve smoke now pass with inlet/outlet area-weighted pressure sampling; the local uniform-inlet run reports a 12.706476 Pa pressure drop, but fully developed inlet homology remains open.
+  owner_next_action: Add parabolic inlet/profile homology or an accepted reference-policy route before benchmark promotion.
   blocked_by:
   - fully_developed_inlet_profile
-  - pressure_sampling_tui
-  - solved_mesh_trend_matrix
+  - official_payload_absence
+  - benchmark_reference_policy
   evidence_refs:
   - evidence_id: fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02
     evidence_level: repo_stable_report
@@ -189,28 +189,28 @@ entries:
   - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke/
   - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke/
   closure_criteria:
-  - Fluent pressure report produces pressure drop near the 10.24 Pa analytical target.
-  - Pressure sampling and mesh trend are written to metrics and validation reports.
+  - Fluent pressure report emits finite inlet/outlet area-weighted static pressures and runtime pressure drop.
+  - Benchmark promotion waits for fully developed inlet homology or a new accepted reference policy.
   do_not_claim:
-  - Pressure-drop value extraction passed.
-  - Mesh refinement trend passed.
+  - Fully developed VMFL005 inlet homology.
+  - Pressure-drop benchmark validation.
   confidence: high
   last_reviewed: '2026-07-02'
 - failure_id: FL-C03-G001-adaptation-static-only-mesh-convergence-gap
   cxx_group: C03
   capability_id: cfd.fluent.mesh_convergence_trend
   asset_path: software/fluent/assets/C03_mesh_convergence_trend.yaml
-  state: package_skeleton_created_runtime_gap
+  state: runtime_pressure_trend_smoke_passed_adaptation_gap
   failure_class: evidence_gap
   priority: P2
-  work_queue_status: active
+  work_queue_status: gap
   gate_blocked: targeted_regression
-  benchmark_status_effect: package_skeleton_created_runtime_trend_open
-  summary: C03 now has schema/config/package/tests and a three-level static refinement contract, but no solved mesh/adaptation trend has been run yet.
-  owner_next_action: Promote C03 from static trend contract to targeted regression by solving all configured levels and extracting monitored quantities.
+  benchmark_status_effect: runtime_pressure_trend_smoke_passed_adaptation_open
+  summary: C03 now runs three self-generated VMFL005 mesh levels through Fluent and extracts pressure-drop trend metrics, but this is not yet an official Fluent adaptation replay or analytical convergence proof.
+  owner_next_action: If C03 is promoted beyond smoke, add official adaptation replay evidence or a reference-backed convergence policy for the generated pressure-drop matrix.
   blocked_by:
-  - solved_mesh_level_runtime
   - adaptation_replay_runtime
+  - analytical_convergence_homology
   evidence_refs:
   - evidence_id: fluent_C01_C08_seed_suite_static_readiness_2026-07-02
     evidence_level: repo_stable_report
@@ -221,11 +221,13 @@ entries:
   runtime_evidence_paths:
   - _results/fluent/official_replay_manifest/c01_c08_sources/
   - _results/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static/
+  - _results/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke/
   closure_criteria:
-  - Run Fluent for at least three configured mesh/adaptation levels.
-  - Validate monotonic or explainable trend metrics from solved outputs.
+  - Three configured mesh levels run through Fluent and emit pressure-drop metrics.
+  - Benchmark promotion remains blocked until the trend is tied to adaptation semantics or external/reference-backed convergence.
   do_not_claim:
-  - Solved mesh convergence trend exists.
+  - Official Fluent adaptation replay.
+  - Analytical convergence or benchmark-grade mesh independence.
   confidence: high
   last_reviewed: '2026-07-02'
 - failure_id: FL-C04-G001-reference-csv-parser-only
@@ -327,17 +329,15 @@ entries:
   cxx_group: C07
   capability_id: cfd.fluent.heat_transfer_energy_balance
   asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
-  state: case_data_read_smoke_passed_thermal_gap
+  state: thermal_report_smoke_passed
   failure_class: replay_gap
   priority: P2
-  work_queue_status: gap
-  gate_blocked: thermal_postprocess
-  benchmark_status_effect: case_data_read_smoke_passed_thermal_reports_open
-  summary: The 2D heat exchanger source contains a matched case/data pair and case/data-read smoke passes, but temperature and heat-rate extraction are not implemented.
-  owner_next_action: Add a Fluent replay/export backend for temperature extrema and heat-rate balance metrics.
-  blocked_by:
-  - thermal_postprocess_export
-  - heat_rate_balance_parser
+  work_queue_status: resolved
+  gate_blocked: none_for_thermal_report_smoke
+  benchmark_status_effect: thermal_report_smoke_passed_benchmark_open
+  summary: The 2D heat exchanger case/data pair now reads in Fluent and exports temperature extrema, inlet/outlet area-weighted temperatures, and heat-transfer flux balance metrics.
+  owner_next_action: Keep this as heat-exchanger replay smoke unless a separate CHT interface or battery thermal benchmark source is configured.
+  blocked_by: []
   evidence_refs:
   - evidence_id: fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02
     evidence_level: repo_stable_report
@@ -348,10 +348,11 @@ entries:
   - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke/
   closure_criteria:
   - Replay the case/data pair and export finite canonical thermal metrics.
+  - Heat-transfer balance relative error is below the configured smoke threshold.
   - Keep CHT and battery thermal validation separate from this tutorial replay.
   do_not_claim:
-  - Heat-rate balance passed.
   - CHT interface validation passed.
+  - Battery thermal validation passed.
   confidence: high
   last_reviewed: '2026-07-02'
 - failure_id: FL-C08-G001-workbench-wbpz-not-batch-input
@@ -421,7 +422,7 @@ entries:
   priority: P3
   work_queue_status: resolved
   gate_blocked: none_for_pressure_solve_smoke
-  benchmark_status_effect: solve_smoke_passed_pressure_sampling_open
+  benchmark_status_effect: pressure_sampling_smoke_passed_benchmark_open
   summary: The generated pressure-solve journal initially used a parenthesized velocity-inlet zone token, which Fluent rejected as an invalid zone.
   owner_next_action: Keep zone names as plain TUI tokens in generated journals and protect the command sequence with runner tests.
   blocked_by: []
@@ -434,7 +435,7 @@ entries:
   - The pressure-solve journal uses `/define/boundary-conditions/velocity-inlet inlet`.
   - Fluent C02 solve smoke converges without Fluent errors.
   do_not_claim:
-  - Pressure-drop surface-integral extraction is solved.
+  - Fully developed inlet benchmark homology is solved.
   confidence: high
   last_reviewed: '2026-07-02'
 - failure_id: FL-C04-F002-case-read-cell-count-optional
@@ -500,7 +501,7 @@ entries:
   gate_blocked: none_for_case_data_read_smoke
   benchmark_status_effect: case_data_read_smoke_passed_thermal_reports_open
   summary: Reading an existing heat-exchanger case/data pair completed `mesh/check` but did not emit mesh-import cell-count lines, so cell count must be optional for case/data read smoke.
-  owner_next_action: Require case/data readability, mesh/check completion, and zero Fluent errors before adding thermal report extraction.
+  owner_next_action: Require case/data readability, mesh/check completion, zero Fluent errors, and explicit thermal report parser checks for case/data read smoke.
   blocked_by: []
   evidence_refs:
   - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
@@ -511,8 +512,61 @@ entries:
   - Case/data-read smoke passes with mesh/check completion.
   - Missing cell-count text does not fail the gate when no Fluent error occurs.
   do_not_claim:
-  - Heat-rate balance.
-  - Temperature extrema or CHT interface validation.
+  - CHT interface validation.
+  - Battery thermal validation.
+  - Mesh import cell-count availability for every case/data replay.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C04-F003-root-transcript-open-handle
+  cxx_group: C04
+  capability_id: cfd.fluent.external_aero_force_coefficients
+  asset_path: software/fluent/assets/C04_external_aero_force_coefficients.yaml
+  state: resolved
+  failure_class: artifact_collection_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_case_read_smoke
+  benchmark_status_effect: case_read_smoke_passed_force_cp_open
+  summary: A successful C04 Fluent case-read run left the root transcript file briefly locked by Windows, causing immediate artifact move to fail after solver completion.
+  owner_next_action: Keep Fluent root transcript collection tolerant of short-lived open handles and classify this as an artifact collection issue, not a physics failure.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke/
+  closure_criteria:
+  - Shared Fluent batch helper retries moving root `fluent-*.trn` artifacts.
+  - C04 rerun passes with transcript copied into the runtime output directory.
+  do_not_claim:
+  - Windows file handles can never delay transcript collection.
+  - Transcript collection success proves force/Cp extraction.
+  confidence: high
+  last_reviewed: '2026-07-02'
+- failure_id: FL-C07-F003-heat-flux-divider-parser
+  cxx_group: C07
+  capability_id: cfd.fluent.heat_transfer_energy_balance
+  asset_path: software/fluent/assets/C07_heat_transfer_energy_balance.yaml
+  state: resolved
+  failure_class: parser_failure
+  priority: P3
+  work_queue_status: resolved
+  gate_blocked: none_for_thermal_report_smoke
+  benchmark_status_effect: thermal_report_smoke_passed_benchmark_open
+  summary: Fluent heat-transfer flux tables contain divider rows made of dashes; a loose numeric regex treated a divider as a value before parser tightening.
+  owner_next_action: Require numeric rows to contain actual digits when parsing Fluent report tables, and keep parser regression coverage with representative transcript snippets.
+  blocked_by: []
+  evidence_refs:
+  - evidence_id: fluent_C02_C08_runtime_smoke_closure_2026-07-02
+    evidence_level: repo_stable_report
+  runtime_evidence_paths:
+  - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke/
+  closure_criteria:
+  - Heat-transfer parser ignores divider rows and extracts finite boundary heat rates plus Net.
+  - C07 validation passes heat-transfer balance relative-error threshold.
+  do_not_claim:
+  - The same parser automatically covers every Fluent report table shape.
+  - Heat-transfer smoke equals CHT interface validation.
   confidence: high
   last_reviewed: '2026-07-02'
 work_queue:
@@ -522,25 +576,26 @@ work_queue:
   - FL-C02-G001-official-vmfl005-payload-missing
   - FL-C02-G002-axisymmetric-pressure-solve-open
   title: C02 VMFL005 pressure-drop benchmark closure
-  action: Add axisymmetric solve, fully developed inlet profile, pressure sampling, and mesh trend around the self-generated VMFL005 mesh.
+  action: Convert the self-generated pressure-solve smoke into benchmark evidence by closing fully developed inlet homology or selecting a new accepted reference policy.
   acceptance_checks:
   - No official payload is claimed unless it is found and indexed.
-  - Pressure-drop metrics compare against 10.24 Pa analytical target.
-  - At least three mesh levels are reported before benchmark promotion.
+  - Existing pressure sampling remains finite and visible in metrics.
+  - Benchmark promotion waits for fully developed inlet-profile homology or a documented reference-policy change.
   expected_evidence:
   - reports/fluent_C02_verification_reference_validation_mesh_smoke_2026-07-02.md
-  - configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml
+  - reports/fluent_C02_C08_runtime_smoke_closure_2026-07-02.md
 - queue_id: FL-WQ-002
   priority: P2
   entry_failure_ids:
   - FL-C03-G001-adaptation-static-only-mesh-convergence-gap
-  title: C03 mesh convergence/adaptation package
-  action: Define C03 schema/config/package/tests for refinement or adaptation levels and trend validation.
+  title: C03 adaptation or benchmark-grade convergence promotion
+  action: Decide whether C03 remains a pressure-trend smoke or gains official adaptation replay/reference-backed convergence validation.
   acceptance_checks:
-  - Three or more mesh/adaptation levels are explicit in config.
-  - Trend failures are classified separately from Fluent runtime failures.
+  - Three runtime mesh levels remain explicit in config and metrics.
+  - Official adaptation semantics or benchmark-grade convergence targets are not inferred from the current pressure trend smoke.
   expected_evidence:
-  - configs/fluent/official_replay_manifest/c01_c08_sources.yaml
+  - configs/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke.yaml
+  - reports/fluent_C02_C08_runtime_smoke_closure_2026-07-02.md
 - queue_id: FL-WQ-003
   priority: P2
   entry_failure_ids:
@@ -565,17 +620,6 @@ work_queue:
   expected_evidence:
   - reports/fluent_C05_vof_free_surface_transient_mesh_setup_static_2026-07-02.md
   - reports/fluent_C06_sliding_rotating_mesh_setup_static_2026-07-02.md
-- queue_id: FL-WQ-005
-  priority: P2
-  entry_failure_ids:
-  - FL-C07-G001-heat-transfer-source-readiness-only
-  title: C07 heat-transfer replay
-  action: Replay the 2D heat exchanger case/data pair and extract temperature extrema plus heat-rate balance metrics.
-  acceptance_checks:
-  - Thermal metrics are finite and canonical.
-  - CHT or battery thermal validation is not inferred from this tutorial replay.
-  expected_evidence:
-  - reports/fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02.md
 - queue_id: FL-WQ-006
   priority: P2
   entry_failure_ids:

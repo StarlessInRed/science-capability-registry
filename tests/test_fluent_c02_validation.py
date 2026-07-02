@@ -116,8 +116,8 @@ def test_fluent_c02_validation_accepts_pressure_solve_smoke_metrics(tmp_path: Pa
         "fluent_warning_count": 0,
         "fluent_error_count": 0,
         "axis_boundary_warning_detected": False,
-        "pressure_drop_runtime_status": "report_command_not_closed",
-        "runtime_scope": "axisymmetric laminar pressure-solve smoke",
+        "pressure_drop_runtime_status": "surface_integral_area_weighted_pressure_sampled",
+        "runtime_scope": "axisymmetric laminar pressure-solve smoke with pressure sampling",
         "solution_converged": True,
         "iteration_count": 47,
         "final_residuals": {
@@ -126,6 +126,10 @@ def test_fluent_c02_validation_accepts_pressure_solve_smoke_metrics(tmp_path: Pa
             "x_velocity": 3.6165e-5,
             "y_velocity": 3.0183e-7,
         },
+        "inlet_area_weighted_static_pressure_pa": 12.706476,
+        "outlet_area_weighted_static_pressure_pa": 0.0,
+        "runtime_pressure_drop_pa": 12.706476,
+        "pressure_drop_relative_error": 0.24086679687500005,
     }
     metrics = summarize_mesh_runtime_metrics(config, runtime_metrics)
 
@@ -133,5 +137,9 @@ def test_fluent_c02_validation_accepts_pressure_solve_smoke_metrics(tmp_path: Pa
 
     assert validation["passed"] is True
     assert any(item["name"] == "runtime.solution_converged" and item["passed"] for item in validation["checks"])
-    assert any(item["name"] == "runtime.pressure_report_gap_tracked" and item["passed"] for item in validation["checks"])
+    assert any(item["name"] == "runtime.pressure_report_sampled" and item["passed"] for item in validation["checks"])
+    assert any(
+        item["name"] == "runtime.pressure_drop_uniform_inlet_smoke_error" and item["passed"]
+        for item in validation["checks"]
+    )
     assert not any(item["name"] == "runtime.pressure_drop_not_claimed" for item in validation["checks"])

@@ -1486,7 +1486,7 @@ evidence:
   - software/fluent/capability_map.md
   - tasks/fluent_C01_C08_seed_intake_intern_task.md
   runtime_evidence_paths: []
-  scope: Structured Fluent C01-C08 failure ledger records runtime prompt fixes, missing official payloads, mesh-only source boundaries, parser-only evidence, WBPZ non-batch boundary, and recovery queue.
+  scope: Structured Fluent C01-C08 failure ledger records runtime prompt fixes, missing official payloads, mesh-only source boundaries, C03 pressure-trend smoke limits, C07 thermal parser fixes, WBPZ non-batch boundary, and recovery queue.
   limitations:
   - Governance and learning evidence only; it does not add new Fluent solver validation.
   - Conversation history is not canonical unless distilled into repository evidence.
@@ -1500,21 +1500,29 @@ evidence:
   supporting_paths:
   - configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml
   - configs/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static.yaml
+  - configs/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke.yaml
   - configs/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke.yaml
   - configs/fluent/vof_free_surface_transient/vof_inkjet_mesh_read_smoke.yaml
   - configs/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke.yaml
   - configs/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke.yaml
   - configs/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static.yaml
   - src/science_capability_registry/fluent/batch_smoke.py
+  - src/science_capability_registry/fluent/verification_reference_validation/runner.py
+  - src/science_capability_registry/fluent/mesh_convergence_trend/runner.py
+  - src/science_capability_registry/fluent/heat_transfer_energy_balance/runner.py
+  - src/science_capability_registry/fluent/heat_transfer_energy_balance/validation.py
+  - tests/test_fluent_c02_runner.py
+  - tests/test_fluent_c03_runner.py
+  - tests/test_fluent_c07_runner.py
   runtime_evidence_paths:
   - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke/
-  - _results/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static/
+  - _results/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke/
   - _results/fluent/external_aero_force_coefficients/fluent_aero_case_read_smoke/
   - _results/fluent/vof_free_surface_transient/vof_inkjet_mesh_read_smoke/
   - _results/fluent/sliding_rotating_mesh/sliding_mesh_axial_comp_mesh_read_smoke/
   - _results/fluent/heat_transfer_energy_balance/heat_exchanger_case_data_read_smoke/
   - _results/fluent/workbench_parameter_integration/workbench_parameter_wbpz_static/
-  scope: Local Fluent 2025 R1/v251 C02-C08 closure adds pressure-solve, mesh/case/case-data read smokes, C03 trend contract, and C08 env preflight.
+  scope: Local Fluent 2025 R1/v251 C02-C08 closure adds C02 pressure sampling, C03 three-level pressure-drop runtime trend, C04/C05/C06 read smokes, C07 thermal report extraction, and C08 WBPZ static preflight.
   limitations:
-  - Runtime/readability smoke only; physics benchmark validation and postprocess extraction remain separate gates.
+  - Runtime/readability and smoke-level postprocess evidence only; physics benchmark validation remains separate for C02, C04, C05, C06, and C08.
   - Local executable and tutorial roots are injected through environment variables and are not committed as machine-specific paths.

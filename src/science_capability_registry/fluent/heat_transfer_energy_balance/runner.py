@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,7 @@ from .report import write_validation_report
 from .validation import summarize_metrics, validate_manifest
 
 SCHEMA_ID = "schemas/fluent_C07_heat_transfer_energy_balance.schema.json"
+FLOAT_PATTERN = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
 
 
 def _source_root(config: dict[str, Any], require_exists: bool) -> Path:
@@ -94,8 +96,40 @@ def _build_manifest(config: dict[str, Any], output_dir: Path, source_root: Path)
         "runtime_smoke": config.get("runtime_smoke", {}),
         "scope": "read-only Fluent C07 heat-transfer source manifest; no archive extraction or solver execution"
         if config["backend"]["type"] == "case_data_manifest"
-        else "Fluent C07 heat-transfer case/data read smoke; no heat-rate extraction",
+        else "Fluent C07 heat-transfer case/data read smoke with temperature and heat-transfer report extraction",
     }
+
+
+def _thermal_report_lines(config: dict[str, Any]) -> list[str]:
+    reports = config["runtime_smoke"].get("thermal_reports")
+    if reports is None:
+        return []
+    cell_zone = reports["cell_zone"]
+    lines = [
+        "/report/volume-integrals/minimum",
+        cell_zone,
+        "()",
+        "temperature",
+        "no",
+        "/report/volume-integrals/maximum",
+        cell_zone,
+        "()",
+        "temperature",
+        "no",
+    ]
+    for surface in reports["temperature_surfaces"]:
+        lines.extend(
+            [
+                "/report/surface-integrals/area-weighted-avg",
+                surface,
+                "()",
+                "temperature",
+                "no",
+            ]
+        )
+    if reports["heat_transfer_flux_all_boundaries"]:
+        lines.extend(["/report/fluxes/heat-transfer", "yes", "no"])
+    return lines
 
 
 def _write_runtime_journal(config: dict[str, Any], output_dir: Path, case_path: Path, dry_run: bool) -> Path:
@@ -105,6 +139,7 @@ def _write_runtime_journal(config: dict[str, Any], output_dir: Path, case_path: 
         [
             f'/file/read-case-data "{case_text}"',
             "/mesh/check",
+            *_thermal_report_lines(config),
             "/exit yes",
         ],
     )
@@ -114,6 +149,106 @@ def _write_dry_run_placeholders(output_dir: Path) -> None:
     placeholder = "dry-run placeholder; Fluent was not executed for this artifact.\n"
     for name in ["stdout.txt", "stderr.txt", "transcript.txt"]:
         (output_dir / name).write_text(placeholder, encoding="utf-8")
+
+
+def _runtime_text(output_dir: Path) -> str:
+    parts = []
+    for name in ["stdout.txt", "stderr.txt", "transcript.txt"]:
+        path = output_dir / name
+        if path.exists():
+            parts.append(path.read_text(encoding="utf-8", errors="replace"))
+    return "\n".join(parts)
+
+
+def _first_float(pattern: str, text: str) -> float | None:
+    match = re.search(pattern, text, flags=re.MULTILINE)
+    if match is None:
+        return None
+    return float(match.group(1))
+
+
+def _section_after_marker(text: str, marker: str) -> str:
+    start = text.find(marker)
+    if start < 0:
+        return ""
+    next_prompt = text.find("\n>", start + len(marker))
+    if next_prompt < 0:
+        return text[start:]
+    return text[start:next_prompt]
+
+
+def _volume_temperature_value(text: str, marker: str, cell_zone: str) -> float | None:
+    section = _section_after_marker(text, marker)
+    if not section:
+        return None
+    return _first_float(rf"^\s*{re.escape(cell_zone)}\s+([-+0-9.eE]+)\s*$", section)
+
+
+def _surface_temperature_value(text: str, surface: str) -> float | None:
+    pattern = (
+        r"Area-Weighted Average\s+"
+        r"Static Temperature\s+\[K\]\s+"
+        r"[-\s]+\s*"
+        rf"{re.escape(surface)}\s+([-+0-9.eE]+)"
+    )
+    return _first_float(pattern, text)
+
+
+def _heat_transfer_rates(text: str) -> dict[str, float]:
+    section = _section_after_marker(text, "Total Heat Transfer Rate")
+    if not section:
+        return {}
+    rates: dict[str, float] = {}
+    for match in re.finditer(
+        rf"^\s*([A-Za-z0-9_.+-]+)\s+({FLOAT_PATTERN})\s*$",
+        section,
+        flags=re.MULTILINE,
+    ):
+        rates[match.group(1)] = float(match.group(2))
+    return rates
+
+
+def _collect_thermal_report_metrics(config: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    reports = config["runtime_smoke"].get("thermal_reports")
+    if reports is None:
+        return {
+            "temperature_runtime_status": "not_requested",
+            "heat_rate_runtime_status": "not_requested",
+        }
+    text = _runtime_text(output_dir)
+    cell_zone = reports["cell_zone"]
+    surface_temperatures = {
+        surface: _surface_temperature_value(text, surface)
+        for surface in reports["temperature_surfaces"]
+    }
+    temperature_min = _volume_temperature_value(text, "Minimum of> temperature", cell_zone)
+    temperature_max = _volume_temperature_value(text, "Maximum of> temperature", cell_zone)
+    heat_rates = _heat_transfer_rates(text)
+    heat_balance_error = None
+    heat_net = heat_rates.get("Net")
+    heat_denominator = sum(abs(value) for key, value in heat_rates.items() if key != "Net")
+    if heat_net is not None and heat_denominator > 0:
+        heat_balance_error = abs(heat_net) / heat_denominator
+    temperature_complete = (
+        temperature_min is not None
+        and temperature_max is not None
+        and all(value is not None for value in surface_temperatures.values())
+    )
+    heat_complete = bool(heat_rates) and heat_net is not None and heat_balance_error is not None
+    return {
+        "temperature_min_k": temperature_min,
+        "temperature_max_k": temperature_max,
+        "surface_area_weighted_temperature_k": surface_temperatures,
+        "temperature_runtime_status": "temperature_reports_extracted"
+        if temperature_complete
+        else "temperature_report_missing",
+        "heat_transfer_rates_w": heat_rates,
+        "heat_transfer_net_w": heat_net,
+        "heat_transfer_balance_relative_error": heat_balance_error,
+        "heat_rate_runtime_status": "heat_transfer_flux_report_extracted"
+        if heat_complete
+        else "heat_transfer_flux_report_missing",
+    }
 
 
 def run(
@@ -173,10 +308,9 @@ def run(
                 "runtime_status": "dry_run_not_executed",
             }
         else:
-            runtime_metrics = collect_mesh_metrics(
-                resolved_output_dir,
-                execute_fluent(config, resolved_output_dir, journal_path),
-            )
+            return_code = execute_fluent(config, resolved_output_dir, journal_path)
+            runtime_metrics = collect_mesh_metrics(resolved_output_dir, return_code)
+            runtime_metrics.update(_collect_thermal_report_metrics(config, resolved_output_dir))
         source_manifest["runtime_metrics"] = runtime_metrics
     source_manifest["generated_files"] = generated_files
     (resolved_output_dir / "heat_transfer_source_manifest.json").write_text(json.dumps(source_manifest, indent=2), encoding="utf-8")

@@ -33,6 +33,21 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
                 f"- Fluent errors: {metrics['fluent_error_count']}",
             ]
         )
+    if "temperature_min_k" in metrics:
+        lines.extend(
+            [
+                f"- temperature min K: {metrics['temperature_min_k']}",
+                f"- temperature max K: {metrics['temperature_max_k']}",
+                f"- surface area-weighted temperatures K: {metrics.get('surface_area_weighted_temperature_k', {})}",
+            ]
+        )
+    if "heat_transfer_balance_relative_error" in metrics:
+        lines.extend(
+            [
+                f"- heat-transfer rates W: {metrics.get('heat_transfer_rates_w', {})}",
+                f"- heat-transfer balance relative error: {metrics['heat_transfer_balance_relative_error']}",
+            ]
+        )
     lines.extend(["", "## Checks", ""])
     for item in validation["checks"]:
         mark = "PASS" if item["passed"] else "FAIL"
@@ -44,7 +59,7 @@ def write_validation_report(path: str | Path, config: dict[str, Any], metrics: d
             "",
             validation["scope"],
             "",
-            "No heat-rate balance, temperature extrema, or CHT benchmark validation is claimed by this source-manifest evidence.",
+            "No CHT interface continuity, battery thermal validation, or benchmark-grade heat-transfer validation is claimed by this smoke evidence.",
         ]
     )
     Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")

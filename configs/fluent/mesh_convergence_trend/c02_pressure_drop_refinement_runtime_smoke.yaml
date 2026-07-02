@@ -1,14 +1,19 @@
 capability_id: cfd.fluent.mesh_convergence_trend
-case_id: c01_c02_refinement_trend_static
-description: Static mesh convergence trend contract for Fluent C03 using C01/C02 generated-mesh families plus the official adaptation tutorial as a future replay candidate.
+case_id: c02_pressure_drop_refinement_runtime_smoke
+description: Runtime mesh-refinement smoke using the C02 self-generated Poiseuille pipe pressure-solve path; this records pressure-drop trend evidence and the uniform-inlet homology gap.
 backend:
-  type: mesh_trend_static
-  execution_mode: no_solver_execution
+  type: c02_pressure_drop_refinement_runtime_smoke
+  execution_mode: local_fluent_batch
+runtime_basis:
+  template_config: configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml
+  fluent_executable_env: FLUENT_EXE
+  level_output_prefix: _results/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke
+  max_iterations: 100
 source_basis:
 - source_id: c02_vmfl005_generated_pipe
   source_role: self_generated_mesh_family
   source_path: configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml
-  use_scope: Provides a small self-generated mesh family where refinement levels can be produced deterministically.
+  use_scope: Provides the self-generated axisymmetric pipe mesh and pressure-solve runner used for each refinement level.
 - source_id: c01_legacy_elbow_runtime_seed
   source_role: runtime_reference_seed
   source_path: configs/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke.yaml
@@ -16,14 +21,14 @@ source_basis:
 - source_id: fluent_adaptation_official_candidate
   source_role: official_adaptation_candidate
   source_path: AgentKnowledge/case_library/fluent/cases/official_tutorials/Fluent_Tutorial_Package/fluent_adaptation.zip
-  use_scope: Official adaptation source candidate for later replay, not executed by this static contract.
+  use_scope: Official adaptation source candidate for later replay, not executed by this runtime smoke.
 mesh_levels:
 - level_id: coarse
   refinement_index: 0
   nominal_cell_count: 320
   relative_cell_size: 2.0
   input_role: generated_perturbation
-  runtime_status: pending_fluent_runtime
+  runtime_status: configured_for_runtime_smoke
   axial_cells: 40
   radial_cells: 8
 - level_id: baseline
@@ -31,7 +36,7 @@ mesh_levels:
   nominal_cell_count: 1280
   relative_cell_size: 1.0
   input_role: generated_perturbation
-  runtime_status: pending_fluent_runtime
+  runtime_status: configured_for_runtime_smoke
   axial_cells: 80
   radial_cells: 16
 - level_id: refined
@@ -39,46 +44,50 @@ mesh_levels:
   nominal_cell_count: 5120
   relative_cell_size: 0.5
   input_role: generated_perturbation
-  runtime_status: pending_fluent_runtime
+  runtime_status: configured_for_runtime_smoke
   axial_cells: 160
   radial_cells: 32
 monitored_quantities:
 - quantity_id: pressure_drop_pa
   canonical_quantity: inlet-to-outlet pressure drop
   unit: Pa
-  trend_expectation: values should approach the analytical or reference target as cell size decreases after pressure sampling is closed
+  trend_expectation: values should remain finite and adjacent changes should be bounded; analytical VMFL005 convergence is not claimed with the uniform inlet.
   status: pending_runtime_values
 - quantity_id: final_continuity_residual
   canonical_quantity: final continuity residual
   unit: dimensionless
-  trend_expectation: residual behavior should remain bounded and explainable across refinement levels
+  trend_expectation: each level should meet the C02 solve-smoke residual gate within the configured iteration budget.
   status: pending_runtime_values
 - quantity_id: monitored_quantity_delta
-  canonical_quantity: normalized delta between adjacent refinement levels
+  canonical_quantity: normalized adjacent pressure-drop delta
   unit: dimensionless
-  trend_expectation: adjacent-level delta should shrink or be physically explained before targeted-regression promotion
+  trend_expectation: adjacent-level pressure-drop changes should be bounded and reported as uniform-inlet trend evidence.
   status: pending_runtime_values
 failure_classification:
 - failure_class: mesh_generation_failure
   description: A level cannot generate or import a valid mesh with expected zones.
 - failure_class: fluent_runtime_failure
-  description: Fluent cannot read, initialize, or iterate the level under the configured runtime profile.
+  description: Fluent cannot read, initialize, iterate, or sample pressure under the configured runtime profile.
 - failure_class: parser_failure
-  description: Solver output exists but canonical metrics cannot be extracted.
+  description: Solver output exists but canonical pressure-drop or residual metrics cannot be extracted.
 - failure_class: trend_validation_failure
-  description: Extracted metrics are finite but the trend is non-monotonic or lacks a documented physical explanation.
+  description: Extracted metrics are finite but adjacent pressure-drop changes exceed the smoke bound or lack a documented physical explanation.
 outputs:
-  output_dir: _results/fluent/mesh_convergence_trend/c01_c02_refinement_trend_static
+  output_dir: _results/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke
   expected_outputs:
   - trend_contract.json
   - refinement_matrix.csv
+  - runtime_levels.json
   - metrics.json
   - validation.json
   - validation_report.md
   - manifest.json
 validation:
-  gate: static-readiness
+  gate: smoke
   min_mesh_levels: 3
+  require_all_level_validations_pass: true
+  max_pressure_drop_relative_error: 0.3
+  max_adjacent_pressure_drop_change: 0.08
   required_source_roles:
   - self_generated_mesh_family
   - official_adaptation_candidate
@@ -95,11 +104,12 @@ validation:
   required_artifacts:
   - trend_contract.json
   - refinement_matrix.csv
+  - runtime_levels.json
   - metrics.json
   - validation.json
   - validation_report.md
   - manifest.json
   no_claims:
-  - no Fluent mesh convergence runtime is executed by this static contract
-  - no monotonic numerical convergence or benchmark promotion is claimed without three solved levels
-  - official fluent_adaptation.zip is a replay candidate, not a completed adaptation validation
+  - no official fluent_adaptation.zip runtime replay is executed by this smoke
+  - no VMFL005 analytical benchmark promotion is claimed because the C02 inlet profile is uniform, not fully developed
+  - this runtime trend is evidence for reproducible mesh-level execution and pressure sampling, not analytical convergence

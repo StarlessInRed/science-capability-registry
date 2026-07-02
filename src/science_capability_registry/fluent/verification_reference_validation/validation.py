@@ -257,17 +257,37 @@ def validate_pressure_solve_smoke(
         )
     _check(
         checks,
-        "runtime.pressure_report_gap_tracked",
-        metrics["pressure_drop_runtime_status"] == "report_command_not_closed",
+        "runtime.pressure_report_sampled",
+        metrics["pressure_drop_runtime_status"] == "surface_integral_area_weighted_pressure_sampled",
         metrics["pressure_drop_runtime_status"],
+    )
+    _check(
+        checks,
+        "runtime.pressure_values_present",
+        metrics.get("inlet_area_weighted_static_pressure_pa") is not None
+        and metrics.get("outlet_area_weighted_static_pressure_pa") is not None
+        and metrics.get("runtime_pressure_drop_pa") is not None,
+        (
+            f"inlet={metrics.get('inlet_area_weighted_static_pressure_pa')}, "
+            f"outlet={metrics.get('outlet_area_weighted_static_pressure_pa')}, "
+            f"drop={metrics.get('runtime_pressure_drop_pa')}"
+        ),
+    )
+    pressure_error = metrics.get("pressure_drop_relative_error")
+    pressure_threshold = config["validation"]["max_pressure_drop_relative_error"]
+    _check(
+        checks,
+        "runtime.pressure_drop_uniform_inlet_smoke_error",
+        pressure_error is not None and pressure_error <= pressure_threshold,
+        f"{pressure_error} <= {pressure_threshold}",
     )
 
     return {
         "passed": all(item["passed"] for item in checks),
         "gate": config["validation"]["gate"],
         "scope": (
-            "Fluent C02 self-generated VMFL005 axisymmetric laminar solve smoke; pressure-drop sampling remains "
-            "unclaimed"
+            "Fluent C02 self-generated VMFL005 axisymmetric laminar solve smoke with pressure sampling; "
+            "fully developed inlet homology remains unclaimed"
         ),
         "checks": checks,
         "details": {

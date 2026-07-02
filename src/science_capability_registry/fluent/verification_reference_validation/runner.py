@@ -273,7 +273,23 @@ def _pressure_solve_lines(config: dict[str, Any]) -> list[str]:
         "/mesh/check",
         "/solve/initialize/hyb-initialization",
         f"/solve/iterate {setup['max_iterations']}",
+        *_pressure_report_lines(),
     ]
+
+
+def _pressure_report_lines() -> list[str]:
+    lines = []
+    for zone_name in ["inlet", "outlet"]:
+        lines.extend(
+            [
+                "/report/surface-integrals/area-weighted-avg",
+                zone_name,
+                "()",
+                "pressure",
+                "no",
+            ]
+        )
+    return lines
 
 
 def _journal_text(config: dict[str, Any], mesh_path: Path, resolved_paths: bool) -> str:
@@ -395,6 +411,16 @@ def _first_float(pattern: str, text: str) -> float | None:
     return float(match.group(1))
 
 
+def _pressure_report_value(text: str, zone_name: str) -> float | None:
+    pattern = (
+        r"Area-Weighted Average\s+"
+        r"Static Pressure\s+\[Pa\]\s+"
+        r"[-\s]+\s*"
+        rf"{re.escape(zone_name)}\s+([-+0-9.eE]+)"
+    )
+    return _first_float(pattern, text)
+
+
 def _collect_runtime_metrics(config: dict[str, Any], output_dir: Path, return_code: int) -> dict[str, Any]:
     text = _runtime_text(output_dir)
     face_counts: dict[str, int] = {}
@@ -434,15 +460,29 @@ def _collect_runtime_metrics(config: dict[str, Any], output_dir: Path, return_co
             )
         ]
         final_residuals = residual_rows[-1] if residual_rows else {}
+        inlet_pressure = _pressure_report_value(text, "inlet")
+        outlet_pressure = _pressure_report_value(text, "outlet")
+        pressure_drop = None
+        pressure_drop_relative_error = None
+        if inlet_pressure is not None and outlet_pressure is not None:
+            pressure_drop = inlet_pressure - outlet_pressure
+            target = float(config["reference_values"]["target_pressure_drop_pa"])
+            pressure_drop_relative_error = abs(pressure_drop - target) / target
         metrics.update(
             {
                 "solution_converged": "solution is converged" in text,
                 "iteration_count": int(final_residuals["iteration"]) if final_residuals else None,
                 "final_residuals": final_residuals,
-                "pressure_drop_runtime_status": "report_command_not_closed",
+                "inlet_area_weighted_static_pressure_pa": inlet_pressure,
+                "outlet_area_weighted_static_pressure_pa": outlet_pressure,
+                "runtime_pressure_drop_pa": pressure_drop,
+                "pressure_drop_relative_error": pressure_drop_relative_error,
+                "pressure_drop_runtime_status": "surface_integral_area_weighted_pressure_sampled"
+                if pressure_drop is not None
+                else "surface_integral_pressure_report_missing",
                 "runtime_scope": (
-                    "axisymmetric laminar pressure-solve smoke; pressure-drop report command remains a tracked "
-                    "postprocess gap"
+                    "axisymmetric laminar pressure-solve smoke with inlet/outlet area-weighted pressure sampling; "
+                    "uniform inlet profile remains a tracked VMFL005 homology gap"
                 ),
             }
         )
