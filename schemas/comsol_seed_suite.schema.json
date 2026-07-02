@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/comsol_seed_suite.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL MATLAB-driver C01-C06 seed-suite static-readiness contract.",
+  "title": "COMSOL MATLAB Driver Seed Suite",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "suite_id",
+    "software",
+    "driver",
+    "gate",
+    "description",
+    "runtime_profile",
+    "seeds",
+    "validation"
+  ],
+  "properties": {
+    "suite_id": {"const": "comsol_c01_c06_matlab_driver_static_readiness"},
+    "software": {"const": "COMSOL"},
+    "driver": {"const": "MATLAB LiveLink"},
+    "gate": {"const": "static-readiness"},
+    "description": {"type": "string", "minLength": 1},
+    "runtime_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_env", "optional_env"],
+      "properties": {
+        "required_env": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "optional_env": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "seeds": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {"$ref": "#/$defs/seed"}
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_seed_count", "required_c_ids", "no_claims"],
+      "properties": {
+        "required_seed_count": {"const": 6},
+        "required_c_ids": {
+          "type": "array",
+          "items": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06"]},
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "no_claims": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["c_id", "asset_path", "capability_slug", "first_gate", "first_runtime_action"],
+      "properties": {
+        "c_id": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06"]},
+        "asset_path": {
+          "type": "string",
+          "pattern": "^software/comsol/assets/C0[1-6]_[A-Za-z0-9_]+\\.yaml$"
+        },
+        "capability_slug": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "first_gate": {"const": "static-readiness"},
+        "first_runtime_action": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

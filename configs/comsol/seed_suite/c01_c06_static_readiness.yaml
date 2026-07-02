@@ -1,0 +1,59 @@
+suite_id: comsol_c01_c06_matlab_driver_static_readiness
+software: COMSOL
+driver: MATLAB LiveLink
+gate: static-readiness
+description: First-batch COMSOL MATLAB-driver capability map; no MATLAB or COMSOL runtime execution is claimed.
+runtime_profile:
+  required_env:
+  - MATLAB_EXE
+  - COMSOL_BIN
+  - COMSOL_MLI_DIR
+  optional_env:
+  - COMSOL_MPHSERVER_BIN
+  - COMSOL_SERVER_HOST
+  - COMSOL_SERVER_PORT
+  - COMSOL_APPLICATION_LIBRARY_ROOT
+seeds:
+- c_id: C01
+  asset_path: software/comsol/assets/C01_matlab_server_bridge_runtime.yaml
+  capability_slug: matlab_server_bridge_runtime
+  first_gate: static-readiness
+  first_runtime_action: start or connect COMSOL from MATLAB and extract one finite scalar
+- c_id: C02
+  asset_path: software/comsol/assets/C02_model_construction_api_contract.yaml
+  capability_slug: model_construction_api_contract
+  first_gate: static-readiness
+  first_runtime_action: build model tree, parameters, materials, geometry, mesh, and study tags
+- c_id: C03
+  asset_path: software/comsol/assets/C03_geometry_mesh_import_contract.yaml
+  capability_slug: geometry_mesh_import_contract
+  first_gate: static-readiness
+  first_runtime_action: emit geometry, mesh, and selection-map manifests
+- c_id: C04
+  asset_path: software/comsol/assets/C04_physics_boundary_assignment_contract.yaml
+  capability_slug: physics_boundary_assignment_contract
+  first_gate: static-readiness
+  first_runtime_action: assign physics, materials, BCs, ICs, and units
+- c_id: C05
+  asset_path: software/comsol/assets/C05_study_run_solver_smoke.yaml
+  capability_slug: study_run_solver_smoke
+  first_gate: static-readiness
+  first_runtime_action: run configured study and validate solver/result dataset status
+- c_id: C06
+  asset_path: software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  capability_slug: result_extraction_postprocess_validation
+  first_gate: static-readiness
+  first_runtime_action: export probes, tables, units, and downstream-readable manifests
+validation:
+  required_seed_count: 6
+  required_c_ids:
+  - C01
+  - C02
+  - C03
+  - C04
+  - C05
+  - C06
+  no_claims:
+  - no MATLAB or COMSOL runtime execution is claimed by this static-readiness suite
+  - no COMSOL solver success, analytical benchmark validation, or multiphysics validation is claimed
+  - local executable, license, server secret, and Application Library paths must be injected through environment/runtime profile

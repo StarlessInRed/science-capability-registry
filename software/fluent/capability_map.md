@@ -109,3 +109,20 @@ ledger 覆盖 C01 runtime prompt fixes、C02 pressure-solve gaps、C03 mesh-conv
 - 不把 tutorial case 等同于 verification benchmark。
 - 不把 Workbench package 等同于 headless 自动化；需要单独的 runtime profile。
 - 不提交大型解压数据或 runtime evidence；runtime evidence 只放在 `_results/fluent/`，稳定总结进入 `reports/`。
+
+## 2026-07-02 Pause Update
+
+See `reports/fluent_C01_C08_pause_next_gate_summary_2026-07-02.md` for the current freeze boundary before switching attention to COMSOL/MATLAB assets.
+
+Frozen claims:
+
+- C01: local Fluent 2025 R1/v251 legacy elbow runtime smoke passed; pressure-drop benchmark is not claimed.
+- C02: self-generated VMFL005-like pipe mesh/readability and pressure-sampling smoke passed; official VMFL005 homology and benchmark validation are not claimed.
+- C03: three-level self-generated pressure-drop runtime trend smoke passed; official adaptation replay and analytical convergence proof are not claimed.
+- C04: official aero case-read smoke passed; force/Cp extraction and Cd/Cl/Cp benchmark validation are not claimed.
+- C05: official inkjet mesh-read smoke passed; transient VOF alpha boundedness, interface motion, and conservation are not claimed.
+- C06: official axial-compressor mesh-read smoke passed in a 3D profile; moving-zone setup, sliding interface, periodicity, and transient history are not claimed.
+- C07: heat-exchanger case/data thermal report smoke passed; CHT interface continuity and battery thermal validation are not claimed.
+- C08: Workbench WBPZ static introspection passed; RunWB2 execution, project migration, design-point update, and result extraction are not claimed.
+
+Return-to-Fluent order: C02 homology or reference replacement, C03 convergence promotion, C04 force/Cp replay, C05/C06 runtime promotion, then C08 RunWB2 copied-project execution.

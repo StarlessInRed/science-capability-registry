@@ -1,0 +1,54 @@
+asset_id: C02_model_construction_api_contract
+software: COMSOL
+source_url: https://doc.comsol.com/6.3/doc/com.comsol.help.llmatlab/LiveLinkForMATLABUsersGuide.pdf
+domain: multiphysics
+capability_name: model construction API contract
+problem_type:
+  category: MATLAB-controlled COMSOL model tree construction
+  description: Build a COMSOL model through MATLAB/API calls with explicit tags, parameters, material, geometry, mesh, and study objects.
+physics:
+  model_class:
+  - model construction contract
+  - generated heat or scalar PDE candidate
+  governing_parameters:
+    model_tags: configurable
+    parameters: configurable
+    component_tags: configurable
+inputs:
+  construction_contract:
+  - model_tag
+  - component_tag
+  - geometry_tag
+  - material_tag
+  - mesh_tag
+  - study_tag
+outputs:
+  required_artifacts:
+  - model_tree_manifest.json
+  - construction_manifest.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - parameter_count
+  - component_count
+  - required_tag_missing_count
+benchmark:
+  source_name: LiveLink for MATLAB model API and generated model contract
+  source_type: official API evidence plus generated source
+  benchmark_role: Static construction benchmark before solver execution.
+  status_rationale: Benchmark candidate selected; no COMSOL model construction runtime is claimed yet.
+validation_criteria:
+- Required model-tree tags must be explicit and unique.
+- Validation must reject missing parameters, unknown tags, and incomplete construction manifests.
+- Model construction success must not imply solver or physics validation.
+integration_targets:
+  workflow_stage: multiphysics.comsol.model_construction_api_contract
+  runtime_target: _results/comsol/model_construction_api_contract/
+  future_package_entrypoint: science_capability_registry.comsol.model_construction_api_contract:run
+  depends_on: C01_matlab_server_bridge_runtime
+intern_deliverables:
+- Define a minimal generated model tree contract.
+- Emit model construction and tag manifests.
+- Add negative validation for missing required tags.
+card_status: review
+benchmark_status: benchmark_candidate

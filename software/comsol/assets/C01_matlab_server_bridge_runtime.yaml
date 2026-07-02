@@ -1,0 +1,55 @@
+asset_id: C01_matlab_server_bridge_runtime
+software: COMSOL
+source_url: https://www.comsol.com/livelink-for-matlab
+domain: multiphysics
+capability_name: MATLAB server bridge runtime
+problem_type:
+  category: MATLAB-to-COMSOL runtime bridge
+  description: Verify that MATLAB can start or connect to COMSOL, create or open a minimal model, run a minimal study, and extract one finite canonical metric.
+physics:
+  model_class:
+  - LiveLink for MATLAB runtime envelope
+  - minimal generated model smoke
+  governing_parameters:
+    runtime_profile: local_matlab_comsol
+    model_source: self_generated_or_official_model
+inputs:
+  required_environment:
+  - MATLAB_EXE
+  - COMSOL_BIN
+  - COMSOL_MLI_DIR
+  optional_environment:
+  - COMSOL_MPHSERVER_BIN
+  - COMSOL_SERVER_HOST
+  - COMSOL_SERVER_PORT
+outputs:
+  required_artifacts:
+  - runtime_manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - matlab_executable_configured
+  - comsol_executable_configured
+  - livelink_api_configured
+  - model_roundtrip_status
+benchmark:
+  source_name: COMSOL LiveLink for MATLAB product and user-guide evidence
+  source_type: official product documentation
+  benchmark_role: Runtime envelope seed; not a physics benchmark.
+  status_rationale: Capability card and static plan created. Local MATLAB/COMSOL executable discovery did not pass on this host, so no runtime smoke is claimed.
+validation_criteria:
+- Environment preflight must require MATLAB and COMSOL paths through environment variables, not committed paths.
+- Runtime smoke must separate MATLAB startup, COMSOL bridge, model open/create, study run, and result extraction.
+- Missing LiveLink/API setup must fail as runtime-profile failure, not as model-physics failure.
+integration_targets:
+  workflow_stage: multiphysics.comsol.matlab_server_bridge_runtime
+  runtime_target: _results/comsol/matlab_server_bridge_runtime/
+  future_package_entrypoint: science_capability_registry.comsol.matlab_server_bridge_runtime:run
+  runtime_profile: local_matlab_comsol
+intern_deliverables:
+- Implement environment preflight for MATLAB, COMSOL, and LiveLink API path.
+- Add a minimal generated model script and dry-run manifest.
+- Add one smoke run that emits canonical metrics once runtime is configured.
+card_status: review
+benchmark_status: benchmark_candidate

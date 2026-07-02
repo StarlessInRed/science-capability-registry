@@ -1,0 +1,54 @@
+asset_id: C06_result_extraction_postprocess_validation
+software: COMSOL
+source_url: https://www.comsol.com/livelink-for-matlab
+domain: multiphysics
+capability_name: result extraction postprocess validation
+problem_type:
+  category: result extraction, units, and downstream workflow handoff
+  description: Export COMSOL results through MATLAB into canonical tables, probes, fields, units, and manifests that downstream Python or registry workflows can consume.
+physics:
+  model_class:
+  - MATLAB-side postprocess extraction
+  - probe/table/field export
+  governing_parameters:
+    source_model: configurable
+    result_datasets: configurable
+    unit_policy: configurable
+inputs:
+  export_contract:
+  - probe_locations
+  - expressions
+  - units
+  - table_or_field_outputs
+outputs:
+  required_artifacts:
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  scalar_metrics:
+  - exported_probe_count
+  - missing_unit_count
+  - finite_value_fraction
+benchmark:
+  source_name: Solved C05 model result export
+  source_type: downstream consumability benchmark
+  benchmark_role: Candidate benchmark for registry-facing COMSOL result handoff.
+  status_rationale: Benchmark candidate defined; no result export runtime is claimed yet.
+validation_criteria:
+- Every exported quantity must include expression, unit, location or dataset, and physical meaning.
+- Validation must reject NaN-only outputs, missing units, and mismatched probe counts.
+- Result export must be separate from solver success and benchmark correctness.
+integration_targets:
+  workflow_stage: multiphysics.comsol.result_extraction_postprocess_validation
+  runtime_target: _results/comsol/result_extraction_postprocess_validation/
+  future_package_entrypoint: science_capability_registry.comsol.result_extraction_postprocess_validation:run
+  depends_on: C05_study_run_solver_smoke
+intern_deliverables:
+- Define canonical export manifest and probe table.
+- Prove downstream Python can read the exported files.
+- Add validation for finite values, units, and expected row/column counts.
+card_status: review
+benchmark_status: benchmark_candidate

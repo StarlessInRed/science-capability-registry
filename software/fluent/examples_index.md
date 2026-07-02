@@ -49,3 +49,11 @@
 - Verification manual is the first source for benchmark targets, but requires geometry/reference homology before promotion.
 - Workbench tutorials define problem organization and parameter workflows; they must not be mixed with standalone Fluent batch gates.
 - Legacy direct `.cas/.dat/.jou` cases are acceptable early runtime seeds when clearly labeled as legacy source.
+
+## 2026-07-02 Runtime Closure Update
+
+The current Fluent pause boundary is recorded in `reports/fluent_C01_C08_pause_next_gate_summary_2026-07-02.md`.
+
+- C01, C02, C03, C04, C05, C06, C07, and C08 all have first-batch evidence boundaries, but no seed is promoted to benchmark-complete validation.
+- C02, C03, C04, C05/C06, and C08 are the return-to-Fluent order when this asset family is resumed.
+- Future promotion must update `reports/fluent_failure_ledger.yaml`, this examples index, the relevant asset card, and the corresponding stable report before changing benchmark status.
