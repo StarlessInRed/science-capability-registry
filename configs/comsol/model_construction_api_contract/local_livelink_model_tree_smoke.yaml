@@ -1,0 +1,100 @@
+capability_id: multiphysics.comsol.model_construction_api_contract
+case_id: local_livelink_model_tree_smoke
+description: COMSOL C02 local MATLAB/LiveLink model tree smoke; constructs explicit model, component, geometry, material, mesh, and study tags without running a solver study.
+comsol:
+  runtime_profile: local_matlab_comsol_preflight
+  runtime_profile_config: configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  command_env: COMSOL_BIN
+  mphserver_env: COMSOL_MPHSERVER_BIN
+  version_family: env_configured
+matlab:
+  executable_env: MATLAB_EXE
+  batch_argument: -batch
+livelink:
+  mli_dir_env: COMSOL_MLI_DIR
+  required_matlab_functions:
+  - mphstart
+  - mphevaluate
+server:
+  host_env: COMSOL_SERVER_HOST
+  port_env: COMSOL_SERVER_PORT
+  connection_mode: local_or_server
+backend:
+  type: matlab_livelink_model_tree_smoke
+  timeout_s: 240
+model_tree:
+  script_filename: matlab_model_construction_smoke.m
+  tags:
+    model_tag: c02_model_tree_contract
+    component_tag: comp1
+    geometry_tag: geom1
+    material_tag: mat1
+    mesh_tag: mesh1
+    study_tag: std1
+  parameters:
+  - name: c02_width
+    expression: "1.0"
+    description: Unitless rectangle width parameter for model-tree construction.
+  - name: c02_height
+    expression: "0.5"
+    description: Unitless rectangle height parameter for model-tree construction.
+  - name: c02_k
+    expression: "1.0"
+    description: Unitless material-like scalar retained only as parameter evidence.
+  geometry:
+    dimension: 2
+    feature_tag: rect1
+    feature_type: Rectangle
+    size_parameters:
+    - c02_width
+    - c02_height
+  material:
+    material_type: Common
+  mesh:
+    auto_mesh_size: 5
+  study:
+    feature_tag: stat
+    study_type: Stationary
+outputs:
+  output_dir: _results/comsol/model_construction_api_contract/local_livelink_model_tree_smoke
+  expected_outputs:
+  - manifest.json
+  - matlab_model_construction_smoke.m
+  - model_tree_manifest.json
+  - construction_manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - stdout.txt
+  - stderr.txt
+validation:
+  gate: smoke
+  required_environment:
+  - MATLAB_EXE
+  - COMSOL_BIN
+  - COMSOL_MLI_DIR
+  optional_environment:
+  - COMSOL_MPHSERVER_BIN
+  - COMSOL_SERVER_HOST
+  - COMSOL_SERVER_PORT
+  require_path_exists: true
+  require_matlab_execution: true
+  required_tags:
+  - model_tag
+  - component_tag
+  - geometry_tag
+  - material_tag
+  - mesh_tag
+  - study_tag
+  required_artifacts:
+  - manifest.json
+  - matlab_model_construction_smoke.m
+  - model_tree_manifest.json
+  - construction_manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - C02 proves MATLAB/LiveLink model-tree construction and finite parameter evaluation only
+  - C02 does not run a COMSOL study, validate physics assignment, validate mesh quality, extract fields, replay an official model, or claim benchmark validation
+  - local executable, license, server, and Application Library paths must remain environment-injected

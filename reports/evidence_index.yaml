@@ -1625,3 +1625,121 @@ evidence:
   limitations:
   - Bridge smoke only; no COMSOL study solve, field extraction, official model replay, or physics benchmark validation is claimed.
   - Local executable paths and server details remain environment-injected and are not committed in configs.
+- evidence_id: comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03
+  capability_id: multiphysics.comsol.model_construction_api_contract
+  asset_path: software/comsol/assets/C02_model_construction_api_contract.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C02_model_construction_api_contract.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/model_construction_api_contract/local_livelink_model_tree_smoke.yaml
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  - schemas/comsol_C02_model_construction_api_contract.schema.json
+  - src/science_capability_registry/comsol/model_construction_api_contract/runner.py
+  - src/science_capability_registry/comsol/model_construction_api_contract/validation.py
+  - src/science_capability_registry/comsol/model_construction_api_contract/report.py
+  - tests/test_comsol_c02_schema.py
+  - tests/test_comsol_c02_runner.py
+  - tests/test_comsol_c02_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/model_construction_api_contract/local_livelink_model_tree_smoke/
+  scope: Local COMSOL 6.3 MATLAB LiveLink smoke constructs an auditable model tree with explicit tags and finite parameters without running a study solve.
+  limitations:
+  - Model construction only; no physics assignment completeness, mesh-quality validation, study solve, field extraction, official replay, or benchmark validation is claimed.
+  - Local executable paths and server details remain environment-injected and are not committed in configs.
+- evidence_id: comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03
+  capability_id: multiphysics.comsol.geometry_mesh_import_contract
+  asset_path: software/comsol/assets/C03_geometry_mesh_import_contract.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C03_geometry_mesh_import_contract.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/geometry_mesh_import_contract/static_contract.yaml
+  - schemas/comsol_C03_geometry_mesh_import_contract.schema.json
+  - src/science_capability_registry/comsol/geometry_mesh_import_contract/runner.py
+  - src/science_capability_registry/comsol/static_contract.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/geometry_mesh_import_contract/static_contract/
+  scope: COMSOL C03 static package skeleton validates geometry, mesh, and named-selection handoff artifacts.
+  limitations:
+  - Static contract only; no CAD import, mesh generation runtime, selection creation runtime, physics assignment, solver execution, official replay, or benchmark validation is claimed.
+- evidence_id: comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03
+  capability_id: multiphysics.comsol.physics_boundary_assignment_contract
+  asset_path: software/comsol/assets/C04_physics_boundary_assignment_contract.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C04_physics_boundary_assignment_contract.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/physics_boundary_assignment_contract/static_contract.yaml
+  - schemas/comsol_C04_physics_boundary_assignment_contract.schema.json
+  - src/science_capability_registry/comsol/physics_boundary_assignment_contract/runner.py
+  - src/science_capability_registry/comsol/static_contract.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/physics_boundary_assignment_contract/static_contract/
+  scope: COMSOL C04 static package skeleton validates physics, material, boundary, initial-condition, and unit assignment handoff artifacts.
+  limitations:
+  - Static contract only; no COMSOL physics interface, material assignment, boundary assignment, initial-condition runtime, solver execution, official replay, or benchmark validation is claimed.
+- evidence_id: comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03
+  capability_id: multiphysics.comsol.study_run_solver_smoke
+  asset_path: software/comsol/assets/C05_study_run_solver_smoke.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C05_study_run_solver_smoke.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/study_run_solver_smoke/static_contract.yaml
+  - schemas/comsol_C05_study_run_solver_smoke.schema.json
+  - src/science_capability_registry/comsol/study_run_solver_smoke/runner.py
+  - src/science_capability_registry/comsol/static_contract.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/study_run_solver_smoke/static_contract/
+  scope: COMSOL C05 static package skeleton validates study, solver-status, and dataset handoff artifacts for a future solver smoke.
+  limitations:
+  - Static contract only; no COMSOL study run, solver convergence, dataset creation, result extraction, official replay, or benchmark validation is claimed.
+- evidence_id: comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03
+  capability_id: multiphysics.comsol.result_extraction_postprocess_validation
+  asset_path: software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  evidence_kind: static_readiness_report
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03.md
+  supporting_paths:
+  - software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/result_extraction_postprocess_validation/static_contract.yaml
+  - schemas/comsol_C06_result_extraction_postprocess_validation.schema.json
+  - src/science_capability_registry/comsol/result_extraction_postprocess_validation/runner.py
+  - src/science_capability_registry/comsol/static_contract.py
+  - tests/test_comsol_c03_c06_schema.py
+  - tests/test_comsol_c03_c06_runner.py
+  - tests/test_comsol_c03_c06_validation.py
+  runtime_evidence_paths:
+  - _results/comsol/result_extraction_postprocess_validation/static_contract/
+  scope: COMSOL C06 static package skeleton validates export, probe-table, and unit handoff artifacts for future result extraction.
+  limitations:
+  - Static contract only; no COMSOL result extraction runtime, finite-value validation, field export, downstream analysis result, official replay, or benchmark validation is claimed.

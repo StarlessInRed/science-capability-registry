@@ -1,0 +1,75 @@
+capability_id: multiphysics.comsol.physics_boundary_assignment_contract
+asset_id: C04_physics_boundary_assignment_contract
+case_id: static_contract
+description: COMSOL C04 static physics, material, boundary, initial-condition, and unit assignment contract skeleton.
+depends_on:
+- multiphysics.comsol.geometry_mesh_import_contract
+backend:
+  type: dry_run_only
+  timeout_s: 60
+contract:
+  stage: physics_boundary_assignment_contract
+  scope: COMSOL C04 static-readiness validates declared assignment completeness semantics only; no COMSOL physics interface is instantiated and no solver execution or convergence evidence is claimed.
+  source_boundary: Consumes C03 geometry, mesh, and selection-map manifests before any real COMSOL physics assignment runtime.
+  declared_objects:
+  - name: physics_assignment_manifest
+    role: physics_assignment_manifest
+    required: true
+    description: Declares physics interface tags, feature tags, and assigned selection roles.
+  - name: boundary_assignment_manifest
+    role: boundary_assignment_manifest
+    required: true
+    description: Declares boundary-condition and initial-condition role coverage.
+  - name: unit_policy
+    role: unit_policy
+    required: true
+    description: Declares units required for material properties, BC values, IC values, and exported quantities.
+  artifacts:
+  - path: physics_assignment_manifest.json
+    role: physics interface and material assignment contract
+    required: true
+  - path: boundary_assignment_manifest.json
+    role: boundary and initial-condition coverage contract
+    required: true
+  - path: unit_policy.json
+    role: unit completeness policy
+    required: true
+  handoff_contract:
+  - every solver-facing boundary role must have an assignment or explicit out-of-scope reason
+  - material, BC, and IC values must carry unit policy before C05 solve
+  - assignment completeness must remain separate from solver convergence
+outputs:
+  output_dir: _results/comsol/physics_boundary_assignment_contract/static_contract
+  expected_outputs:
+  - physics_assignment_manifest.json
+  - boundary_assignment_manifest.json
+  - unit_policy.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_object_roles:
+  - physics_assignment_manifest
+  - boundary_assignment_manifest
+  - unit_policy
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - contract
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - physics_assignment_manifest.json
+  - boundary_assignment_manifest.json
+  - unit_policy.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no COMSOL physics interface, material assignment, boundary assignment, or initial-condition runtime is executed
+  - no solver convergence, dataset creation, result extraction, official replay, or benchmark validation is claimed

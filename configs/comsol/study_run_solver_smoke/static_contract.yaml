@@ -1,0 +1,65 @@
+capability_id: multiphysics.comsol.study_run_solver_smoke
+asset_id: C05_study_run_solver_smoke
+case_id: static_contract
+description: COMSOL C05 static study-run and solver-status smoke contract skeleton.
+depends_on:
+- multiphysics.comsol.physics_boundary_assignment_contract
+backend:
+  type: dry_run_only
+  timeout_s: 60
+contract:
+  stage: study_run_solver_smoke
+  scope: COMSOL C05 static-readiness validates the study/solver smoke evidence contract only; no COMSOL study is run and no convergence or benchmark validation is claimed.
+  source_boundary: Consumes a future C04 complete assignment manifest before launching a real study smoke.
+  declared_objects:
+  - name: solver_manifest
+    role: solver_manifest
+    required: true
+    description: Declares study tag, solver tag, timeout policy, completion-status policy, and failure taxonomy.
+  - name: dataset_manifest
+    role: dataset_manifest
+    required: true
+    description: Declares expected result dataset tags and minimal result-state evidence.
+  artifacts:
+  - path: solver_manifest.json
+    role: study and solver-status contract
+    required: true
+  - path: dataset_manifest.json
+    role: result dataset presence contract
+    required: true
+  handoff_contract:
+  - study runtime must report completion status and elapsed time
+  - solver failure must be separated from construction, assignment, and postprocess failure
+  - solver success must not be treated as analytical benchmark validation
+outputs:
+  output_dir: _results/comsol/study_run_solver_smoke/static_contract
+  expected_outputs:
+  - solver_manifest.json
+  - dataset_manifest.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_object_roles:
+  - solver_manifest
+  - dataset_manifest
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - contract
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - solver_manifest.json
+  - dataset_manifest.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no COMSOL study or solver runtime is executed by this static contract
+  - no convergence, dataset creation, result extraction, official replay, analytical comparison, or benchmark validation is claimed

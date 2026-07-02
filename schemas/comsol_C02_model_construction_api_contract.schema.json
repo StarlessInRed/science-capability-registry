@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/comsol_C02_model_construction_api_contract.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL C02 MATLAB LiveLink model construction contract.",
+  "title": "COMSOL C02 Model Construction API Contract Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "comsol",
+    "matlab",
+    "livelink",
+    "server",
+    "backend",
+    "model_tree",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "multiphysics.comsol.model_construction_api_contract"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "comsol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "command_env", "mphserver_env", "version_family"],
+      "properties": {
+        "runtime_profile": {"const": "local_matlab_comsol_preflight"},
+        "runtime_profile_config": {"type": "string", "pattern": "^configs/comsol/runtime_profiles/[A-Za-z0-9_./-]+\\.yaml$"},
+        "command_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "mphserver_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "version_family": {"type": "string", "minLength": 1}
+      }
+    },
+    "matlab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable_env", "batch_argument"],
+      "properties": {
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "batch_argument": {"const": "-batch"}
+      }
+    },
+    "livelink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mli_dir_env", "required_matlab_functions"],
+      "properties": {
+        "mli_dir_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "required_matlab_functions": {
+          "type": "array",
+          "items": {"enum": ["mphstart", "mphevaluate"]},
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host_env", "port_env", "connection_mode"],
+      "properties": {
+        "host_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "port_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "connection_mode": {"enum": ["local_or_server"]}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "preflight_only", "matlab_livelink_model_tree_smoke"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "model_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script_filename", "tags", "parameters", "geometry", "material", "mesh", "study"],
+      "properties": {
+        "script_filename": {"const": "matlab_model_construction_smoke.m"},
+        "tags": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model_tag", "component_tag", "geometry_tag", "material_tag", "mesh_tag", "study_tag"],
+          "properties": {
+            "model_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "component_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "geometry_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "material_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "mesh_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "study_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"}
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "expression", "description"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+              "expression": {"type": "string", "minLength": 1},
+              "description": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "geometry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dimension", "feature_tag", "feature_type", "size_parameters"],
+          "properties": {
+            "dimension": {"const": 2},
+            "feature_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "feature_type": {"const": "Rectangle"},
+            "size_parameters": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "material": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["material_type"],
+          "properties": {
+            "material_type": {"const": "Common"}
+          }
+        },
+        "mesh": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["auto_mesh_size"],
+          "properties": {
+            "auto_mesh_size": {"type": "integer", "minimum": 1, "maximum": 9}
+          }
+        },
+        "study": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["feature_tag", "study_type"],
+          "properties": {
+            "feature_tag": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+            "study_type": {"const": "Stationary"}
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "pattern": "^_results/comsol/model_construction_api_contract/[A-Za-z0-9_./-]+$"},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "manifest.json",
+              "matlab_model_construction_smoke.m",
+              "model_tree_manifest.json",
+              "construction_manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md",
+              "stdout.txt",
+              "stderr.txt"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "required_environment",
+        "optional_environment",
+        "require_path_exists",
+        "require_matlab_execution",
+        "required_tags",
+        "required_artifacts",
+        "no_claims"
+      ],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke"]},
+        "required_environment": {
+          "type": "array",
+          "items": {"enum": ["MATLAB_EXE", "COMSOL_BIN", "COMSOL_MLI_DIR"]},
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "optional_environment": {
+          "type": "array",
+          "items": {"enum": ["COMSOL_MPHSERVER_BIN", "COMSOL_SERVER_HOST", "COMSOL_SERVER_PORT"]},
+          "uniqueItems": true
+        },
+        "require_path_exists": {"type": "boolean"},
+        "require_matlab_execution": {"type": "boolean"},
+        "required_tags": {
+          "type": "array",
+          "items": {"enum": ["model_tag", "component_tag", "geometry_tag", "material_tag", "mesh_tag", "study_tag"]},
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "manifest.json",
+              "matlab_model_construction_smoke.m",
+              "model_tree_manifest.json",
+              "construction_manifest.json",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md",
+              "stdout.txt",
+              "stderr.txt"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        },
+        "no_claims": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

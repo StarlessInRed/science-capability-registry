@@ -38,18 +38,21 @@ benchmark:
   source_name: Generated geometry first, official Application Library model later
   source_type: generated or official example source
   benchmark_role: Candidate benchmark for robust geometry/mesh/source-readiness.
-  status_rationale: Benchmark candidate defined; runtime and CAD import are not yet claimed.
+  status_rationale: Static package skeleton exists for the geometry/mesh/selection contract; CAD import, mesh generation runtime, and physics validation are not claimed.
 validation_criteria:
 - Geometry, mesh, and named selection roles must be visible in config/schema.
 - Validation must reject missing required selections and boundary-role mismatches.
 - CAD/import success must not be treated as physics validation.
 integration_targets:
   workflow_stage: multiphysics.comsol.geometry_mesh_import_contract
+  input_schema: schemas/comsol_C03_geometry_mesh_import_contract.schema.json
+  default_config: configs/comsol/geometry_mesh_import_contract/static_contract.yaml
   runtime_target: _results/comsol/geometry_mesh_import_contract/
-  future_package_entrypoint: science_capability_registry.comsol.geometry_mesh_import_contract:run
+  package_entrypoint: science_capability_registry.comsol.geometry_mesh_import_contract:run
+  depends_on: C02_model_construction_api_contract
 intern_deliverables:
 - Start with generated geometry before large CAD import.
 - Emit geometry, mesh, and selection manifests.
 - Add negative validation for renamed, missing, or dimension-mismatched selections.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

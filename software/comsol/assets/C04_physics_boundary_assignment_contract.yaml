@@ -37,19 +37,21 @@ benchmark:
   source_name: C02/C03 generated model with explicit physics assignment
   source_type: generated contract source
   benchmark_role: Static gate before study execution.
-  status_rationale: Benchmark candidate defined; no physics assignment runtime is claimed yet.
+  status_rationale: Static package skeleton exists for assignment completeness semantics; no COMSOL physics assignment runtime, solver convergence, or benchmark validation is claimed.
 validation_criteria:
 - Every solver-facing boundary role must have a declared assignment or an explicit out-of-scope reason.
 - Validation must reject missing units, missing material assignments, and unknown physics tags.
 - Assignment completeness must be separated from solver convergence.
 integration_targets:
   workflow_stage: multiphysics.comsol.physics_boundary_assignment_contract
+  input_schema: schemas/comsol_C04_physics_boundary_assignment_contract.schema.json
+  default_config: configs/comsol/physics_boundary_assignment_contract/static_contract.yaml
   runtime_target: _results/comsol/physics_boundary_assignment_contract/
-  future_package_entrypoint: science_capability_registry.comsol.physics_boundary_assignment_contract:run
-  depends_on: C02_model_construction_api_contract
+  package_entrypoint: science_capability_registry.comsol.physics_boundary_assignment_contract:run
+  depends_on: C03_geometry_mesh_import_contract
 intern_deliverables:
 - Define material, physics, BC, and IC manifest schemas.
 - Add negative tests for missing assignments and unknown units.
 - Keep solver execution in C05, not in this contract.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

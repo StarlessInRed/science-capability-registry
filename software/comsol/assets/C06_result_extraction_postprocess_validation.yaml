@@ -36,19 +36,21 @@ benchmark:
   source_name: Solved C05 model result export
   source_type: downstream consumability benchmark
   benchmark_role: Candidate benchmark for registry-facing COMSOL result handoff.
-  status_rationale: Benchmark candidate defined; no result export runtime is claimed yet.
+  status_rationale: Static package skeleton exists for the future result-export handoff contract; no COMSOL result extraction runtime, finite probe validation, or benchmark validation is claimed.
 validation_criteria:
 - Every exported quantity must include expression, unit, location or dataset, and physical meaning.
 - Validation must reject NaN-only outputs, missing units, and mismatched probe counts.
 - Result export must be separate from solver success and benchmark correctness.
 integration_targets:
   workflow_stage: multiphysics.comsol.result_extraction_postprocess_validation
+  input_schema: schemas/comsol_C06_result_extraction_postprocess_validation.schema.json
+  default_config: configs/comsol/result_extraction_postprocess_validation/static_contract.yaml
   runtime_target: _results/comsol/result_extraction_postprocess_validation/
-  future_package_entrypoint: science_capability_registry.comsol.result_extraction_postprocess_validation:run
+  package_entrypoint: science_capability_registry.comsol.result_extraction_postprocess_validation:run
   depends_on: C05_study_run_solver_smoke
 intern_deliverables:
 - Define canonical export manifest and probe table.
 - Prove downstream Python can read the exported files.
 - Add validation for finite values, units, and expected row/column counts.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

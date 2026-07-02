@@ -36,19 +36,21 @@ benchmark:
   source_name: LiveLink for MATLAB model API and generated model contract
   source_type: official API evidence plus generated source
   benchmark_role: Static construction benchmark before solver execution.
-  status_rationale: Benchmark candidate selected; no COMSOL model construction runtime is claimed yet.
+  status_rationale: Package skeleton and local LiveLink model-tree smoke exist; this proves construction contract execution only, not solver or benchmark validation.
 validation_criteria:
 - Required model-tree tags must be explicit and unique.
 - Validation must reject missing parameters, unknown tags, and incomplete construction manifests.
 - Model construction success must not imply solver or physics validation.
 integration_targets:
   workflow_stage: multiphysics.comsol.model_construction_api_contract
+  input_schema: schemas/comsol_C02_model_construction_api_contract.schema.json
+  default_config: configs/comsol/model_construction_api_contract/local_livelink_model_tree_smoke.yaml
   runtime_target: _results/comsol/model_construction_api_contract/
-  future_package_entrypoint: science_capability_registry.comsol.model_construction_api_contract:run
+  package_entrypoint: science_capability_registry.comsol.model_construction_api_contract:run
   depends_on: C01_matlab_server_bridge_runtime
 intern_deliverables:
 - Define a minimal generated model tree contract.
 - Emit model construction and tag manifests.
 - Add negative validation for missing required tags.
 card_status: review
-benchmark_status: benchmark_candidate
+benchmark_status: package_skeleton_created

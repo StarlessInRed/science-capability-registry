@@ -57,8 +57,7 @@ def test_comsol_c01_c06_capability_map_links_assets_and_tasks() -> None:
         assert asset["software"] == "COMSOL"
         assert asset["domain"] == "multiphysics"
         assert asset["card_status"] == "review"
-        expected_status = "package_skeleton_created" if c_id == "C01" else "benchmark_candidate"
-        assert asset["benchmark_status"] == expected_status
+        assert asset["benchmark_status"] == "package_skeleton_created"
         assert asset_path in index_text
         assert c_id in map_text
 
@@ -108,6 +107,27 @@ def test_comsol_c01_livelink_smoke_evidence_entry_resolves() -> None:
     assert Path(evidence["primary_evidence_path"]).exists()
     for path in evidence["supporting_paths"]:
         assert Path(path).exists(), path
+
+
+def test_comsol_c02_c06_package_evidence_entries_resolve() -> None:
+    evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
+    evidence_by_id = {entry["evidence_id"]: entry for entry in evidence_index["evidence"]}
+    expected = {
+        "comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03": ("C02", "smoke", "passed"),
+        "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03": ("C03", "static-readiness", "passed"),
+        "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03": ("C04", "static-readiness", "passed"),
+        "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03": ("C05", "static-readiness", "passed"),
+        "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03": ("C06", "static-readiness", "passed"),
+    }
+
+    for evidence_id, (c_id, gate, status) in expected.items():
+        evidence = evidence_by_id[evidence_id]
+        assert evidence["asset_path"] == COMSOL_ASSETS[c_id]
+        assert evidence["gate"] == gate
+        assert evidence["status"] == status
+        assert Path(evidence["primary_evidence_path"]).exists()
+        for path in evidence["supporting_paths"]:
+            assert Path(path).exists(), path
 
 
 def test_comsol_first_gate_does_not_claim_runtime() -> None:

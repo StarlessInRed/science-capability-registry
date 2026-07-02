@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/comsol_C05_study_run_solver_smoke.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL C05 static study/solver smoke contract.",
+  "title": "COMSOL C05 Study Run Solver Smoke Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["capability_id", "asset_id", "case_id", "description", "depends_on", "backend", "contract", "outputs", "validation"],
+  "properties": {
+    "capability_id": {"const": "multiphysics.comsol.study_run_solver_smoke"},
+    "asset_id": {"const": "C05_study_run_solver_smoke"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "depends_on": {"type": "array", "items": {"const": "multiphysics.comsol.physics_boundary_assignment_contract"}, "maxItems": 1},
+    "backend": {"$ref": "#/$defs/backend"},
+    "contract": {"$ref": "#/$defs/contract"},
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "pattern": "^_results/comsol/study_run_solver_smoke/[A-Za-z0-9_./-]+$"},
+        "expected_outputs": {"$ref": "#/$defs/expected_outputs"}
+      }
+    },
+    "validation": {"$ref": "#/$defs/validation"}
+  },
+  "$defs": {
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {"type": {"const": "dry_run_only"}, "timeout_s": {"type": "number", "exclusiveMinimum": 0}}
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "scope", "source_boundary", "declared_objects", "artifacts", "handoff_contract"],
+      "properties": {
+        "stage": {"const": "study_run_solver_smoke"},
+        "scope": {"type": "string", "minLength": 1},
+        "source_boundary": {"type": "string", "minLength": 1},
+        "declared_objects": {"$ref": "#/$defs/declared_objects"},
+        "artifacts": {"$ref": "#/$defs/artifacts"},
+        "handoff_contract": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+      }
+    },
+    "declared_objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "role", "required", "description"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[A-Za-z0-9_./-]+$"},
+          "role": {"type": "string", "pattern": "^[a-z0-9_-]+$"},
+          "required": {"type": "boolean"},
+          "description": {"type": "string", "minLength": 1}
+        }
+      },
+      "minItems": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "required"],
+        "properties": {
+          "path": {"enum": ["solver_manifest.json", "dataset_manifest.json"]},
+          "role": {"type": "string", "minLength": 1},
+          "required": {"type": "boolean"}
+        }
+      },
+      "minItems": 2,
+      "uniqueItems": true
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {"enum": ["solver_manifest.json", "dataset_manifest.json", "manifest.json", "metrics.json", "validation.json", "validation_report.md"]},
+      "minItems": 6,
+      "uniqueItems": true
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "required_object_roles", "required_manifest_sections", "required_artifacts", "no_claims"],
+      "properties": {
+        "gate": {"const": "static-readiness"},
+        "required_object_roles": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9_-]+$"}, "minItems": 1, "uniqueItems": true},
+        "required_manifest_sections": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+        "required_artifacts": {"$ref": "#/$defs/expected_outputs"},
+        "no_claims": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+      }
+    }
+  }
+}

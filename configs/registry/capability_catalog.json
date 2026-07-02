@@ -666,6 +666,151 @@
       "primary_evidence_id": "comsol_C01_matlab_server_bridge_runtime_livelink_smoke_2026-07-03"
     },
     {
+      "capability_id": "multiphysics.comsol.model_construction_api_contract",
+      "asset_id": "C02_model_construction_api_contract",
+      "software": "COMSOL",
+      "domain": "multiphysics",
+      "asset_path": "software/comsol/assets/C02_model_construction_api_contract.yaml",
+      "run_schema_path": "schemas/comsol_C02_model_construction_api_contract.schema.json",
+      "default_config_path": "configs/comsol/model_construction_api_contract/local_livelink_model_tree_smoke.yaml",
+      "package_entrypoint": "science_capability_registry.comsol.model_construction_api_contract:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03"
+    },
+    {
+      "capability_id": "multiphysics.comsol.geometry_mesh_import_contract",
+      "asset_id": "C03_geometry_mesh_import_contract",
+      "software": "COMSOL",
+      "domain": "multiphysics",
+      "asset_path": "software/comsol/assets/C03_geometry_mesh_import_contract.yaml",
+      "run_schema_path": "schemas/comsol_C03_geometry_mesh_import_contract.schema.json",
+      "default_config_path": "configs/comsol/geometry_mesh_import_contract/static_contract.yaml",
+      "package_entrypoint": "science_capability_registry.comsol.geometry_mesh_import_contract:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "comsol_C03_geometry_mesh_import_contract_static_skeleton_2026-07-03"
+    },
+    {
+      "capability_id": "multiphysics.comsol.physics_boundary_assignment_contract",
+      "asset_id": "C04_physics_boundary_assignment_contract",
+      "software": "COMSOL",
+      "domain": "multiphysics",
+      "asset_path": "software/comsol/assets/C04_physics_boundary_assignment_contract.yaml",
+      "run_schema_path": "schemas/comsol_C04_physics_boundary_assignment_contract.schema.json",
+      "default_config_path": "configs/comsol/physics_boundary_assignment_contract/static_contract.yaml",
+      "package_entrypoint": "science_capability_registry.comsol.physics_boundary_assignment_contract:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "comsol_C04_physics_boundary_assignment_contract_static_skeleton_2026-07-03"
+    },
+    {
+      "capability_id": "multiphysics.comsol.study_run_solver_smoke",
+      "asset_id": "C05_study_run_solver_smoke",
+      "software": "COMSOL",
+      "domain": "multiphysics",
+      "asset_path": "software/comsol/assets/C05_study_run_solver_smoke.yaml",
+      "run_schema_path": "schemas/comsol_C05_study_run_solver_smoke.schema.json",
+      "default_config_path": "configs/comsol/study_run_solver_smoke/static_contract.yaml",
+      "package_entrypoint": "science_capability_registry.comsol.study_run_solver_smoke:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "comsol_C05_study_run_solver_smoke_static_skeleton_2026-07-03"
+    },
+    {
+      "capability_id": "multiphysics.comsol.result_extraction_postprocess_validation",
+      "asset_id": "C06_result_extraction_postprocess_validation",
+      "software": "COMSOL",
+      "domain": "multiphysics",
+      "asset_path": "software/comsol/assets/C06_result_extraction_postprocess_validation.yaml",
+      "run_schema_path": "schemas/comsol_C06_result_extraction_postprocess_validation.schema.json",
+      "default_config_path": "configs/comsol/result_extraction_postprocess_validation/static_contract.yaml",
+      "package_entrypoint": "science_capability_registry.comsol.result_extraction_postprocess_validation:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml",
+      "dispatch_status": "static_ready",
+      "current_gate": "static-readiness",
+      "primary_evidence_id": "comsol_C06_result_extraction_postprocess_validation_static_skeleton_2026-07-03"
+    },
+    {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
       "asset_id": "C01_parametric_geometry_mesh_generation",
       "software": "Gmsh",

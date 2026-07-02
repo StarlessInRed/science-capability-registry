@@ -18,11 +18,11 @@
 | C | capability slug | role | preferred source | validation focus | first gate |
 | --- | --- | --- | --- | --- | --- |
 | C01 | `matlab_server_bridge_runtime` | MATLAB-COMSOL server/session bridge and minimal roundtrip | LiveLink API and self-generated minimal model | executable profile, server/session connection, model open/create, finite scalar extraction | runtime smoke passed |
-| C02 | `model_construction_api_contract` | Build a COMSOL model from MATLAB-controlled API calls | generated heat/PDE model contract | model tree tags, parameters, material, geometry, mesh, study object creation | static-readiness |
-| C03 | `geometry_mesh_import_contract` | Geometry, mesh, import, and selection-map readiness | generated geometry first, official model later | entity counts, selections, boundary role map, mesh/import status | static-readiness |
-| C04 | `physics_boundary_assignment_contract` | Physics interface, material, boundary, and initial-condition assignment | C02 generated model or official small model | BC/IC completeness, units, physics feature tags, rejection of missing assignments | static-readiness |
-| C05 | `study_run_solver_smoke` | Study execution, solver status, and benchmark-ready result state | C02/C04 generated model | solver completion, convergence/status, final datasets, nonempty result state | static-readiness then smoke |
-| C06 | `result_extraction_postprocess_validation` | MATLAB-side extraction, canonical exports, and downstream consumability | solved C05 result | `mphglobal`/`mphinterp`/tables, units, finite values, CSV/JSON handoff | static-readiness |
+| C02 | `model_construction_api_contract` | Build a COMSOL model from MATLAB-controlled API calls | generated heat/PDE model contract | model tree tags, parameters, material, geometry, mesh, study object creation | runtime smoke passed |
+| C03 | `geometry_mesh_import_contract` | Geometry, mesh, import, and selection-map readiness | generated geometry first, official model later | entity counts, selections, boundary role map, mesh/import status | package skeleton static-readiness |
+| C04 | `physics_boundary_assignment_contract` | Physics interface, material, boundary, and initial-condition assignment | C02/C03 generated model or official small model | BC/IC completeness, units, physics feature tags, rejection of missing assignments | package skeleton static-readiness |
+| C05 | `study_run_solver_smoke` | Study execution, solver status, and benchmark-ready result state | C04 complete model | solver completion, convergence/status, final datasets, nonempty result state | package skeleton static-readiness before smoke |
+| C06 | `result_extraction_postprocess_validation` | MATLAB-side extraction, canonical exports, and downstream consumability | solved C05 result | `mphglobal`/`mphinterp`/tables, units, finite values, CSV/JSON handoff | package skeleton static-readiness |
 
 ## Why C01-C06
 
@@ -79,3 +79,24 @@ Evidence:
 - `_results/comsol/matlab_server_bridge_runtime/local_livelink_smoke/`
 
 The smoke proves bridge connectivity and finite COMSOL parameter evaluation only. It does not prove study solve, field extraction, official model replay, or physics benchmark validation.
+
+## 2026-07-03 C02-C06 Package Closure
+
+C02 now has a package-backed MATLAB LiveLink model-tree smoke:
+
+- `schemas/comsol_C02_model_construction_api_contract.schema.json`
+- `configs/comsol/model_construction_api_contract/local_livelink_model_tree_smoke.yaml`
+- `src/science_capability_registry/comsol/model_construction_api_contract/`
+- `reports/comsol_C02_model_construction_api_contract_livelink_smoke_2026-07-03.md`
+- `_results/comsol/model_construction_api_contract/local_livelink_model_tree_smoke/`
+
+The C02 smoke passed with `matlab_return_code=0`, `finite_parameter_count=3/3`, `required_tag_missing_count=0`, and `solver_executed=false`.
+
+C03-C06 now have package-backed static contracts:
+
+- C03: `configs/comsol/geometry_mesh_import_contract/static_contract.yaml`
+- C04: `configs/comsol/physics_boundary_assignment_contract/static_contract.yaml`
+- C05: `configs/comsol/study_run_solver_smoke/static_contract.yaml`
+- C06: `configs/comsol/result_extraction_postprocess_validation/static_contract.yaml`
+
+These C03-C06 packages emit manifest, metrics, validation, report, and stage-specific handoff artifacts. They do not execute COMSOL runtime, open official models, run solvers, extract finite fields, or claim benchmark validation.

@@ -1,0 +1,75 @@
+capability_id: multiphysics.comsol.result_extraction_postprocess_validation
+asset_id: C06_result_extraction_postprocess_validation
+case_id: static_contract
+description: COMSOL C06 static result extraction, unit, and downstream postprocess handoff contract skeleton.
+depends_on:
+- multiphysics.comsol.study_run_solver_smoke
+backend:
+  type: dry_run_only
+  timeout_s: 60
+contract:
+  stage: result_extraction_postprocess_validation
+  scope: COMSOL C06 static-readiness validates result-export and downstream consumability semantics only; no COMSOL result extraction runtime and no finite field/probe validation is claimed.
+  source_boundary: Consumes a future C05 solved result dataset before exporting probes, tables, fields, and units.
+  declared_objects:
+  - name: export_manifest
+    role: export_manifest
+    required: true
+    description: Declares exported expressions, dataset/source tags, physical meanings, and destination artifact names.
+  - name: probes
+    role: probe_table
+    required: true
+    description: Declares probe table columns and expected finite-value policy.
+  - name: units
+    role: unit_manifest
+    required: true
+    description: Declares units for every exported expression and downstream reader expectations.
+  artifacts:
+  - path: export_manifest.json
+    role: export quantity and dataset contract
+    required: true
+  - path: probes.csv
+    role: canonical probe table contract
+    required: true
+  - path: units.json
+    role: exported-unit contract
+    required: true
+  handoff_contract:
+  - every exported quantity must have expression, unit, dataset or location, and physical meaning
+  - finite-value validation must remain separate from solver success
+  - downstream Python/registry readers must consume CSV and JSON artifacts without COMSOL APIs
+outputs:
+  output_dir: _results/comsol/result_extraction_postprocess_validation/static_contract
+  expected_outputs:
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_object_roles:
+  - export_manifest
+  - probe_table
+  - unit_manifest
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - contract
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no COMSOL result extraction runtime, finite probe value, field export, or table export is executed
+  - no solver success, physics correctness, official replay, downstream analysis result, or benchmark validation is claimed

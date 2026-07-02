@@ -1,0 +1,75 @@
+capability_id: multiphysics.comsol.geometry_mesh_import_contract
+asset_id: C03_geometry_mesh_import_contract
+case_id: static_contract
+description: COMSOL C03 static geometry, mesh, import, and selection-map contract skeleton.
+depends_on:
+- multiphysics.comsol.model_construction_api_contract
+backend:
+  type: dry_run_only
+  timeout_s: 60
+contract:
+  stage: geometry_mesh_import_contract
+  scope: COMSOL C03 static-readiness validates geometry, mesh, import-source, and named-selection handoff semantics only; no CAD import, mesh generation runtime, physics assignment, solver execution, or benchmark validation is claimed.
+  source_boundary: Consumes C02 model-tree tags or future official model sources after they are recorded as manifests.
+  declared_objects:
+  - name: geometry_manifest
+    role: geometry_manifest
+    required: true
+    description: Declares geometry source family, dimensions, entity role inventory, and source case linkage.
+  - name: mesh_manifest
+    role: mesh_manifest
+    required: true
+    description: Declares mesh-size policy and mesh object expectations without claiming generated mesh quality.
+  - name: selection_map
+    role: selection_map
+    required: true
+    description: Declares named selections and downstream boundary-role mapping.
+  artifacts:
+  - path: geometry_manifest.json
+    role: geometry source and entity contract
+    required: true
+  - path: mesh_manifest.json
+    role: mesh policy contract
+    required: true
+  - path: selection_map.json
+    role: named selection and boundary-role handoff
+    required: true
+  handoff_contract:
+  - geometry source must be identified before physics assignment
+  - named selections must preserve role names for C04 boundary assignment
+  - mesh readiness must remain separate from mesh-quality or solver evidence
+outputs:
+  output_dir: _results/comsol/geometry_mesh_import_contract/static_contract
+  expected_outputs:
+  - geometry_manifest.json
+  - mesh_manifest.json
+  - selection_map.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: static-readiness
+  required_object_roles:
+  - geometry_manifest
+  - mesh_manifest
+  - selection_map
+  required_manifest_sections:
+  - source_config
+  - schema_id
+  - backend
+  - contract
+  - generated_files
+  - expected_outputs
+  - validation_targets
+  required_artifacts:
+  - geometry_manifest.json
+  - mesh_manifest.json
+  - selection_map.json
+  - manifest.json
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  no_claims:
+  - no COMSOL CAD import or mesh generation runtime is executed
+  - no mesh-quality, physics assignment, solver convergence, result extraction, official replay, or benchmark validation is claimed
