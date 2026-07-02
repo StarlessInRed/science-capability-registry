@@ -54,8 +54,8 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     catalog = load_catalog()
     _validate_json(catalog, Path("schemas/capability_registry.schema.json"))
 
-    assert len(catalog["capabilities"]) == 20
-    assert len(catalog_entries_by_id(catalog)) == 20
+    assert len(catalog["capabilities"]) == 21
+    assert len(catalog_entries_by_id(catalog)) == 21
     for entry in catalog["capabilities"]:
         assert repo_path(entry["asset_path"]).exists()
 
@@ -67,6 +67,7 @@ def test_capability_catalog_validates_and_covers_package_backed_assets() -> None
     assert "software/gmsh/assets/C04_cad_import_geometry_healing.yaml" in catalog_asset_paths
     assert "software/gmsh/assets/C05_boundary_layer_size_field_meshing.yaml" in catalog_asset_paths
     assert "software/gmsh/assets/C06_multi_solver_mesh_export_contract.yaml" in catalog_asset_paths
+    assert "software/fluent/assets/C01_steady_internal_flow_runtime.yaml" in catalog_asset_paths
 
 
 def test_capability_catalog_entries_match_asset_cards_and_configs() -> None:

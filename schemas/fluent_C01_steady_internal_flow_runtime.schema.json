@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/fluent_C01_steady_internal_flow_runtime.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: Fluent C01 steady internal-flow runtime smoke config.",
+  "title": "Fluent C01 Steady Internal Flow Runtime Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "case_id",
+    "description",
+    "fluent",
+    "backend",
+    "source_case",
+    "solver",
+    "reports",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "cfd.fluent.steady_internal_flow_runtime"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "fluent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_profile",
+        "runtime_profile_config",
+        "executable_env",
+        "version_family",
+        "dimension_precision",
+        "processor_count",
+        "headless_flags",
+        "journal_argument"
+      ],
+      "properties": {
+        "runtime_profile": {"const": "local_fluent_preflight"},
+        "runtime_profile_config": {"type": "string", "minLength": 1},
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "version_family": {"type": "string", "minLength": 1},
+        "dimension_precision": {"enum": ["2d", "2ddp", "3d", "3ddp"]},
+        "processor_count": {"type": "integer", "minimum": 1, "maximum": 4},
+        "headless_flags": {
+          "type": "array",
+          "items": {"enum": ["-g"]},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "journal_argument": {"const": "-i"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "fluent_batch"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "source_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_root_env",
+        "case_rel_path",
+        "source_role",
+        "case_format",
+        "expected_case_dimension"
+      ],
+      "properties": {
+        "source_root_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "case_rel_path": {"type": "string", "pattern": "^[A-Za-z0-9_./-]+\\.cas$"},
+        "source_role": {"enum": ["legacy_standalone_runtime_seed", "official_tutorial_runtime_seed"]},
+        "case_format": {"enum": ["legacy_case_data_pair", "case_h5", "mesh_only"]},
+        "expected_case_dimension": {"enum": [2, 3]}
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iteration_count", "deactivate_invalid_report_clients", "write_case_data"],
+      "properties": {
+        "iteration_count": {"type": "integer", "minimum": 1, "maximum": 20},
+        "deactivate_invalid_report_clients": {"type": "boolean"},
+        "write_case_data": {"type": "boolean"}
+      }
+    },
+    "reports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mass_flow", "pressure_drop"],
+      "properties": {
+        "mass_flow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "inlet_zones", "outlet_zones"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "inlet_zones": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+            "outlet_zones": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true}
+          }
+        },
+        "pressure_drop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "reason"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "reason": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "expected_outputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "manifest.json",
+              "journal.jou",
+              "stdout.txt",
+              "stderr.txt",
+              "transcript.txt",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "require_case_read",
+        "require_data_read",
+        "require_iteration",
+        "require_mass_flow_report",
+        "require_written_case_data",
+        "max_residual_threshold",
+        "max_mass_imbalance_fraction",
+        "required_artifacts",
+        "allowed_warning_markers"
+      ],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke"]},
+        "require_case_read": {"type": "boolean"},
+        "require_data_read": {"type": "boolean"},
+        "require_iteration": {"type": "boolean"},
+        "require_mass_flow_report": {"type": "boolean"},
+        "require_written_case_data": {"type": "boolean"},
+        "max_residual_threshold": {"type": "number", "exclusiveMinimum": 0},
+        "max_mass_imbalance_fraction": {"type": "number", "exclusiveMinimum": 0},
+        "required_artifacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "manifest.json",
+              "journal.jou",
+              "stdout.txt",
+              "stderr.txt",
+              "transcript.txt",
+              "metrics.json",
+              "validation.json",
+              "validation_report.md"
+            ]
+          },
+          "minItems": 5,
+          "uniqueItems": true
+        },
+        "allowed_warning_markers": {
+          "type": "array",
+          "items": {"enum": ["legacy_report_client_path_missing", "legacy_case_version_upgrade_note"]},
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

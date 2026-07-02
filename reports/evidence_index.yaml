@@ -1281,3 +1281,24 @@ evidence:
   limitations:
   - Static-readiness evidence only; Fluent is not launched and no license checkout, tutorial replay, or solver metrics are claimed.
   - Benchmark promotion remains blocked until C01 smoke and later per-seed runtime/reference evidence exist.
+- evidence_id: fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02
+  capability_id: cfd.fluent.steady_internal_flow_runtime
+  asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
+  evidence_kind: runtime_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/fluent_C01_steady_internal_flow_runtime_local_v251_elbow_smoke_2026-07-02.md
+  supporting_paths:
+  - configs/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke.yaml
+  - schemas/fluent_C01_steady_internal_flow_runtime.schema.json
+  - src/science_capability_registry/fluent/steady_internal_flow_runtime/runner.py
+  - src/science_capability_registry/fluent/steady_internal_flow_runtime/validation.py
+  - tests/test_fluent_c01_schema.py
+  - tests/test_fluent_c01_runner.py
+  - tests/test_fluent_c01_validation.py
+  runtime_evidence_paths:
+  - _results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/
+  scope: Local Fluent 2025 R1/v251 C01 headless batch smoke reads legacy elbow case/data, runs a bounded iteration, parses residuals and mass-flow balance, and writes case/data artifacts.
+  limitations:
+  - Runtime smoke only; pressure-drop validation, verification-manual benchmark validation, and official 2025 R1 tutorial replay remain future work.
+  - Executable and tutorial source paths are injected through local environment variables and are not committed as portable config values.

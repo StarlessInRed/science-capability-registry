@@ -35,7 +35,7 @@ seed_cases:
 - seed_id: C01
   asset_path: software/fluent/assets/C01_steady_internal_flow_runtime.yaml
   capability_slug: steady_internal_flow_runtime
-  benchmark_status: benchmark_candidate
+  benchmark_status: package_skeleton_created
   problem_definition: Steady internal flow runtime baseline for Fluent batch, journal, residual, mass-balance, and report export.
   governing_model: Pressure-based steady internal CFD with configurable incompressible or weakly compressible settings.
   boundary_conditions:

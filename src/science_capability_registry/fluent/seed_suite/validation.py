@@ -86,11 +86,12 @@ def validate_seed_suite(config: dict[str, Any]) -> dict[str, Any]:
         f"declared={sorted(declared_ids)}, required={sorted(required_ids)}",
     )
     _check(checks, "seed_cases.unique_ids", not duplicate_ids, f"duplicates={duplicate_ids}")
+    allowed_statuses = {"benchmark_candidate", "package_skeleton_created"}
     _check(
         checks,
         "seed_cases.benchmark_status",
-        all(seed.benchmark_status == "benchmark_candidate" for seed in seeds),
-        "all seeds must remain benchmark_candidate at static-readiness",
+        all(seed.benchmark_status in allowed_statuses for seed in seeds),
+        f"allowed={sorted(allowed_statuses)}",
     )
     _check(
         checks,

@@ -16,7 +16,7 @@
 
 | 编号 | capability slug | 首批角色 | 首选来源 | 验证重点 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| C01 | `steady_internal_flow_runtime` | 最小 Fluent batch/runtime 基线 | `Fluent_tutorial_case/ch07/elbow` 或 `nozzle` | case/data 读取、残差、质量守恒、压降、report export | `benchmark_candidate` |
+| C01 | `steady_internal_flow_runtime` | 最小 Fluent batch/runtime 基线 | `Fluent_tutorial_case/ch07/elbow` 或 `nozzle` | case/data 读取、残差、质量守恒、压降、report export | `runtime_smoke_passed` |
 | C02 | `verification_reference_validation` | verification/manual reference gate | `ansys_fluid_dynamics_verification_manual.pdf` | 解析/实验/reference 误差、量纲一致性、同构性声明 | `benchmark_candidate` |
 | C03 | `mesh_convergence_trend` | 网格/迭代/参数扰动趋势 | `fluent_adaptation.zip` 或 C01 派生网格扰动 | residual trend、mesh adaptation、网格敏感性 | `benchmark_candidate` |
 | C04 | `external_aero_force_coefficients` | 外流气动和力系数 | `fluent_aero_tutorial.zip`，含 reference CSV | Cd/Cl/Cp、AoA 或截面压力趋势、reference-data 对齐 | `benchmark_candidate` |
@@ -33,6 +33,18 @@
 - 每个 seed 都保留 `benchmark_candidate`，不把 tutorial replay 或本地 dry-run 提升为数值验证。
 - 每个 seed 都有 `self_generated`、`official_replay`、`comparison` 三条后续学习路径。
 - runtime profile 只记录可配置边界；本机 executable 路径必须通过本地环境变量或被忽略的 machine profile 注入。
+
+## C01 runtime smoke
+
+C01 已新增 `configs/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke.yaml`、`schemas/fluent_C01_steady_internal_flow_runtime.schema.json` 与 `src/science_capability_registry/fluent/steady_internal_flow_runtime/`。本机 Fluent 2025 R1/v251 已完成一次 headless batch smoke：
+
+- 读取 legacy `ch07/elbow` case/data。
+- 使用 `2ddp -g -t1` 执行 bounded iteration。
+- 对旧 case 中失效的 report-client 路径显式回答 deactivate。
+- 解析 residual 与 mass-flow report，质量不平衡分数为 `7.48734375254824e-06`。
+- 写出 case/data runtime artifact 到 `_results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke/`。
+
+该证据只证明 C01 runtime envelope 和 transcript parser；不声明 pressure-drop validation、verification-manual benchmark validation 或 mesh/refinement benchmark。
 
 ## 自生成 vs 官方 replay 学习闭环
 

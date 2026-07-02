@@ -18,7 +18,7 @@
 
 | C | asset path | primary candidates | replay role | next gate |
 | --- | --- | --- | --- | --- |
-| C01 | `software/fluent/assets/C01_steady_internal_flow_runtime.yaml` | legacy `ch07/elbow`, `ch07/nozzle`; tutorial `introduction.zip` if DSCO workflow is supported | compare self-generated journal with direct legacy case replay | Fluent batch smoke |
+| C01 | `software/fluent/assets/C01_steady_internal_flow_runtime.yaml` | legacy `ch07/elbow`, `ch07/nozzle`; tutorial `introduction.zip` if DSCO workflow is supported | compare self-generated journal with direct legacy case replay | runtime smoke passed; pressure-drop parser pending |
 | C02 | `software/fluent/assets/C02_verification_reference_validation.yaml` | verification manual reference cases | compare self-generated case against analytical/reference values | reference extraction and case selection |
 | C03 | `software/fluent/assets/C03_mesh_convergence_trend.yaml` | `fluent_adaptation.zip`, C01 perturbation | compare residual/field trend across mesh or adaptation changes | targeted-regression |
 | C04 | `software/fluent/assets/C04_external_aero_force_coefficients.yaml` | `fluent_aero_tutorial.zip`, `sedan_2m.zip` | compare Cd/Cl/Cp and reference CSV where available | force/Cp smoke |
@@ -34,6 +34,7 @@
 | Fluent C01-C08 seed suite | `configs/fluent/seed_suite/c01_c08_static_readiness.yaml` | Holds the first 8 seed cases, required source roles, self-generated/replay/comparison modes, and static validation targets. | `static-readiness` |
 | Fluent seed suite schema | `schemas/fluent_seed_suite.schema.json` | Rejects missing/unknown fields and requires exactly C01-C08 benchmark-candidate seeds. | active |
 | Fluent seed suite dry-run package | `src/science_capability_registry/fluent/seed_suite/` | Generates `seed_suite_manifest.json`, `seed_cases.json`, `metrics.json`, `validation.json`, and `validation_report.md` without launching Fluent. | active |
+| Fluent C01 runtime package | `src/science_capability_registry/fluent/steady_internal_flow_runtime/` | Runs the legacy elbow case in Fluent batch mode, parses residuals and mass-flow balance, and writes smoke evidence. | `runtime_smoke_passed` |
 
 ## Intake Rules
 

@@ -36,7 +36,8 @@ def test_fluent_c01_c08_capability_map_links_assets_and_seed_suite() -> None:
         asset = _read_yaml(ROOT / asset_path)
         assert asset["software"] == "Fluent"
         assert asset["card_status"] == "review"
-        assert asset["benchmark_status"] == "benchmark_candidate"
+        expected_status = "package_skeleton_created" if c_id == "C01" else "benchmark_candidate"
+        assert asset["benchmark_status"] == expected_status
         assert asset_path in index_text
         assert c_id in map_text
 
@@ -51,9 +52,15 @@ def test_fluent_capability_map_evidence_entries_resolve() -> None:
     for evidence_id in [
         "fluent_C01_C08_source_intake_2026-07-02",
         "fluent_C01_C08_seed_suite_static_readiness_2026-07-02",
+        "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02",
     ]:
         evidence = evidence_by_id[evidence_id]
-        assert evidence["asset_path"] == MAP_PATH.as_posix()
+        expected_asset_path = (
+            "software/fluent/assets/C01_steady_internal_flow_runtime.yaml"
+            if evidence_id == "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02"
+            else MAP_PATH.as_posix()
+        )
+        assert evidence["asset_path"] == expected_asset_path
         assert Path(evidence["primary_evidence_path"]).exists()
         for path in evidence["supporting_paths"]:
             assert Path(path).exists(), path

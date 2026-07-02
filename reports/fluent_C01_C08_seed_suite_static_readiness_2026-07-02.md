@@ -9,7 +9,7 @@
 ## 覆盖范围
 
 - exactly 8 个 seed：C01-C08。
-- 每个 seed 均为 `benchmark_candidate`，不声明数值 benchmark 已验证。
+- C01 已提升为 `package_skeleton_created` 并另有 runtime smoke evidence；C02-C08 仍为 `benchmark_candidate`。
 - 每个 seed 均声明 problem definition、governing model、BC/IC、mesh/discretization、solver setup、input/output、benchmark source、validation criteria、perturbation axes、risks。
 - 学习闭环固定为 `self_generated`、`official_replay`、`comparison`。
 - dry-run 生成 `seed_suite_manifest.json`、`seed_cases.json`、`metrics.json`、`validation.json`、`validation_report.md`。

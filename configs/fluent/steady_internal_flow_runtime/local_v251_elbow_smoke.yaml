@@ -1,0 +1,69 @@
+capability_id: cfd.fluent.steady_internal_flow_runtime
+case_id: local_v251_elbow_smoke
+description: Fluent C01 local batch smoke using the legacy ch07 elbow case as a small standalone runtime seed.
+fluent:
+  runtime_profile: local_fluent_preflight
+  runtime_profile_config: configs/fluent/runtime_profiles/local_fluent_preflight.yaml
+  executable_env: FLUENT_EXE
+  version_family: 2025_R1
+  dimension_precision: 2ddp
+  processor_count: 1
+  headless_flags:
+  - -g
+  journal_argument: -i
+backend:
+  type: fluent_batch
+  timeout_s: 180
+source_case:
+  source_root_env: FLUENT_TUTORIAL_ROOT
+  case_rel_path: Fluent_tutorial_case/ch07/elbow/elbow.cas
+  source_role: legacy_standalone_runtime_seed
+  case_format: legacy_case_data_pair
+  expected_case_dimension: 2
+solver:
+  iteration_count: 1
+  deactivate_invalid_report_clients: true
+  write_case_data: true
+reports:
+  mass_flow:
+    enabled: true
+    inlet_zones:
+    - velocity-inlet-5
+    - velocity-inlet-6
+    outlet_zones:
+    - pressure-outlet-7
+  pressure_drop:
+    enabled: false
+    reason: Fluent HDF5 boundary pressure extraction is intentionally deferred beyond the first C01 smoke.
+outputs:
+  output_dir: _results/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke
+  expected_outputs:
+  - manifest.json
+  - journal.jou
+  - stdout.txt
+  - stderr.txt
+  - transcript.txt
+  - metrics.json
+  - validation.json
+  - validation_report.md
+validation:
+  gate: smoke
+  require_case_read: true
+  require_data_read: true
+  require_iteration: true
+  require_mass_flow_report: true
+  require_written_case_data: true
+  max_residual_threshold: 1.0e-2
+  max_mass_imbalance_fraction: 1.0e-3
+  required_artifacts:
+  - manifest.json
+  - journal.jou
+  - stdout.txt
+  - stderr.txt
+  - transcript.txt
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  allowed_warning_markers:
+  - legacy_report_client_path_missing
+  - legacy_case_version_upgrade_note

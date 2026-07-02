@@ -211,7 +211,7 @@
         "seed_id": {"enum": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08"]},
         "asset_path": {"type": "string", "pattern": "^software/fluent/assets/[A-Za-z0-9_/-]+\\.yaml$"},
         "capability_slug": {"type": "string", "pattern": "^[a-z0-9_]+$"},
-        "benchmark_status": {"const": "benchmark_candidate"},
+        "benchmark_status": {"enum": ["benchmark_candidate", "package_skeleton_created"]},
         "problem_definition": {"type": "string", "minLength": 1},
         "governing_model": {"type": "string", "minLength": 1},
         "boundary_conditions": {"$ref": "#/$defs/non_empty_string_array"},

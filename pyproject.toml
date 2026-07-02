@@ -41,6 +41,7 @@ science-openfoam-c06 = "science_capability_registry.openfoam.dam_break_vof_free_
 science-openfoam-c06-benchmark = "science_capability_registry.openfoam.dam_break_vof_free_surface.benchmark:main"
 science-openfoam-c07 = "science_capability_registry.openfoam.conjugate_heat_transfer_cooling.cli:main"
 science-openfoam-c08 = "science_capability_registry.openfoam.compressible_shock_capturing_forward_step.cli:main"
+science-fluent-c01 = "science_capability_registry.fluent.steady_internal_flow_runtime.cli:main"
 science-gmsh-c01 = "science_capability_registry.gmsh.parametric_geometry_mesh_generation.cli:main"
 science-capability = "science_capability_registry.registry.cli:main"
 

@@ -437,6 +437,35 @@
       "primary_evidence_id": "openfoam_C08_cfl_reduced_runtime_smoke_2026-07-01"
     },
     {
+      "capability_id": "cfd.fluent.steady_internal_flow_runtime",
+      "asset_id": "C01_steady_internal_flow_runtime",
+      "software": "Fluent",
+      "domain": "CFD",
+      "asset_path": "software/fluent/assets/C01_steady_internal_flow_runtime.yaml",
+      "run_schema_path": "schemas/fluent_C01_steady_internal_flow_runtime.schema.json",
+      "default_config_path": "configs/fluent/steady_internal_flow_runtime/local_v251_elbow_smoke.yaml",
+      "package_entrypoint": "science_capability_registry.fluent.steady_internal_flow_runtime:run",
+      "card_status": "review",
+      "benchmark_status": "package_skeleton_created",
+      "evidence_ids": [
+        "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02"
+      ],
+      "result_contract": {
+        "required_files": [
+          "manifest.json",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md"
+        ],
+        "report_file": "validation_report.md",
+        "runtime_evidence_index": "reports/evidence_index.yaml"
+      },
+      "runtime_profile_path": "configs/fluent/runtime_profiles/local_fluent_preflight.yaml",
+      "dispatch_status": "runtime_smoke_passed",
+      "current_gate": "smoke",
+      "primary_evidence_id": "fluent_C01_steady_internal_flow_runtime_smoke_2026-07-02"
+    },
+    {
       "capability_id": "meshing.gmsh.parametric_geometry_mesh_generation",
       "asset_id": "C01_parametric_geometry_mesh_generation",
       "software": "Gmsh",
