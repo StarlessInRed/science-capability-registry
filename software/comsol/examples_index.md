@@ -68,3 +68,19 @@ Secondary Heat Transfer candidates:
 - `Heat_Transfer_Module/Verification_Examples/semi_infinite_wall.mph`
 
 All paths are relative to `COMSOL_APPLICATION_LIBRARY_ROOT`. This index records candidate selection only; it does not claim official replay execution.
+
+## 2026-07-03 Official Replay Contract
+
+Shared replay configs:
+
+- `configs/comsol/application_library_replay/domain_activation_official_replay_smoke.yaml`
+- `configs/comsol/application_library_replay/pseudoperiodicity_official_replay_export_smoke.yaml`
+
+The first config targets the `domain_activation_llmatlab` official tutorial as the C03-C06 replay smoke. The second targets `pseudoperiodicity_llmatlab` as the richer C06 export/table replay candidate. Both remain env-rooted through `COMSOL_APPLICATION_LIBRARY_ROOT`.
+
+Runtime smoke reports:
+
+- `reports/comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03.md`
+- `reports/comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03.md`
+
+These reports prove official replay smoke only. They are not full tutorial parity or benchmark validation.

@@ -1879,3 +1879,163 @@ evidence:
   scope: Targeted negative regression proves C03-C06 validators reject missing selections, incomplete assignment, solver failure, nonfinite probes, and missing units without launching MATLAB/COMSOL.
   limitations:
   - Failure-localization tests only; no official replay, solver convergence, mesh quality, analytical field correctness, double-v, or benchmark validation is claimed.
+- evidence_id: comsol_C03_C06_application_library_replay_contract_2026-07-03
+  capability_id: multiphysics.comsol.application_library_replay
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: replay_contract
+  gate: static-readiness
+  status: passed
+  primary_evidence_path: reports/comsol_C03_C06_application_library_replay_candidates_2026-07-03.md
+  supporting_paths:
+  - schemas/comsol_application_library_replay.schema.json
+  - configs/comsol/application_library_replay/domain_activation_official_replay_smoke.yaml
+  - configs/comsol/application_library_replay/pseudoperiodicity_official_replay_export_smoke.yaml
+  - src/science_capability_registry/comsol/application_library_replay/
+  - tests/test_comsol_application_library_replay.py
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  runtime_evidence_paths: []
+  scope: COMSOL C03-C06 official Application Library replay contract and dry-run validator are package-backed.
+  limitations:
+  - Contract evidence only until a runtime report records successful MATLAB/COMSOL execution.
+  - Does not replace C03-C06 generated heat-rectangle primary smoke evidence.
+- evidence_id: comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03
+  capability_id: multiphysics.comsol.application_library_replay
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: official_replay_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03.md
+  supporting_paths:
+  - configs/comsol/application_library_replay/domain_activation_official_replay_smoke.yaml
+  - schemas/comsol_application_library_replay.schema.json
+  - src/science_capability_registry/comsol/application_library_replay/
+  - tests/test_comsol_application_library_replay.py
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  runtime_evidence_paths:
+  - _results/comsol/application_library_replay/domain_activation_official_replay_smoke/
+  scope: COMSOL C03-C06 official Application Library domain_activation LiveLink replay smoke passed with selection, physics, solver, dataset, probe, and unit artifacts.
+  limitations:
+  - One official replay smoke only; no full tutorial parity, analytical benchmark validation, double-v, or broader multiphysics correctness is claimed.
+  - Does not replace C03-C06 generated heat-rectangle primary smoke evidence without a separate promotion review.
+- evidence_id: comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03
+  capability_id: multiphysics.comsol.application_library_replay
+  asset_path: software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  evidence_kind: official_replay_smoke_report
+  gate: smoke
+  status: passed
+  primary_evidence_path: reports/comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03.md
+  supporting_paths:
+  - configs/comsol/application_library_replay/pseudoperiodicity_official_replay_export_smoke.yaml
+  - schemas/comsol_application_library_replay.schema.json
+  - src/science_capability_registry/comsol/application_library_replay/
+  - tests/test_comsol_application_library_replay.py
+  - software/comsol/assets/C06_result_extraction_postprocess_validation.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  runtime_evidence_paths:
+  - _results/comsol/application_library_replay/pseudoperiodicity_official_replay_export_smoke/
+  scope: COMSOL C06-oriented pseudoperiodicity official replay smoke passed with solver, finite table/probe export, and unit artifacts.
+  limitations:
+  - Export smoke only; no full pseudoperiodic tutorial parity, heat-transfer benchmark validation, double-v, or broader multiphysics correctness is claimed.
+  - Does not replace C06 generated heat-rectangle primary smoke evidence without a separate promotion review.
+- evidence_id: comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03
+  capability_id: multiphysics.comsol.analytical_heat_benchmark_policy
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: benchmark_policy_report
+  gate: static-readiness
+  status: indexed
+  primary_evidence_path: reports/comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03.md
+  supporting_paths:
+  - software/comsol/capability_map.md
+  - configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml
+  runtime_evidence_paths: []
+  scope: Policy for promoting COMSOL C05-C06 from generated smoke to analytical or official heat-transfer benchmark evidence.
+  limitations:
+  - Policy only; no analytical field validation or double-v evidence is claimed.
+- evidence_id: comsol_C01_C06_cross_profile_regression_boundary_2026-07-03
+  capability_id: multiphysics.comsol.cross_profile_regression_boundary
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: regression_boundary_report
+  gate: static-readiness
+  status: indexed
+  primary_evidence_path: reports/comsol_C01_C06_cross_profile_regression_2026-07-03.md
+  supporting_paths:
+  - software/comsol/capability_map.md
+  - configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  runtime_evidence_paths: []
+  scope: Defines the C01-C06 cross-profile regression matrix and evidence requirements.
+  limitations:
+  - Second runtime profile has not been executed; no cross-machine portability claim is made.
+- evidence_id: comsol_failure_ledger_2026-07-03
+  capability_id: multiphysics.comsol.failure_ledger
+  asset_path: software/comsol/capability_map.md
+  evidence_kind: failure_ledger
+  gate: targeted-regression
+  status: indexed
+  primary_evidence_path: reports/comsol_failure_ledger.yaml
+  supporting_paths:
+  - reports/comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03.md
+  - reports/comsol_C01_C06_cross_profile_regression_2026-07-03.md
+  - software/comsol/capability_map.md
+  runtime_evidence_paths: []
+  scope: COMSOL C01-C06 failure and gap ledger records official replay, analytical benchmark, and cross-profile boundaries.
+  limitations:
+  - Ledger is governance evidence; it does not add runtime or benchmark validation.
+- evidence_id: fluent_C02_C03_runtime_package_closure_2026-07-03
+  capability_id: cfd.fluent.c02_c03_runtime_package_closure
+  asset_path: software/fluent/capability_map.md
+  evidence_kind: runtime_package_closure_report
+  gate: smoke
+  status: indexed
+  primary_evidence_path: reports/fluent_C02_C03_runtime_package_closure_2026-07-03.md
+  supporting_paths:
+  - reports/fluent_C02_C08_runtime_smoke_closure_2026-07-02.md
+  - software/fluent/capability_map.md
+  - software/fluent/examples_index.md
+  - software/fluent/assets/C02_verification_reference_validation.yaml
+  - software/fluent/assets/C03_mesh_convergence_trend.yaml
+  - tests/test_fluent_capability_map.py
+  runtime_evidence_paths:
+  - _results/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke/
+  - _results/fluent/mesh_convergence_trend/c02_pressure_drop_refinement_runtime_smoke/
+  scope: Fluent C02 pressure-sampling smoke and C03 three-level runtime trend are the current package boundary.
+  limitations:
+  - No C02 benchmark homology, official VMFL005 payload parity, C03 official adaptation replay, or analytical convergence proof is claimed.
+- evidence_id: four_repo_consumption_boundary_2026-07-03
+  capability_id: registry.four_repo_consumption_boundary
+  asset_path: configs/registry/capability_catalog.json
+  evidence_kind: integration_boundary_report
+  gate: static-readiness
+  status: indexed
+  primary_evidence_path: reports/four_repo_consumption_boundary_2026-07-03.md
+  supporting_paths:
+  - configs/registry/capability_catalog.json
+  - schemas/capability_registry.schema.json
+  - reports/evidence_index.yaml
+  runtime_evidence_paths: []
+  scope: Defines how science-capability-registry should be consumed by science-intelligence-gateway, agent-workflow-registry, and Sci_AI_OS.
+  limitations:
+  - Boundary report only; no cross-repo code or config changes are performed.
+- evidence_id: comsol_fluent_four_repo_task_closure_2026-07-03
+  capability_id: registry.task_closure.comsol_fluent_four_repo
+  asset_path: reports/comsol_fluent_four_repo_task_closure_2026-07-03.md
+  evidence_kind: task_closure_report
+  gate: static-readiness
+  status: indexed
+  primary_evidence_path: reports/comsol_fluent_four_repo_task_closure_2026-07-03.md
+  supporting_paths:
+  - reports/comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03.md
+  - reports/comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03.md
+  - reports/comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03.md
+  - reports/comsol_C01_C06_cross_profile_regression_2026-07-03.md
+  - reports/comsol_failure_ledger.yaml
+  - reports/fluent_C02_C03_runtime_package_closure_2026-07-03.md
+  - reports/four_repo_consumption_boundary_2026-07-03.md
+  runtime_evidence_paths:
+  - _results/comsol/application_library_replay/domain_activation_official_replay_smoke/
+  - _results/comsol/application_library_replay/pseudoperiodicity_official_replay_export_smoke/
+  scope: Ten-task closure summary for COMSOL official replay, COMSOL benchmark/cross-profile/failure boundaries, Fluent source/runtime route, and four-repo consumption.
+  limitations:
+  - Summary evidence only; benchmark promotions and cross-repo implementations remain separate reviews.

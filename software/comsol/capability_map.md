@@ -140,3 +140,27 @@ C03-C06 negative validation is also covered by targeted tests:
 - `tests/test_comsol_c03_c06_validation.py`
 
 This closes the immediate candidate-selection and bad-artifact rejection gates. It still does not claim official `.mph` replay, analytical benchmark validation, double-v, or broader multiphysics correctness.
+
+## 2026-07-03 Official Replay And Benchmark Policies
+
+Official replay now has a shared package contract:
+
+- `schemas/comsol_application_library_replay.schema.json`
+- `configs/comsol/application_library_replay/domain_activation_official_replay_smoke.yaml`
+- `configs/comsol/application_library_replay/pseudoperiodicity_official_replay_export_smoke.yaml`
+- `src/science_capability_registry/comsol/application_library_replay/`
+
+Analytical heat benchmark policy and cross-profile boundary are recorded in:
+
+- `reports/comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03.md`
+- `reports/comsol_C01_C06_cross_profile_regression_2026-07-03.md`
+- `reports/comsol_failure_ledger.yaml`
+
+These are support evidence. They do not replace the generated heat-rectangle primary smoke evidence for C03-C06.
+
+The first two official replay runtime smokes also passed locally:
+
+- `reports/comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03.md`
+- `reports/comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03.md`
+
+This moves the next COMSOL work from "can we run an official replay?" to "which official replay evidence is strong enough for promotion review?" The answer is still not benchmark validation: the current smokes prove source opening, selection/assignment handoff, solver execution, dataset/probe/unit export, and artifact completeness.

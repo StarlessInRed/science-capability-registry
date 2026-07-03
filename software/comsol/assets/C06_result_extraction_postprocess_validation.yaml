@@ -36,7 +36,7 @@ benchmark:
   source_name: Solved C05 model result export
   source_type: downstream consumability benchmark
   benchmark_role: Candidate benchmark for registry-facing COMSOL result handoff.
-  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for finite temperature probe export and units handoff; official replay, double-v, broader multiphysics correctness, and benchmark validation are not claimed.
+  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for finite temperature probe export and units handoff; domain_activation and pseudoperiodicity official replay smokes now add supporting scalar/table export evidence. Full tutorial parity, double-v, broader multiphysics correctness, and benchmark validation are not claimed.
 validation_criteria:
 - Every exported quantity must include expression, unit, location or dataset, and physical meaning.
 - Validation must reject NaN-only outputs, missing units, and mismatched probe counts.

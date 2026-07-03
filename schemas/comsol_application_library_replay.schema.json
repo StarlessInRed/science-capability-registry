@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://science-capability-registry.local/schemas/comsol_application_library_replay.schema.json",
+  "$comment": "Owner: science-capability-registry maintainers; boundary: COMSOL official Application Library replay smoke contract for C03-C06 without changing per-capability primary evidence.",
+  "title": "COMSOL Application Library Replay Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_id",
+    "asset_id",
+    "case_id",
+    "description",
+    "covers_capabilities",
+    "comsol",
+    "matlab",
+    "livelink",
+    "server",
+    "application_library",
+    "backend",
+    "replay",
+    "outputs",
+    "validation"
+  ],
+  "properties": {
+    "capability_id": {"const": "multiphysics.comsol.application_library_replay"},
+    "asset_id": {"const": "C03_C06_application_library_replay"},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "covers_capabilities": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "C03_geometry_mesh_import_contract",
+          "C04_physics_boundary_assignment_contract",
+          "C05_study_run_solver_smoke",
+          "C06_result_extraction_postprocess_validation"
+        ]
+      },
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true
+    },
+    "comsol": {"$ref": "#/$defs/comsol"},
+    "matlab": {"$ref": "#/$defs/matlab"},
+    "livelink": {"$ref": "#/$defs/livelink"},
+    "server": {"$ref": "#/$defs/server"},
+    "application_library": {"$ref": "#/$defs/application_library"},
+    "backend": {"$ref": "#/$defs/backend"},
+    "replay": {"$ref": "#/$defs/replay"},
+    "outputs": {"$ref": "#/$defs/outputs"},
+    "validation": {"$ref": "#/$defs/validation"}
+  },
+  "$defs": {
+    "comsol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_profile", "runtime_profile_config", "command_env", "mphserver_env", "version_family"],
+      "properties": {
+        "runtime_profile": {"type": "string", "minLength": 1},
+        "runtime_profile_config": {"type": "string", "pattern": "^configs/comsol/runtime_profiles/[A-Za-z0-9_./-]+\\.yaml$"},
+        "command_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "mphserver_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "version_family": {"type": "string", "minLength": 1}
+      }
+    },
+    "matlab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable_env", "batch_argument"],
+      "properties": {
+        "executable_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "batch_argument": {"enum": ["-batch"]}
+      }
+    },
+    "livelink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mli_dir_env", "required_matlab_functions"],
+      "properties": {
+        "mli_dir_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "required_matlab_functions": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host_env", "port_env", "connection_mode"],
+      "properties": {
+        "host_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "port_env": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "connection_mode": {"enum": ["local_or_server"]}
+      }
+    },
+    "application_library": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root_env", "path_policy", "candidate_config"],
+      "properties": {
+        "root_env": {"const": "COMSOL_APPLICATION_LIBRARY_ROOT"},
+        "path_policy": {"const": "env_rooted_relative_paths_only"},
+        "candidate_config": {"type": "string", "pattern": "^configs/comsol/application_library_replay_candidates/[A-Za-z0-9_./-]+\\.yaml$"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timeout_s"],
+      "properties": {
+        "type": {"enum": ["dry_run_only", "matlab_livelink_application_library_replay_smoke"]},
+        "timeout_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "source_name", "source_type", "script_filename", "source_script", "model_file", "relative_workdir", "expected_tags", "actions", "expected_outputs"],
+      "properties": {
+        "candidate_id": {"enum": ["livelink_domain_activation", "livelink_pseudoperiodicity"]},
+        "source_name": {"type": "string", "minLength": 1},
+        "source_type": {"enum": ["official_application_library_livelink_matlab_tutorial"]},
+        "script_filename": {"type": "string", "pattern": "^matlab_[A-Za-z0-9_]+_official_replay\\.m$"},
+        "source_script": {"type": "string", "pattern": "^[A-Za-z0-9_./,-]+\\.m$"},
+        "model_file": {"type": "string", "pattern": "^[A-Za-z0-9_./,-]+\\.mph$"},
+        "relative_workdir": {"type": "string", "pattern": "^[A-Za-z0-9_./,-]+$"},
+        "expected_tags": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "physics", "study", "selection"],
+          "properties": {
+            "component": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+            "physics": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+            "study": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+            "selection": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"}
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {"enum": ["open_official_model", "mutate_selection_or_boundary", "run_one_study", "extract_scalar_or_table", "write_canonical_artifacts"]},
+          "minItems": 5,
+          "uniqueItems": true
+        },
+        "expected_outputs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 4,
+          "uniqueItems": true
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_dir", "expected_outputs"],
+      "properties": {
+        "output_dir": {"type": "string", "pattern": "^_results/comsol/application_library_replay/[A-Za-z0-9_./-]+$"},
+        "expected_outputs": {"$ref": "#/$defs/expected_outputs"}
+      }
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "source_manifest.json",
+          "selection_map.json",
+          "physics_assignment_manifest.json",
+          "boundary_assignment_manifest.json",
+          "solver_manifest.json",
+          "dataset_manifest.json",
+          "export_manifest.json",
+          "probes.csv",
+          "units.json",
+          "stdout.txt",
+          "stderr.txt",
+          "metrics.json",
+          "validation.json",
+          "validation_report.md",
+          "manifest.json",
+          "matlab_domain_activation_official_replay.m",
+          "matlab_pseudoperiodicity_official_replay.m"
+        ]
+      },
+      "minItems": 12,
+      "uniqueItems": true
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "required_environment", "optional_environment", "require_path_exists", "require_matlab_execution", "required_artifacts", "no_claims"],
+      "properties": {
+        "gate": {"enum": ["static-readiness", "smoke"]},
+        "required_environment": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z0-9_]+$"}, "minItems": 1, "uniqueItems": true},
+        "optional_environment": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z0-9_]+$"}, "uniqueItems": true},
+        "require_path_exists": {"type": "boolean"},
+        "require_matlab_execution": {"type": "boolean"},
+        "required_artifacts": {"$ref": "#/$defs/expected_outputs"},
+        "no_claims": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+      }
+    }
+  }
+}

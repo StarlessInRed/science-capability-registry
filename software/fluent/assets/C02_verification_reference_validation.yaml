@@ -44,11 +44,12 @@ benchmark:
   source_name: Ansys Fluid Dynamics Verification Manual
   source_type: verification manual
   benchmark_role: VMFL005 Poiseuille pipe pressure-drop reference for future self-generated Fluent benchmark promotion.
-  status_rationale: Verification source and formula target are mapped; a self-generated VMFL005 mesh-readability smoke passed locally, but pressure-drop solve and mesh-trend closure are not yet benchmark validated.
+  status_rationale: Verification source and formula target are mapped; self-generated mesh-readability and pressure-sampling smoke have passed locally, but the current uniform-inlet pressure drop is not fully developed VMFL005 homology and remains outside benchmark validation.
 validation_criteria:
 - Reference geometry, boundary conditions, units, and sampling must be declared before numeric thresholds are applied.
 - Tutorial replay must not be promoted to benchmark without reference homology.
 - Validation must record error norms and unverified risks.
+- Runtime pressure sampling must keep the uniform-inlet homology gap explicit before benchmark promotion.
 integration_targets:
   workflow_stage: cfd.fluent.verification_reference_validation
   input_schema: schemas/fluent_C02_verification_reference_validation.schema.json
@@ -56,7 +57,7 @@ integration_targets:
   runtime_target: _results/fluent/verification_reference_validation/
 intern_deliverables:
 - Generate a self-contained VMFL005 axisymmetric pipe case from config.
-- Extract pressure drop from Fluent and compare it with the Hagen-Poiseuille target.
+- Extract pressure drop from Fluent and compare it with the Hagen-Poiseuille target while reporting inlet-profile homology gaps.
 - Add three mesh levels before benchmark validation.
 card_status: review
 benchmark_status: package_skeleton_created

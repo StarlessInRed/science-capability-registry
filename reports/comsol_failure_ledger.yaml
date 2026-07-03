@@ -1,0 +1,56 @@
+ledger_id: science_capability_registry.comsol_failure_ledger
+schema_version: 0.1.0
+index_role: failure_classification
+scope: COMSOL C01-C06 MATLAB/LiveLink driver
+created_on: '2026-07-03'
+source_policy:
+  canonical_sources:
+  - reports/evidence_index.yaml
+  - software/comsol/capability_map.md
+  - software/comsol/examples_index.md
+  - configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml
+  - configs/comsol/application_library_replay/
+  runtime_policy: Runtime outputs under _results are supporting evidence only and are not canonical assets.
+  status_policy: Generated-case smoke, official replay smoke, and benchmark validation are separate claims.
+entries:
+- failure_id: COMSOL-C03C06-G001-official-replay-candidate-not-runtime
+  cxx_group: C03-C06
+  capability_id: multiphysics.comsol.application_library_replay
+  asset_path: software/comsol/capability_map.md
+  state: official_replay_smoke_passed
+  failure_class: evidence_gap
+  gate_blocked: benchmark_promotion
+  summary: Official Application Library candidates were selected before a reusable replay runner existed; this risk is now mitigated by an env-rooted replay contract and two passed official replay smokes.
+  evidence_refs:
+  - evidence_id: comsol_C03_C06_application_library_replay_candidates_2026-07-03
+  - evidence_id: comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03
+  - evidence_id: comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03
+  do_not_claim:
+  - Official replay execution from candidate selection alone.
+  - Benchmark validation from .mph file existence.
+- failure_id: COMSOL-C05C06-G001-analytical-heat-reference-gap
+  cxx_group: C05-C06
+  capability_id: multiphysics.comsol.study_run_solver_smoke
+  asset_path: software/comsol/assets/C05_study_run_solver_smoke.yaml
+  state: policy_defined_runtime_pending
+  failure_class: reference_gap
+  gate_blocked: benchmark_validation
+  summary: Generated heat-rectangle smoke proves runner closure but not analytical or official heat-transfer benchmark correctness.
+  evidence_refs:
+  - evidence_id: comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03
+  do_not_claim:
+  - Analytical field validation.
+  - Double-v heat-transfer validation.
+- failure_id: COMSOL-C01C06-G001-cross-profile-not-run
+  cxx_group: C01-C06
+  capability_id: multiphysics.comsol.matlab_driver_capability_map
+  asset_path: software/comsol/capability_map.md
+  state: contract_defined_second_profile_pending
+  failure_class: runtime_profile_gap
+  gate_blocked: cross_profile_regression
+  summary: Current runtime smoke evidence is local to one MATLAB/COMSOL profile; another profile must replay the same configs before portability is claimed.
+  evidence_refs:
+  - evidence_id: comsol_C01_C06_cross_profile_regression_boundary_2026-07-03
+  do_not_claim:
+  - Cross-machine runtime portability.
+  - License/server robustness across hosts.

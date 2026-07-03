@@ -37,7 +37,7 @@ benchmark:
   source_name: C02/C03 generated model with explicit physics assignment
   source_type: generated contract source
   benchmark_role: Static gate before study execution.
-  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for material, physics, boundary, and unit assignment; solver convergence, official replay, double-v, and benchmark validation are not claimed.
+  status_rationale: Local MATLAB LiveLink generated-rectangle runtime smoke passed for material, physics, boundary, and unit assignment; the domain_activation official replay smoke now adds supporting physics/boundary handoff evidence. Solver convergence as a benchmark, full tutorial parity, double-v, and benchmark validation are not claimed.
 validation_criteria:
 - Every solver-facing boundary role must have a declared assignment or an explicit out-of-scope reason.
 - Validation must reject missing units, missing material assignments, and unknown physics tags.

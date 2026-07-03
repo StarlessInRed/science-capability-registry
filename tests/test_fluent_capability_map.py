@@ -62,6 +62,7 @@ def test_fluent_capability_map_evidence_entries_resolve() -> None:
         "fluent_C07_heat_transfer_energy_balance_case_data_static_2026-07-02": "software/fluent/assets/C07_heat_transfer_energy_balance.yaml",
         "fluent_C08_workbench_parameter_integration_wbpz_static_2026-07-02": "software/fluent/assets/C08_workbench_parameter_integration.yaml",
         "fluent_failure_ledger_2026-07-02": MAP_PATH.as_posix(),
+        "fluent_C02_C03_runtime_package_closure_2026-07-03": MAP_PATH.as_posix(),
     }
 
     for evidence_id, expected_asset_path in evidence_asset_paths.items():

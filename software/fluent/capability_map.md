@@ -50,13 +50,21 @@ C01 已通过 `configs/fluent/steady_internal_flow_runtime/local_v251_elbow_smok
 
 C02 选择 `VMFL005: Poiseuille Flow in a Pipe` 作为第一条 verification reference gate。当前配置复核 Hagen-Poiseuille 压降 `10.24 Pa`，记录手册 Fluent 结果 `10.22 Pa`，并明确当前 source library 未发现官方 `poiseuille-flow.cas` runnable payload。
 
-C02 runtime mesh smoke 使用 `configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml` 生成 VMFL005 2D axisymmetric half-domain mesh，并通过 Fluent 2025 R1/v251 `2ddp -g -t1` 执行 `mesh/check`。已观测 1280 cells、0 errors。该证据只关闭 mesh-readability blocker，不声明 pressure-drop solve，也不把 C02 升级为 benchmark validated。下一步需要完成 axisymmetric setup、fully developed inlet profile、inlet/outlet pressure sampling 与 mesh trend。
+C02 runtime mesh smoke 使用 `configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_mesh_smoke.yaml` 生成 VMFL005 2D axisymmetric half-domain mesh，并通过 Fluent 2025 R1/v251 `2ddp -g -t1` 执行 `mesh/check`。后续 pressure-solve smoke 使用 `configs/fluent/verification_reference_validation/vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml` 完成 axisymmetric laminar solve 和 inlet/outlet area-weighted pressure sampling，得到 uniform-inlet pressure-drop smoke。该证据关闭 pressure-sampling runtime blocker，但不声明 fully developed inlet homology、official VMFL005 payload parity 或 benchmark validation。
 
 ## C04 Reference CSV Parser
 
 C04 已形成 parser/static-readiness 层：`configs/fluent/external_aero_force_coefficients/fluent_aero_reference_csv_static.yaml`、`schemas/fluent_C04_external_aero_force_coefficients.schema.json` 和 `src/science_capability_registry/fluent/external_aero_force_coefficients/`。
 
 本地 source-package run 读取 `fluent_aero_tutorial.zip`，分类 9 个 archive entries，解析 3 个 reference CSV，并验证 ONERA lift curve trend 与两张 Cp section tables。该证据只关闭 reference-data intake，不声明 Fluent solver replay、Cd/Cl force-report extraction、Cp field comparison 或 mesh-independent aero benchmark validation。
+
+## C02-C03 Runtime Package Closure
+
+See `reports/fluent_C02_C03_runtime_package_closure_2026-07-03.md`.
+
+- C02 has a pressure-sampling smoke route through `vmfl005_poiseuille_pipe_pressure_solve_smoke.yaml`.
+- C03 has a three-level pressure-drop runtime trend through `c02_pressure_drop_refinement_runtime_smoke.yaml`.
+- These close runner/package readiness for C02/C03, not benchmark validation.
 
 ## C05 VOF Mesh/Setup Manifest
 

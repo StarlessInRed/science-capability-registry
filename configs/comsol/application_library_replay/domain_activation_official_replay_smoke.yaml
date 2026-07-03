@@ -1,0 +1,116 @@
+capability_id: multiphysics.comsol.application_library_replay
+asset_id: C03_C06_application_library_replay
+case_id: domain_activation_official_replay_smoke
+description: Official COMSOL Application Library smoke for C03-C06 using LiveLink domain activation as the first replay candidate.
+covers_capabilities:
+- C03_geometry_mesh_import_contract
+- C04_physics_boundary_assignment_contract
+- C05_study_run_solver_smoke
+- C06_result_extraction_postprocess_validation
+comsol:
+  runtime_profile: local_matlab_comsol_preflight
+  runtime_profile_config: configs/comsol/runtime_profiles/local_matlab_comsol_preflight.yaml
+  command_env: COMSOL_BIN
+  mphserver_env: COMSOL_MPHSERVER_BIN
+  version_family: "6.3"
+matlab:
+  executable_env: MATLAB_EXE
+  batch_argument: -batch
+livelink:
+  mli_dir_env: COMSOL_MLI_DIR
+  required_matlab_functions:
+  - mphopen
+  - mphstart
+  - mphglobal
+server:
+  host_env: COMSOL_SERVER_HOST
+  port_env: COMSOL_SERVER_PORT
+  connection_mode: local_or_server
+application_library:
+  root_env: COMSOL_APPLICATION_LIBRARY_ROOT
+  path_policy: env_rooted_relative_paths_only
+  candidate_config: configs/comsol/application_library_replay_candidates/c03_c06_official_candidates.yaml
+backend:
+  type: matlab_livelink_application_library_replay_smoke
+  timeout_s: 600
+replay:
+  candidate_id: livelink_domain_activation
+  source_name: Domain activation and deactivation
+  source_type: official_application_library_livelink_matlab_tutorial
+  script_filename: matlab_domain_activation_official_replay.m
+  source_script: LiveLink_for_MATLAB/Tutorials/domain_activation_llmatlab.m
+  model_file: LiveLink_for_MATLAB/Tutorials/domain_activation_llmatlab.mph
+  relative_workdir: LiveLink_for_MATLAB/Tutorials
+  expected_tags:
+    component: comp1
+    physics: ht
+    study: std1
+    selection: sel1
+  actions:
+  - open_official_model
+  - mutate_selection_or_boundary
+  - run_one_study
+  - extract_scalar_or_table
+  - write_canonical_artifacts
+  expected_outputs:
+  - selection_map.json
+  - physics_assignment_manifest.json
+  - boundary_assignment_manifest.json
+  - solver_manifest.json
+  - dataset_manifest.json
+  - export_manifest.json
+  - probes.csv
+  - units.json
+outputs:
+  output_dir: _results/comsol/application_library_replay/domain_activation_official_replay_smoke
+  expected_outputs:
+  - source_manifest.json
+  - selection_map.json
+  - physics_assignment_manifest.json
+  - boundary_assignment_manifest.json
+  - solver_manifest.json
+  - dataset_manifest.json
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - stdout.txt
+  - stderr.txt
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+  - matlab_domain_activation_official_replay.m
+validation:
+  gate: smoke
+  required_environment:
+  - MATLAB_EXE
+  - COMSOL_BIN
+  - COMSOL_MLI_DIR
+  - COMSOL_APPLICATION_LIBRARY_ROOT
+  optional_environment:
+  - COMSOL_MPHSERVER_BIN
+  - COMSOL_SERVER_HOST
+  - COMSOL_SERVER_PORT
+  require_path_exists: true
+  require_matlab_execution: true
+  required_artifacts:
+  - source_manifest.json
+  - selection_map.json
+  - physics_assignment_manifest.json
+  - boundary_assignment_manifest.json
+  - solver_manifest.json
+  - dataset_manifest.json
+  - export_manifest.json
+  - probes.csv
+  - units.json
+  - stdout.txt
+  - stderr.txt
+  - metrics.json
+  - validation.json
+  - validation_report.md
+  - manifest.json
+  - matlab_domain_activation_official_replay.m
+  no_claims:
+  - this is one official Application Library replay smoke, not full tutorial parity
+  - no analytical benchmark validation, double-v, or broader multiphysics correctness is claimed
+  - C03-C06 primary heat-rectangle smoke evidence remains unchanged until official replay is separately promoted

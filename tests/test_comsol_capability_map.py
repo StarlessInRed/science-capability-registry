@@ -34,6 +34,15 @@ COMSOL_TASKS = {
 COMSOL_EVIDENCE_ID = "comsol_C01_C06_matlab_driver_capability_map_2026-07-02"
 COMSOL_C03_C06_CANDIDATE_EVIDENCE_ID = "comsol_C03_C06_application_library_replay_candidates_2026-07-03"
 COMSOL_C03_C06_NEGATIVE_EVIDENCE_ID = "comsol_C03_C06_negative_validation_2026-07-03"
+COMSOL_SUPPORT_EVIDENCE_IDS = {
+    "comsol_C03_C06_application_library_replay_contract_2026-07-03",
+    "comsol_C03_C06_domain_activation_official_replay_smoke_2026-07-03",
+    "comsol_C06_pseudoperiodicity_official_replay_export_smoke_2026-07-03",
+    "comsol_C05_C06_analytical_heat_benchmark_policy_2026-07-03",
+    "comsol_C01_C06_cross_profile_regression_boundary_2026-07-03",
+    "comsol_failure_ledger_2026-07-03",
+    "comsol_fluent_four_repo_task_closure_2026-07-03",
+}
 CANDIDATE_CONFIG_PATH = ROOT / "configs" / "comsol" / "application_library_replay_candidates" / "c03_c06_official_candidates.yaml"
 
 
@@ -243,3 +252,19 @@ def test_comsol_c03_c06_candidate_and_negative_evidence_entries_resolve() -> Non
         assert Path(evidence["primary_evidence_path"]).exists()
         for path in evidence["supporting_paths"]:
             assert Path(path).exists(), path
+
+
+def test_comsol_support_evidence_entries_resolve_without_promotion() -> None:
+    evidence_index = _read_yaml(EVIDENCE_INDEX_PATH)
+    evidence_by_id = {
+        entry["evidence_id"]: entry for entry in evidence_index["evidence"]
+    }
+
+    for evidence_id in COMSOL_SUPPORT_EVIDENCE_IDS:
+        evidence = evidence_by_id[evidence_id]
+        assert Path(evidence["primary_evidence_path"]).exists()
+        for path in evidence["supporting_paths"]:
+            assert Path(path).exists(), path
+        text = yaml.safe_dump(evidence, sort_keys=True).lower()
+        assert "benchmark_validated" not in text
+        assert ("double" + "_v") not in text

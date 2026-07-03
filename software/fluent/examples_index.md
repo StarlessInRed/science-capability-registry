@@ -19,8 +19,8 @@
 | C | asset path | primary candidates | replay role | next gate |
 | --- | --- | --- | --- | --- |
 | C01 | `software/fluent/assets/C01_steady_internal_flow_runtime.yaml` | legacy `ch07/elbow`, `ch07/nozzle`; tutorial `introduction.zip` if DSCO workflow is supported | compare self-generated journal with direct legacy case replay | runtime smoke passed; pressure-drop parser pending |
-| C02 | `software/fluent/assets/C02_verification_reference_validation.yaml` | verification manual VMFL005 Poiseuille pipe | compare self-generated case against Hagen-Poiseuille pressure-drop target | static reference passed; self-generated mesh smoke passed; pressure-drop solve pending |
-| C03 | `software/fluent/assets/C03_mesh_convergence_trend.yaml` | `fluent_adaptation.zip`, C01 perturbation | compare residual/field trend across mesh or adaptation changes | targeted-regression |
+| C02 | `software/fluent/assets/C02_verification_reference_validation.yaml` | verification manual VMFL005 Poiseuille pipe | compare self-generated case against Hagen-Poiseuille pressure-drop target | static reference, mesh smoke, and pressure-sampling smoke passed; homology gap retained |
+| C03 | `software/fluent/assets/C03_mesh_convergence_trend.yaml` | `fluent_adaptation.zip`, C02 pressure-smoke mesh family | compare residual/field trend across mesh or adaptation changes | three-level self-generated runtime trend smoke passed; official adaptation replay pending |
 | C04 | `software/fluent/assets/C04_external_aero_force_coefficients.yaml` | `fluent_aero_tutorial.zip`, `sedan_2m.zip` | compare Cd/Cl/Cp and reference CSV where available | reference CSV parser passed; force/Cp smoke pending |
 | C05 | `software/fluent/assets/C05_vof_free_surface_transient.yaml` | `vof.zip`, legacy `ch10/dambreak`, tank flush cases | compare interface and volume-fraction evolution | mesh/setup source-readiness passed; transient VOF smoke pending |
 | C06 | `software/fluent/assets/C06_sliding_rotating_mesh.yaml` | `sliding_mesh.zip`, `single_rotating.zip` | compare rotating/sliding-zone setup and time history | mesh/setup source-readiness passed; moving mesh smoke pending |
@@ -57,3 +57,7 @@ The current Fluent pause boundary is recorded in `reports/fluent_C01_C08_pause_n
 - C01, C02, C03, C04, C05, C06, C07, and C08 all have first-batch evidence boundaries, but no seed is promoted to benchmark-complete validation.
 - C02, C03, C04, C05/C06, and C08 are the return-to-Fluent order when this asset family is resumed.
 - Future promotion must update `reports/fluent_failure_ledger.yaml`, this examples index, the relevant asset card, and the corresponding stable report before changing benchmark status.
+
+## 2026-07-03 C02-C03 Runtime Package Boundary
+
+`reports/fluent_C02_C03_runtime_package_closure_2026-07-03.md` records that C02 pressure-sampling smoke and C03 three-level runtime trend smoke are now the current package boundary. They are runtime smoke evidence only: C02 still lacks fully developed inlet homology and C03 still lacks official adaptation replay.

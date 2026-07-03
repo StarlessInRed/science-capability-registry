@@ -37,6 +37,7 @@ validation_criteria:
 - At least three mesh/adaptation levels must be represented before targeted-regression promotion.
 - Reports must explain expected physical or numerical trend.
 - Solver failure, mesh-quality failure, and parser failure must be classified separately.
+- Runtime trend smoke must distinguish self-generated mesh-family evidence from official adaptation replay.
 integration_targets:
   workflow_stage: cfd.fluent.mesh_convergence_trend
   runtime_target: _results/fluent/mesh_convergence_trend/
@@ -47,5 +48,6 @@ intern_deliverables:
 - Define refinement/adaptation config matrix.
 - Parse monitored quantities across levels.
 - Compare self-generated and tutorial replay trends.
+- Keep official `fluent_adaptation.zip` replay separate from the current C02-backed runtime trend smoke.
 card_status: review
 benchmark_status: benchmark_candidate
